@@ -3,7 +3,8 @@ import { redirect } from "next/navigation"
 import { Header } from "@/components/header"
 import { HandlePendingRecipe } from "@/components/handle-pending-recipe"
 import { HeroSection } from "@/components/hero-section"
-import { DashboardRecentRecipesClient } from "@/components/dashboard-recent-recipes-client"
+import { DashboardRecentRecipesServer } from "@/components/dashboard-recent-recipes-server"
+import { fetchRecentRecipes } from "@/lib/actions/recipe-fetch
 import { getOrCreateUserProfile } from "@/lib/actions/user"
 import { SidebarNav } from "@/components/sidebar-nav"
 
@@ -32,8 +33,14 @@ export default async function DashboardPage() {
     redirect("/")
   }
 
-  const userProfile = await getOrCreateUserProfile(user)
+  // 병렬로 사용자 프로필과 최근 레시피 조회
+  const [userProfile, recentRecipesResult] = await Promise.all([
+    getOrCreateUserProfile(user),
+    fetchRecentRecipes(user.id, 3)
+  ])
+
   const userName = userProfile.nickname
+  const recentRecipes = recentRecipesResult.recipes
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -58,7 +65,7 @@ export default async function DashboardPage() {
 
               <HeroSection user={user} isDashboard={true} />
 
-              <DashboardRecentRecipesClient userId={user.id} />
+              <DashboardRecentRecipesServer recipes={recentRecipes} />
             </section>
       </main>
       <footer className="border-t bg-background py-4 text-center text-sm text-muted-foreground">
