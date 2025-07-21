@@ -67,6 +67,3 @@ export const createClient = cache(() => {
     },
   })
 })
-
-// getSupabaseServerClient export 추가
-export const getSupabaseServerClient = createClient

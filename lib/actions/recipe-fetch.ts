@@ -137,32 +137,3 @@ export async function fetchRecentRecipes(userId: string, limit = 3) {
     return { recipes: [], error: `Failed to fetch recent recipes: ${(error as Error).message}` }
   }
 }
-
-// 누락된 getRecipeById 함수 추가
-export async function getRecipeById(recipeId: string, userId: string) {
-  const supabase = createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-
-  if (!user || user.id !== userId) {
-    return { recipe: null, error: "Unauthorized" }
-  }
-
-  try {
-    const [recipe] = await db
-      .select()
-      .from(recipes)
-      .where(and(eq(recipes.id, recipeId), eq(recipes.userId, userId)))
-      .limit(1)
-
-    if (!recipe) {
-      return { recipe: null, error: "Recipe not found or unauthorized." }
-    }
-
-    return { recipe, error: null }
-  } catch (error) {
-    console.error("Error fetching recipe by ID:", error)
-    return { recipe: null, error: `Failed to fetch recipe: ${(error as Error).message}` }
-  }
-}
