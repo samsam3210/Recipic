@@ -85,4 +85,4 @@ export function ClipboardToast({ isVisible, onClose, message }: ClipboardToastPr
         </div>
       </div>
     </div>
-  )
+  )}
