@@ -7,7 +7,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "YouTube URL is required" }, { status: 400 })
   }
 
-  const videoIdMatch = youtubeUrl.match(
+const videoIdMatch = youtubeUrl.match(
     /(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/(?:watch\?v=|embed\/|v\/|shorts\/)|youtu\.be\/)([\w-]{11})(?:\S+)?/,
   )
   const videoId = videoIdMatch ? videoIdMatch[1] : null
