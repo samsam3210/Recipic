@@ -3,7 +3,7 @@
 import { useState, useRef, useCallback, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Loader2, X, ArrowRight } from "lucide-react"
+import { Loader2, X, ArrowRight, Check } from "lucide-react"
 import { useRouter } from "next/navigation"
 import type { User } from "@supabase/supabase-js"
 import { checkAndSaveRecipe, checkDuplicateRecipe } from "@/lib/actions/recipe"
@@ -16,7 +16,6 @@ import { CustomDialog } from "./custom-dialog"
 import { Skeleton } from "@/components/ui/skeleton"
 import { ClipboardToast } from "./clipboard-toast"
 import { isYouTubeURL } from "@/lib/utils"
-import { Loader2, X, ArrowRight, Check } from "lucide-react"
 
 interface RecipeData {
   id?: string
@@ -669,16 +668,16 @@ export function HeroSection({ user, isDashboard = false }: HeroSectionProps) {
                 <div className={`
                   relative w-5 h-5 rounded-full transition-all duration-300 ease-out
                   ${isCompleted 
-                    ? 'bg-emerald-500' 
+                    ? 'bg-gray-600' 
                     : isCurrent 
-                      ? 'bg-emerald-100 border-2 border-emerald-500' 
+                      ? 'bg-gray-100 border-2 border-gray-600' 
                       : 'bg-gray-100 border-2 border-gray-200'
                   }
                 `}>
                   {isCompleted ? (
                     <Check className="w-3 h-3 text-white absolute inset-0 m-auto" />
                   ) : isCurrent ? (
-                    <div className="w-2 h-2 bg-emerald-500 rounded-full absolute inset-0 m-auto animate-pulse" />
+                    <div className="w-2 h-2 bg-gray-600 rounded-full absolute inset-0 m-auto animate-pulse" />
                   ) : null}
                 </div>
                 <span className={`
@@ -695,16 +694,6 @@ export function HeroSection({ user, isDashboard = false }: HeroSectionProps) {
               </div>
             );
           })}
-        </div>
-
-        {/* Progress bar */}
-        <div className="mb-6">
-          <div className="w-full h-1.5 bg-gray-100 rounded-full overflow-hidden">
-            <div 
-              className="h-full bg-gradient-to-r from-emerald-400 to-emerald-500 rounded-full transition-all duration-700 ease-out"
-              style={{ width: `${(currentLoadingStep / 4) * 100}%` }}
-            />
-          </div>
         </div>
       </CustomDialog>
 
