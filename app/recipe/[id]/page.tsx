@@ -39,6 +39,10 @@ export default async function RecipeDetailPage({ params }: { params: { id: strin
   )
   const videoId = videoIdMatch ? videoIdMatch[1] : null
 
+  console.log("[RecipeDetailPage] Original YouTube URL:", parsedRecipe.youtubeUrl) // 추가
+  console.log("[RecipeDetailPage] Extracted Video ID:", videoId) // 기존 로그 유지 또는 수정
+  console.log("[RecipeDetailPage] Video ID Match Result:", videoIdMatch) // 추가
+
   console.log("[RecipeDetailPage] Parsed Recipe Data:", parsedRecipe)
   console.log("[RecipeDetailPage] Extracted Video ID:", videoId)
 

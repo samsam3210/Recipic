@@ -35,12 +35,14 @@ interface RecipeDetailClientProps {
 }
 
 export function RecipeDetailClient({ recipe, videoId }: RecipeDetailClientProps) {
+  console.log("[RecipeDetailClient] Received videoId:", videoId) // 추가
   const youtubePlayerRef = useRef<HTMLDivElement>(null)
   const { toast } = useToast()
   const { player: youtubePlayer, isPlayerReady } = useYoutubePlayer({
     videoId,
     playerRef: youtubePlayerRef,
     onReady: (player) => {
+      console.log("[RecipeDetailClient] YouTube Player is READY.") // 추가
       toast({
         title: "알림",
         description: "유튜브 플레이어가 준비되었습니다.",
@@ -49,7 +51,7 @@ export function RecipeDetailClient({ recipe, videoId }: RecipeDetailClientProps)
       })
     },
     onError: (error) => {
-      console.error("YouTube Player Error:", error)
+      console.error("[RecipeDetailClient] YouTube Player Error:", error) // 기존 로그 유지 또는 수정
       toast({
         title: "유튜브 영상 로드 오류",
         description: "영상을 불러오는 데 문제가 발생했습니다. 영상 ID를 확인해주세요.",
