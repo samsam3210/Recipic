@@ -37,7 +37,7 @@ export function YouTubeConfirmationSheet({
   if (!shouldRender) return null
 
   return (
-    <>
+    <div>
       <div
         className={cn(
           "fixed inset-0 bg-black/50 z-50 transition-opacity duration-300",
@@ -45,7 +45,6 @@ export function YouTubeConfirmationSheet({
         )}
         onClick={onCancel}
       />
-
       <div
         className={cn(
           "fixed bottom-0 left-0 right-0 bg-white rounded-t-2xl shadow-2xl z-50 transition-transform duration-300 ease-out",
@@ -54,20 +53,17 @@ export function YouTubeConfirmationSheet({
       >
         <div className="p-6">
           <div className="w-10 h-1 bg-gray-300 rounded-full mx-auto mb-6" />
-          
           <button
             onClick={onCancel}
             className="absolute top-4 right-4 p-2 text-gray-400 hover:text-gray-600 transition-colors"
           >
             <X className="h-5 w-5" />
           </button>
-
           <div className="text-center space-y-4">
             <h3 className="text-lg font-semibold text-gray-900">
               {truncateUrl(youtubeUrl)}의<br />
               영상을 조회하시겠어요?
             </h3>
-            
             <div className="flex gap-3 pt-4">
               <Button
                 onClick={onCancel}
@@ -86,6 +82,6 @@ export function YouTubeConfirmationSheet({
           </div>
         </div>
       </div>
-    </>
+    </div>
   )
 }
