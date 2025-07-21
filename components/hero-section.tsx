@@ -16,6 +16,7 @@ import { CustomDialog } from "./custom-dialog"
 import { Skeleton } from "@/components/ui/skeleton"
 import { ClipboardToast } from "./clipboard-toast"
 import { isYouTubeURL } from "@/lib/utils"
+import { Loader2, X, ArrowRight, Check } from "lucide-react"
 
 interface RecipeData {
   id?: string
@@ -631,36 +632,80 @@ export function HeroSection({ user, isDashboard = false }: HeroSectionProps) {
       {/* 로딩 다이얼로그 (모달 스타일) */}
       <CustomDialog
         isOpen={showLoadingOverlay}
-        onClose={handleCancelProcessing} // 취소 버튼과 동일한 동작
-        title="레시피 추출 중"
-        description={stepMessages[currentLoadingStep as keyof typeof stepMessages]}
-        disableClose={true} // 외부 클릭 및 ESC 키 방지
-        hideCloseButton={true} // Hide the 'X' button
-        className="sm:max-w-[425px] p-6 flex flex-col items-center rounded-xl bg-white shadow-subtle-dialog" // Apply rounded corners, white background, and subtle shadow
-        headerClassName="mb-6 text-center w-full"
-        titleClassName="text-3xl font-bold text-gray-900"
-        descriptionClassName="text-lg text-gray-700 mt-2" // Changed to text-gray-700 for consistency
+        onClose={handleCancelProcessing}
+        title="레시피 분석 중입니다"
+        description=""
+        disableClose={true}
+        hideCloseButton={true}
+        className="sm:max-w-[425px] p-6 rounded-2xl bg-white shadow-xl border border-gray-100"
+        headerClassName="mb-6 text-left w-full"
+        titleClassName="text-xl font-semibold text-gray-900"
+        descriptionClassName="hidden"
         footerClassName="w-full mt-6"
-        overlayClassName="bg-black/60" // Apply custom overlay background
+        overlayClassName="bg-black/50 backdrop-blur-sm"
         footer={
           <Button
             variant="outline"
             onClick={handleCancelProcessing}
-            className="w-full rounded-md border-gray-300 text-gray-700 hover:bg-gray-50 bg-transparent" // Adjusted button style
+            className="w-full py-3 px-4 text-sm font-medium text-gray-600 bg-gray-50 hover:bg-gray-100 border border-gray-200 rounded-xl transition-colors duration-200"
           >
-            <X className="mr-2 h-4 w-4" />
             괜찮아요, 그만둘래요
           </Button>
         }
       >
-        <Loader2 className="h-12 w-12 animate-spin text-primary mb-4" /> {/* Spinner color is primary */}
-        {currentLoadingStep === 2 && (
-          <div className="mt-4 p-3 bg-gray-50 rounded-md w-full text-sm text-gray-700 font-mono h-16 overflow-hidden flex items-center justify-center text-center">
-            <p className="animate-fade-in-out">{displayedAiMessage || "AI가 자막을 분석 중..."}</p>{" "}
-            {/* Use displayedAiMessage */}
+        {/* Progress Steps */}
+        <div className="space-y-3 mb-6">
+          {[
+            { id: 1, text: "유튜브 영상 확인 중..." },
+            { id: 2, text: "자막 및 음성 분석 중..." },
+            { id: 3, text: "레시피 정보 추출 중..." },
+            { id: 4, text: "레시피 구성 중..." }
+          ].map((step) => {
+            const isCompleted = step.id < currentLoadingStep;
+            const isCurrent = step.id === currentLoadingStep;
+
+            return (
+              <div key={step.id} className="flex items-center gap-3">
+                <div className={`
+                  relative w-5 h-5 rounded-full transition-all duration-300 ease-out
+                  ${isCompleted 
+                    ? 'bg-emerald-500' 
+                    : isCurrent 
+                      ? 'bg-emerald-100 border-2 border-emerald-500' 
+                      : 'bg-gray-100 border-2 border-gray-200'
+                  }
+                `}>
+                  {isCompleted ? (
+                    <Check className="w-3 h-3 text-white absolute inset-0 m-auto" />
+                  ) : isCurrent ? (
+                    <div className="w-2 h-2 bg-emerald-500 rounded-full absolute inset-0 m-auto animate-pulse" />
+                  ) : null}
+                </div>
+                <span className={`
+                  text-sm font-medium transition-all duration-300
+                  ${isCompleted 
+                    ? 'text-gray-400' 
+                    : isCurrent 
+                      ? 'text-gray-900' 
+                      : 'text-gray-400'
+                  }
+                `}>
+                  {step.text}
+                </span>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Progress bar */}
+        <div className="mb-6">
+          <div className="w-full h-1.5 bg-gray-100 rounded-full overflow-hidden">
+            <div 
+              className="h-full bg-gradient-to-r from-emerald-400 to-emerald-500 rounded-full transition-all duration-700 ease-out"
+              style={{ width: `${(currentLoadingStep / 4) * 100}%` }}
+            />
           </div>
-        )}
-        {/* Removed the specific text area for "AI가 영상 자막을 읽고 있습니다..." */}
+        </div>
       </CustomDialog>
 
       <CustomDialog
