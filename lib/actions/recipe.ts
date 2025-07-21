@@ -27,7 +27,6 @@ interface CreateRecipeData {
   videoDurationSeconds: number | null
   videoViews: number | null
   videoDescription: string | null
-  videoId: string | null // ADDED: videoId 필드 추가
   recipeName: string | null
   noRecipeFoundMessage: string | null
   summary: string | null
@@ -77,7 +76,6 @@ export async function createRecipe(recipeData: CreateRecipeData) {
         videoDurationSeconds: recipeData.videoDurationSeconds,
         videoViews: recipeData.videoViews,
         videoDescription: recipeData.videoDescription,
-        video_id: recipeData.videoId, // ADDED: videoId 저장
         recipeName: recipeData.recipeName,
         noRecipeFoundMessage: recipeData.noRecipeFoundMessage,
         summary: recipeData.summary,
@@ -229,7 +227,7 @@ export async function checkDuplicateRecipe(videoTitle: string, channelName: stri
 export async function checkAndSaveRecipe(
   youtubeUrl: string,
   videoInfo: {
-    videoId: string // videoId가 videoInfo에 포함되어 있음을 명시
+    videoId: string
     videoTitle: string
     videoThumbnail: string
     channelName: string
@@ -266,7 +264,6 @@ export async function checkAndSaveRecipe(
       videoDurationSeconds: videoInfo.videoDurationSeconds,
       videoViews: videoInfo.videoViews,
       videoDescription: videoInfo.videoDescription,
-      videoId: videoInfo.videoId, // ADDED: videoId를 recipeToSave에 추가
       recipeName: extractedRecipe.recipeName,
       noRecipeFoundMessage: extractedRecipe.noRecipeFoundMessage,
       summary: extractedRecipe.summary,

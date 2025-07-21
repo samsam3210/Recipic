@@ -18,7 +18,6 @@ export const recipes = pgTable("recipes", {
   videoDurationSeconds: integer("video_duration_seconds"),
   videoViews: integer("video_views"),
   videoDescription: text("video_description"),
-  video_id: text("video_id"), // ADDED: video_id column
   recipeName: text("recipe_name"),
   noRecipeFoundMessage: text("no_recipe_found_message"),
   summary: text("summary"),
