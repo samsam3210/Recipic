@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react" // useEffect 임포트 추가
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Plus, Folder, Edit, Trash2, Save, X, Loader2 } from "lucide-react"
@@ -37,6 +37,7 @@ export function FolderList({ folders, selectedFolderId }: FolderListProps) {
   const [isCreating, setIsCreating] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
   const [folderToDelete, setFolderToDelete] = useState<FolderItem | null>(null)
+  const [loadingFolderId, setLoadingFolderId] = useState<string | null>(null) // 🆕 로딩 상태
   const { toast } = useToast()
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -47,6 +48,8 @@ export function FolderList({ folders, selectedFolderId }: FolderListProps) {
   // selectedFolderId prop이 변경될 때마다 optimisticSelectedFolderId를 동기화
   useEffect(() => {
     setOptimisticSelectedFolderId(selectedFolderId)
+    // 🆕 실제 폴더 변경이 완료되면 로딩 상태 해제
+    setLoadingFolderId(null)
   }, [selectedFolderId])
 
   const handleCreateFolder = async () => {
@@ -109,7 +112,6 @@ export function FolderList({ folders, selectedFolderId }: FolderListProps) {
         toast({ title: "성공", description: result.message })
         // 선택된 폴더가 삭제되면 '모든 레시피'로 이동
         if (optimisticSelectedFolderId === folderToDelete.id) {
-          // optimisticSelectedFolderId 사용
           const newSearchParams = new URLSearchParams(searchParams.toString())
           newSearchParams.delete("folder")
           newSearchParams.delete("page")
@@ -128,9 +130,11 @@ export function FolderList({ folders, selectedFolderId }: FolderListProps) {
     }
   }
 
-  // 폴더 선택 핸들러 (URL 업데이트 및 낙관적 UI 업데이트)
+  // 🆕 폴더 선택 핸들러 (즉시 로딩 상태 표시)
   const handleSelectFolder = (folderId: string | null) => {
     setOptimisticSelectedFolderId(folderId) // 클릭 즉시 UI 업데이트
+    setLoadingFolderId(folderId) // 🆕 로딩 상태 시작
+    
     const newSearchParams = new URLSearchParams(searchParams.toString())
     if (folderId) {
       newSearchParams.set("folder", folderId)
@@ -145,15 +149,25 @@ export function FolderList({ folders, selectedFolderId }: FolderListProps) {
     <div className="space-y-4">
       <h3 className="text-lg font-semibold text-gray-800 mb-2">폴더</h3>
       <div className="flex flex-col space-y-1">
+        {/* 🆕 "모든 레시피" 버튼 (로딩 상태 포함) */}
         <Button
           variant="ghost"
           className={cn(
-            "justify-start mb-2",
+            "justify-start mb-2 transition-all duration-200",
             optimisticSelectedFolderId === null ? "bg-muted hover:bg-muted" : "hover:bg-transparent hover:underline",
           )}
           onClick={() => handleSelectFolder(null)}
+          disabled={loadingFolderId !== null} // 🆕 로딩 중 클릭 방지
         >
-          <Folder className="mr-2 h-4 w-4" /> 모든 레시피
+          {loadingFolderId === null ? (
+            <Folder className="mr-2 h-4 w-4" />
+          ) : (
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" /> // 🆕 스피너 표시
+          )}
+          모든 레시피
+          {loadingFolderId === null && (
+            <span className="ml-auto text-xs text-muted-foreground">로딩 중...</span> // 🆕 로딩 텍스트
+          )}
         </Button>
         <Separator className="my-2" />
         {folders.map((folder) => (
@@ -169,17 +183,27 @@ export function FolderList({ folders, selectedFolderId }: FolderListProps) {
                 }}
               />
             ) : (
+              // 🆕 폴더 버튼 (로딩 상태 포함)
               <Button
                 variant="ghost"
                 className={cn(
-                  "justify-start flex-grow",
+                  "justify-start flex-grow transition-all duration-200",
                   optimisticSelectedFolderId === folder.id
                     ? "bg-muted hover:bg-muted"
                     : "hover:bg-transparent hover:underline",
                 )}
                 onClick={() => handleSelectFolder(folder.id)}
+                disabled={loadingFolderId !== null} // 🆕 로딩 중 클릭 방지
               >
-                <Folder className="mr-2 h-4 w-4" /> {folder.name}
+                {loadingFolderId === folder.id ? (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" /> // 🆕 스피너 표시
+                ) : (
+                  <Folder className="mr-2 h-4 w-4" />
+                )}
+                {folder.name}
+                {loadingFolderId === folder.id && (
+                  <span className="ml-auto text-xs text-blue-500">로딩 중...</span> // 🆕 로딩 텍스트
+                )}
               </Button>
             )}
             <div className="flex items-center space-x-1 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -220,23 +244,23 @@ export function FolderList({ folders, selectedFolderId }: FolderListProps) {
         </Button>
       </div>
 
+      {/* 폴더 삭제 확인 AlertDialog */}
       <AlertDialog open={isDeleting} onOpenChange={setIsDeleting}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>폴더 삭제 확인</AlertDialogTitle>
             <AlertDialogDescription>
-              정말로 &quot;{folderToDelete?.name}&quot; 폴더를 삭제하시겠습니까? 이 폴더 안의 레시피는 삭제되지 않고
-              &quot;모든 레시피&quot;로 이동됩니다.
+              정말로 &quot;{folderToDelete?.name}&quot; 폴더를 삭제하시겠습니까?
+              <br />
+              폴더 안의 레시피들은 &quot;모든 레시피&quot;로 이동됩니다.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel onClick={() => setIsDeleting(false)}>취소</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDeleteFolder}
-              disabled={isDeleting}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
-              {isDeleting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
               삭제
             </AlertDialogAction>
           </AlertDialogFooter>
