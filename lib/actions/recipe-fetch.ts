@@ -125,7 +125,13 @@ export async function fetchRecentRecipes(userId: string, limit = 3) {
 
   try {
     const recentRecipes = await db
-      .select()
+      .select({
+        id: recipes.id,
+        recipeName: recipes.recipeName,
+        videoThumbnail: recipes.videoThumbnail,
+        channelName: recipes.channelName,
+        summary: recipes.summary,
+      }) // 대시보드에 필요한 최소한의 컬럼만 명시적으로 선택
       .from(recipes)
       .where(eq(recipes.userId, userId))
       .orderBy(desc(recipes.createdAt))
