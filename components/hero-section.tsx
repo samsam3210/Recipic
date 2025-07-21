@@ -263,7 +263,7 @@ export function HeroSection({ user, isDashboard = false }: HeroSectionProps) {
     // Removed: transcriptLinesRef.current = videoInfo.transcriptText.split(". ").filter(Boolean);
 
     await new Promise((resolve) => setTimeout(resolve, 2000))
-    setCurrentLoadingStep(2)
+    setCurrentLoadingStep(3)
     animateAiMessages() // Call the new animation function
 
     const geminiResponse = await fetch(`/api/gemini`, {
@@ -278,6 +278,7 @@ export function HeroSection({ user, isDashboard = false }: HeroSectionProps) {
 
     let recipeJsonString = ""
     if (!geminiResponse.ok) {
+      setCurrentLoadingStep(4)
       const errorText = await geminiResponse.text()
       if (errorText.includes("The model is overloaded")) {
         setErrorModalTitle("AI 모델 과부하")
@@ -685,7 +686,7 @@ export function HeroSection({ user, isDashboard = false }: HeroSectionProps) {
                   ${isCompleted 
                     ? 'text-gray-400' 
                     : isCurrent 
-                      ? 'text-gray-900' 
+                      ? 'text-gray-900 animate-pulse'  // 🆕 animate-pulse 추가
                       : 'text-gray-400'
                   }
                 `}>
@@ -719,23 +720,48 @@ export function HeroSection({ user, isDashboard = false }: HeroSectionProps) {
         onClose={() => setShowDuplicateModal(false)}
         title="이전에 레시피를 조회했던 영상이에요."
         description="레시피 정보 화면으로 바로 이동할까요?"
-        className="sm:max-w-[425px]"
-        footerClassName="flex flex-col sm:flex-row sm:justify-end gap-2 mt-4"
+        disableClose={false}
+        hideCloseButton={false}
+        className="sm:max-w-[425px] p-6 rounded-2xl bg-white shadow-xl border border-gray-100"
+        headerClassName="mb-6 text-left w-full"
+        titleClassName="text-xl font-semibold text-gray-900 mb-2"
+        descriptionClassName="text-sm text-gray-600"
+        footerClassName="w-full"
+        overlayClassName="bg-black/50 backdrop-blur-sm"
         footer={
-          <>
-            <Button variant="outline" onClick={() => setShowDuplicateModal(false)}>
-              아니요, 다른 영상 입력할게요
-            </Button>
-            <Button onClick={handleViewExistingRecipe}>예, 기존 레시피 보기</Button>
-          </>
+          <div className="space-y-3">
+            <div className="space-y-3 mb-4">
+              <Button 
+                onClick={handleViewExistingRecipe}
+                className="w-full py-3 px-4 text-sm font-medium text-white bg-gray-900 hover:bg-gray-800 rounded-xl transition-colors duration-200"
+              >
+                예, 기존 레시피 보기
+              </Button>
+              
+              <Button 
+                variant="outline"
+                onClick={() => setShowDuplicateModal(false)}
+                className="w-full py-3 px-4 text-sm font-medium text-gray-600 bg-gray-50 hover:bg-gray-100 border border-gray-200 rounded-xl transition-colors duration-200"
+              >
+                아니요, 다른 영상 입력할게요
+              </Button>
+            </div>
+
+            <div className="text-center pt-3 border-t border-gray-100">
+              <p className="text-xs text-gray-500 mb-2">
+                다시 레시피를 새로 추출하고 싶다면
+              </p>
+              <Button
+                variant="link"
+                onClick={handleForceReExtract}
+                className="text-sm text-gray-700 hover:text-gray-900 underline font-medium p-0 h-auto"
+              >
+                여기를 눌러주세요
+              </Button>
+            </div>
+          </div>
         }
       >
-        <p className="text-sm text-muted-foreground text-center mt-4 w-full">
-          다시 레시피를 새로 추출하고 싶다면{" "}
-          <Button variant="link" className="p-0 h-auto text-sm" onClick={handleForceReExtract}>
-            여기를 눌러주세요.
-          </Button>
-        </p>
       </CustomDialog>
 
       <CustomDialog

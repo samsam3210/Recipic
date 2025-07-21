@@ -60,18 +60,19 @@ export function ConsentModal({ isOpen, onClose }: ConsentModalProps) {
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[425px] p-6 flex flex-col items-center">
+      <DialogContent className="max-w-[calc(100vw-2rem)] w-full sm:max-w-[425px] mx-4 p-4 sm:p-6 flex flex-col items-center">
         {/* DialogContent는 전체 콘텐츠를 중앙 정렬합니다. */}
         <DialogHeader className="mb-6 text-center w-full">
           {" "}
           {/* text-center와 w-full 추가 */}
-          <DialogTitle className="text-3xl font-bold text-gray-900">Recipick</DialogTitle>
-          <DialogDescription className="text-lg text-gray-600 mt-2">
-            5초 만에 로그인하고
-            <br />
-            레시피를 편리하게 관리해보세요!
+          <DialogTitle className="text-2xl sm:text-3xl font-bold text-gray-900">Recipick</DialogTitle>
+          <DialogDescription className="text-base sm:text-lg text-gray-600 mt-2 text-center">
+            <span className="block sm:inline">5초 만에 로그인하고</span>
+            <br className="hidden sm:block" />
+            <span className="block sm:inline">레시피를 편리하게 관리해보세요!</span>
           </DialogDescription>
         </DialogHeader>
+        
 
         <div className="flex justify-center mb-6 w-full">
           {" "}
@@ -79,11 +80,11 @@ export function ConsentModal({ isOpen, onClose }: ConsentModalProps) {
           <Button
             onClick={handleGoogleSignIn}
             disabled={isSigningIn}
-            className="w-full max-w-xs py-3 text-lg bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg"
+            className="w-full max-w-xs py-3 text-base sm:text-lg bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg"
           >
             {isSigningIn ? (
               <>
-                <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                <Loader2 className="mr-2 h-4 w-4 sm:h-5 sm:w-5 animate-spin" />
                 로그인 중...
               </>
             ) : (
@@ -95,18 +96,14 @@ export function ConsentModal({ isOpen, onClose }: ConsentModalProps) {
         <DialogFooter className="flex flex-col items-center mt-4 w-full">
           {" "}
           {/* Footer 콘텐츠를 세로로 쌓고 중앙 정렬합니다. w-full 추가 */}
-          <p className="text-sm text-muted-foreground mb-4 text-center w-full">
-            {" "}
-            {/* 텍스트를 중앙 정렬하고 w-full 추가 */}
+          <p className="text-xs sm:text-sm text-muted-foreground mb-4 text-center w-full px-2">
             로그인하면 하단 정책에 모두 동의한 것으로 간주합니다.
           </p>
-          <div className="flex space-x-4 text-sm justify-center w-full">
-            {" "}
-            {/* 링크들을 중앙 정렬하고 w-full 추가 */}
-            <Link href="/terms" className="hover:underline" onClick={onClose}>
+          <div className="flex flex-col sm:flex-row sm:space-x-4 space-y-2 sm:space-y-0 text-xs sm:text-sm justify-center w-full">
+            <Link href="/terms" className="hover:underline text-center" onClick={onClose}>
               이용약관
             </Link>
-            <Link href="/privacy" className="hover:underline" onClick={onClose}>
+            <Link href="/privacy" className="hover:underline text-center" onClick={onClose}>
               개인정보처리방침
             </Link>
           </div>
