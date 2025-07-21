@@ -512,14 +512,18 @@ export function HeroSection({ user, isDashboard = false }: HeroSectionProps) {
               placeholder="YouTube 주소를 입력해주세요."
               value={youtubeUrl}
               onChange={(e) => setYoutubeUrl(e.target.value)}
-              className="h-12 flex-grow pl-5 pr-12 border-none focus:outline-none focus:ring-0 focus:ring-offset-0 text-base rounded-l-full rounded-r-none placeholder:text-gray-400"
+              className="h-12 flex-grow pl-5 pr-20 border-none focus:outline-none focus:ring-0 focus:ring-offset-0 text-base rounded-l-full rounded-r-none placeholder:text-gray-400"
               disabled={isProcessing || showLoadingOverlay}
             />
             <Button
               onClick={handleDiscoverClick}
               disabled={!youtubeUrl || isProcessing || showLoadingOverlay}
               size="icon"
-              className="absolute right-0 h-full w-12 bg-soft-blue hover:bg-soft-blue/90 text-white rounded-r-full rounded-l-none"
+              className={`absolute right-0 h-full w-12 ${
+                !youtubeUrl || isProcessing || showLoadingOverlay 
+                  ? 'bg-gray-600' 
+                  : 'bg-black hover:bg-gray-800'
+              } text-white rounded-r-full rounded-l-none transition-colors duration-200`}
             >
               {isProcessing && showLoadingOverlay ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
@@ -544,14 +548,18 @@ export function HeroSection({ user, isDashboard = false }: HeroSectionProps) {
               placeholder="YouTube 주소를 입력해주세요."
               value={youtubeUrl}
               onChange={(e) => setYoutubeUrl(e.target.value)}
-              className="flex-1 h-12 pl-5 pr-12 text-base border-none focus-visible:ring-0 focus-visible:ring-offset-0 rounded-l-full rounded-r-none placeholder:text-gray-400"
+              className="flex-1 h-12 pl-5 pr-20 text-base border-none focus-visible:ring-0 focus-visible:ring-offset-0 rounded-l-full rounded-r-none placeholder:text-gray-400"
               disabled={isProcessing || showLoadingOverlay}
             />
             <Button
               onClick={handleDiscoverClick}
               disabled={!youtubeUrl || isProcessing || showLoadingOverlay}
               size="icon"
-              className="absolute right-0 h-full w-12 bg-soft-blue hover:bg-soft-blue/90 text-white rounded-r-full rounded-l-none"
+              className={`absolute right-0 h-full w-12 ${
+                !youtubeUrl || isProcessing || showLoadingOverlay 
+                  ? 'bg-gray-600' 
+                  : 'bg-black hover:bg-gray-800'
+              } text-white rounded-r-full rounded-l-none transition-colors duration-200`}
             >
               {isProcessing && showLoadingOverlay ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
