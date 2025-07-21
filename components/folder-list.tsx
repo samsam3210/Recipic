@@ -137,7 +137,7 @@ export function FolderList({ folders, selectedFolderId }: FolderListProps) {
     if (optimisticSelectedFolderId === folderId) return
     
     setOptimisticSelectedFolderId(folderId)
-    setLoadingFolderId(folderId) // 클릭한 폴더만 로딩 상태
+    setLoadingFolderId(folderId) // 클릭한 폴더ID를 로딩 상태로 설정
     
     const newSearchParams = new URLSearchParams(searchParams.toString())
     if (folderId) {
