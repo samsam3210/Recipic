@@ -20,7 +20,7 @@ function getKstTodayDateString(): string {
     timeZone: "Asia/Seoul",
   })
   const kstDate = formatter.format(now)
-  return kstDate
+  return kstDate // "YYYY-MM-DD" 형식 그대로 반환
 }
 
 interface UsageResult {
@@ -45,9 +45,6 @@ export async function checkDailyUsage(): Promise<UsageResult> {
 
   if (authError || !user) {
     console.warn("[checkDailyUsage] User not authenticated or error getting user:", authError?.message || "No user")
-    // 로그인되지 않은 사용자는 레시피 저장이 불가능하므로, isAllowed를 false로 설정
-    // 하지만, 이 함수는 '조회' 사용량을 체크하므로, 로그인되지 않은 사용자는 제한을 받지 않도록 isAllowed: true로 유지.
-    // 레시피 저장 시에는 별도로 로그인 여부를 확인해야 함.
     return { success: true, message: "로그인되지 않은 사용자", isAllowed: true, currentCount: 0 }
   }
 
@@ -83,8 +80,8 @@ export async function checkDailyUsage(): Promise<UsageResult> {
     return {
       success: false,
       message: `사용량 확인 실패: ${(error as Error).message}`,
-      isAllowed: false, // CRITICAL FIX: Do NOT allow if usage check fails
-      currentCount: 0, // Ensure currentCount is always a number
+      isAllowed: false,
+      currentCount: 0,
       isAdmin: false,
     }
   }
@@ -119,19 +116,19 @@ export async function incrementDailyUsage(): Promise<UsageResult> {
       .values({
         userId: user.id,
         usageDate: todayKst,
-        count: 1, // 초기값 1
+        count: 1,
       })
       .onConflictDoUpdate({
-        target: [dailyUsage.userId, dailyUsage.usageDate], // 복합 기본 키
+        target: [dailyUsage.userId, dailyUsage.usageDate],
         set: {
-          count: sql`${dailyUsage.count} + 1`, // Drizzle SQL 헬퍼를 사용하여 기존 값에 1을 더합니다.
+          count: sql`${dailyUsage.count} + 1`,
         },
       })
       .returning({
         count: dailyUsage.count,
         userId: dailyUsage.userId,
         usageDate: dailyUsage.usageDate,
-      }) // 반환 값에 userId와 usageDate 추가
+      })
 
     const newCount = result[0]?.count || 0
 

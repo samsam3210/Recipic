@@ -55,11 +55,13 @@ export const recipeFolders = pgTable(
   }),
 )
 
-export const dailyUsage = pgTable("daily_usage", {
-  id: uuid("id").primaryKey().defaultRandom(),
+
+export const dailyUsage = pgTable("daily_usage_limits", {
   userId: uuid("user_id").notNull(),
-  date: timestamp("date", { withTimezone: true }).notNull(),
-  usageCount: integer("usage_count").notNull().default(0),
-  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
-  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow(),
-})
+  usageDate: text("usage_date").notNull(),
+  count: integer("count").notNull().default(0),
+}, (t) => ({
+  pk: primaryKey(t.userId, t.usageDate),
+}))
+
+
