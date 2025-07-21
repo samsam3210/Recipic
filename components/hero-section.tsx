@@ -698,22 +698,28 @@ export function HeroSection({ user, isDashboard = false }: HeroSectionProps) {
         </div>
       </CustomDialog>
 
-      <CustomDialog
-        isOpen={showRecipeUnavailableModal}
-        onClose={() => setShowRecipeUnavailableModal(false)}
-        title="레시피 조회 불가능"
-        description={recipeUnavailableMessage}
-        className="sm:max-w-[425px] p-6 flex flex-col items-center text-center"
-        headerClassName="mb-4 w-full"
-        titleClassName="text-2xl font-bold text-gray-900"
-        descriptionClassName="text-base text-gray-600 mt-2"
-        footerClassName="w-full mt-4"
-        footer={
-          <Button onClick={() => setShowRecipeUnavailableModal(false)} className="w-full">
-            확인
-          </Button>
-        }
-      />
+        <CustomDialog
+          isOpen={showRecipeUnavailableModal}
+          onClose={() => setShowRecipeUnavailableModal(false)}
+          title="레시피 조회 불가능"
+          description={recipeUnavailableMessage}
+          disableClose={false}
+          hideCloseButton={true}
+          className="sm:max-w-[425px] p-6 rounded-2xl bg-white shadow-xl border border-gray-100"
+          headerClassName="mb-6 text-left w-full"
+          titleClassName="text-xl font-semibold text-gray-900"
+          descriptionClassName="text-sm text-gray-600 mt-2"
+          footerClassName="w-full mt-6"
+          overlayClassName="bg-black/50 backdrop-blur-sm"
+          footer={
+            <Button 
+              onClick={() => setShowRecipeUnavailableModal(false)} 
+              className="w-full py-3 px-4 text-sm font-medium text-gray-600 bg-gray-50 hover:bg-gray-100 border border-gray-200 rounded-xl transition-colors duration-200"
+            >
+              확인
+            </Button>
+          }
+        />
 
       <CustomDialog
         isOpen={showDuplicateModal}
@@ -775,13 +781,19 @@ export function HeroSection({ user, isDashboard = false }: HeroSectionProps) {
             서비스 개선이 될 때까지 잠시만 기다려주세요!
           </>
         }
-        className="sm:max-w-[425px] p-6 flex flex-col items-center text-center"
-        headerClassName="mb-4 w-full"
-        titleClassName="text-2xl font-bold text-gray-900"
-        descriptionClassName="text-base text-gray-600 mt-2"
-        footerClassName="w-full mt-4"
+        disableClose={false}
+        hideCloseButton={true}
+        className="sm:max-w-[425px] p-6 rounded-2xl bg-white shadow-xl border border-gray-100"
+        headerClassName="mb-6 text-left w-full"
+        titleClassName="text-xl font-semibold text-gray-900"
+        descriptionClassName="text-sm text-gray-600 mt-2"
+        footerClassName="w-full mt-6"
+        overlayClassName="bg-black/50 backdrop-blur-sm"
         footer={
-          <Button onClick={() => setShowUsageLimitModal(false)} className="w-full">
+          <Button 
+            onClick={() => setShowUsageLimitModal(false)} 
+            className="w-full py-3 px-4 text-sm font-medium text-gray-600 bg-gray-50 hover:bg-gray-100 border border-gray-200 rounded-xl transition-colors duration-200"
+          >
             확인
           </Button>
         }
@@ -793,13 +805,19 @@ export function HeroSection({ user, isDashboard = false }: HeroSectionProps) {
         onClose={() => setShowErrorModal(false)}
         title={errorModalTitle}
         description={errorModalDescription}
-        className="sm:max-w-[425px] p-6 flex flex-col items-center text-center"
-        headerClassName="mb-4 w-full"
-        titleClassName="text-2xl font-bold text-gray-900"
-        descriptionClassName="text-base text-gray-600 mt-2"
-        footerClassName="w-full mt-4"
+        disableClose={false}
+        hideCloseButton={true}
+        className="sm:max-w-[425px] p-6 rounded-2xl bg-white shadow-xl border border-gray-100"
+        headerClassName="mb-6 text-left w-full"
+        titleClassName="text-xl font-semibold text-gray-900"
+        descriptionClassName="text-sm text-gray-600 mt-2"
+        footerClassName="w-full mt-6"
+        overlayClassName="bg-black/50 backdrop-blur-sm"
         footer={
-          <Button onClick={() => setShowErrorModal(false)} className="w-full">
+          <Button 
+            onClick={() => setShowErrorModal(false)} 
+            className="w-full py-3 px-4 text-sm font-medium text-gray-600 bg-gray-50 hover:bg-gray-100 border border-gray-200 rounded-xl transition-colors duration-200"
+          >
             확인
           </Button>
         }
