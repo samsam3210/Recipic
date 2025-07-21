@@ -8,15 +8,13 @@ import { useToast } from "@/hooks/use-toast"
 import { createFolder, updateFolder, deleteFolder } from "@/lib/actions/folder"
 import { cn } from "@/lib/utils"
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog"
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
 import { Separator } from "@/components/ui/separator"
 import { useRouter, useSearchParams } from "next/navigation"
 
@@ -278,28 +276,34 @@ export function FolderList({ folders, selectedFolderId }: FolderListProps) {
         </Button>
       </div>
 
-      {/* 폴더 삭제 확인 AlertDialog */}
-      <AlertDialog open={isDeleting} onOpenChange={setIsDeleting}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>폴더 삭제 확인</AlertDialogTitle>
-            <AlertDialogDescription>
+      {/* 🔧 폴더 삭제 확인 AlertDialog - 디자인 통일 */}
+      <Dialog open={isDeleting} onOpenChange={setIsDeleting}>
+        <DialogContent className="sm:max-w-[425px] p-6 rounded-2xl bg-white shadow-xl border border-gray-100">
+          <DialogHeader className="mb-4 text-left w-full">
+            <DialogTitle className="text-xl font-semibold text-gray-900">폴더 삭제 확인</DialogTitle>
+            <DialogDescription className="text-sm text-gray-600 mt-2">
               정말로 &quot;{folderToDelete?.name}&quot; 폴더를 삭제하시겠습니까?
               <br />
               폴더 안의 레시피들은 &quot;모든 레시피&quot;로 이동됩니다.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel onClick={() => setIsDeleting(false)}>취소</AlertDialogCancel>
-            <AlertDialogAction
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="flex flex-col gap-2 mt-6">
+            <Button
               onClick={handleDeleteFolder}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              className="w-full bg-red-600 hover:bg-red-700 text-white py-3 px-4 rounded-xl transition-colors duration-200"
             >
               삭제
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => setIsDeleting(false)}
+              className="w-full py-3 px-4 text-sm font-medium text-gray-600 bg-gray-50 hover:bg-gray-100 border border-gray-200 rounded-xl transition-colors duration-200"
+            >
+              취소
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

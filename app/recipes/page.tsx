@@ -33,7 +33,7 @@ const myRecipesSidebarNavItems = [
 export default async function RecipesPage({
   searchParams,
 }: {
-  searchParams: { [key: string]: string | string[] | undefined }
+  parsedRecipesearchParams: { [key: string]: string | string[] | undefined }
 }) {
   const supabaseClient = createServerClient()
   const {
@@ -47,7 +47,7 @@ export default async function RecipesPage({
   const userId = user.id
   const selectedFolderId = typeof searchParams.folder === "string" ? searchParams.folder : null
   const page = typeof searchParams.page === "string" ? Number.parseInt(searchParams.page) : 1
-  const limit = 20
+  const limit = 6
 
   let initialFolders: (typeof foldersSchema.$inferSelect)[] = []
   let userProfile: Profile | null = null
