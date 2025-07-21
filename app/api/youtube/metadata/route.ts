@@ -8,7 +8,7 @@ export async function POST(req: Request) {
   }
 
   const videoIdMatch = youtubeUrl.match(
-    /(?:https?:\/\/)?(?:www\.)?(?:youtube\.com|youtu\.be)\/(?:watch\?v=|embed\/|v\/|)([\w-]{11})(?:\S+)?/,
+    /(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/(?:watch\?v=|embed\/|v\/|shorts\/)|youtu\.be\/)([\w-]{11})(?:\S+)?/,
   )
   const videoId = videoIdMatch ? videoIdMatch[1] : null
 
