@@ -16,8 +16,6 @@ import { CustomDialog } from "./custom-dialog"
 import { Skeleton } from "@/components/ui/skeleton"
 import { ClipboardToast } from "./clipboard-toast"
 import { isYouTubeURL } from "@/lib/utils"
-import { YouTubeConfirmationSheet } from "./youtube-confirmation-sheet"
-import { isIOS } from "@/lib/utils"
 
 interface RecipeData {
   id?: string
@@ -99,9 +97,6 @@ export function HeroSection({ user, isDashboard = false }: HeroSectionProps) {
   const [showErrorModal, setShowErrorModal] = useState(false)
   const [errorModalTitle, setErrorModalTitle] = useState("")
   const [errorModalDescription, setErrorModalDescription] = useState("")
-
-  const [showYouTubeSheet, setShowYouTubeSheet] = useState(false)
-  const [detectedUrl, setDetectedUrl] = useState("")
 
   // Updated step messages
   const stepMessages = {
@@ -194,15 +189,8 @@ export function HeroSection({ user, isDashboard = false }: HeroSectionProps) {
         const clipboardText = await navigator.clipboard.readText()
         
         if (clipboardText && isYouTubeURL(clipboardText)) {
-          const isIOSDevice = isIOS()
-          
-          if (isIOSDevice) {
-            setDetectedUrl(clipboardText.trim())
-            setShowYouTubeSheet(true)
-          } else {
-            setYoutubeUrl(clipboardText.trim())
-            setShowClipboardToast(true)
-          }
+          setYoutubeUrl(clipboardText.trim())
+          setShowClipboardToast(true)
         }
       } catch (err) {
         console.debug('Clipboard access denied or failed:', err)
@@ -519,19 +507,6 @@ export function HeroSection({ user, isDashboard = false }: HeroSectionProps) {
     handleDiscoverRecipe(false)
   }
 
-  const handleConfirmYouTube = () => {
-    setYoutubeUrl(detectedUrl)
-    setShowYouTubeSheet(false)
-    setTimeout(() => {
-      handleDiscoverClick()
-    }, 100)
-  }
-
-  const handleCancelYouTube = () => {
-    setShowYouTubeSheet(false)
-    setDetectedUrl("")
-  }
-
   return (
     <section
       className={cn(
@@ -777,12 +752,6 @@ export function HeroSection({ user, isDashboard = false }: HeroSectionProps) {
         message="유튜브 링크를 자동으로 불러왔어요!"
       />
 
-      <YouTubeConfirmationSheet
-        isVisible={showYouTubeSheet}
-        youtubeUrl={detectedUrl}
-        onConfirm={handleConfirmYouTube}
-        onCancel={handleCancelYouTube}
-      />
     </section>
   )
 }
