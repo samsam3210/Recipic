@@ -32,6 +32,7 @@ import { ScrollArea } from "@/components/ui/scroll-area"
 import { Separator } from "@/components/ui/separator"
 import { RecipeCardSkeleton } from "@/components/recipe-card-skeleton"
 import { getPaginatedRecipes } from "@/lib/actions/recipe-fetch"
+import { cn } from "@/lib/utils"
 import type { recipes as recipesSchema, folders as foldersSchema } from "@/lib/db/schema"
 
 interface RecipeGridWrapperProps {
@@ -74,6 +75,7 @@ export default function RecipeGridWrapper({
   const [recipeToMove, setRecipeToMove] = useState<{ id: string; name: string | null } | null>(null)
   const [isMoving, setIsMoving] = useState(false)
   const [folderSearchTerm, setFolderSearchTerm] = useState("")
+  const [selectedMoveToFolderId, setSelectedMoveToFolderId] = useState<string | null>(null) // 🆕 선택된 폴더 ID
 
   // 레시피 데이터 로드 함수 (수정됨)
   const loadRecipes = useCallback(async (isAppending = false) => {
@@ -97,6 +99,14 @@ export default function RecipeGridWrapper({
 
       if (error) {
         throw new Error(error)
+      }
+      
+      // 🔧 페이지가 1보다 크고 데이터가 없으면 첫 페이지로 리다이렉트
+      if (page > 1 && fetchedRecipes.length === 0 && !isAppending) {
+        const newSearchParams = new URLSearchParams(searchParams.toString())
+        newSearchParams.delete("page")
+        router.replace(`/recipes?${newSearchParams.toString()}`)
+        return
       }
       
       if (isAppending) {
@@ -127,7 +137,8 @@ export default function RecipeGridWrapper({
         setIsLoadingRecipes(false)
       }
     }
-  }, [userId, page, initialLimit, selectedFolderId, toast])
+  }, [userId, page, initialLimit, selectedFolderId, toast, router, searchParams])
+
 
   useEffect(() => {
     // 폴더가 실제로 변경되었는지 확인
@@ -183,18 +194,26 @@ export default function RecipeGridWrapper({
   // 레시피 폴더 이동 핸들러
   const handleMoveClick = (id: string, name: string | null) => {
     setRecipeToMove({ id, name })
+    setSelectedMoveToFolderId(null) // 🆕 선택 초기화
     setShowMoveToFolderDialog(true)
   }
 
-  const handleSelectFolderForMove = async (folderId: string | null) => {
+  // 🆕 폴더 선택 핸들러 (이동은 하지 않고 선택만)
+  const handleSelectFolderToMove = (folderId: string | null) => {
+    setSelectedMoveToFolderId(folderId)
+  }
+
+  // 🆕 실제 폴더 이동 실행
+  const handleConfirmMoveToFolder = async () => {
     if (!recipeToMove) return
 
     setIsMoving(true)
     try {
-      const result = await moveRecipeToFolder(recipeToMove.id, folderId)
+      const result = await moveRecipeToFolder(recipeToMove.id, selectedMoveToFolderId)
       if (result.success) {
         toast({ title: "이동 완료", description: result.message })
         loadRecipes() // 레시피 목록 새로고침
+        setShowMoveToFolderDialog(false) // 🆕 다이얼로그 닫기
       } else {
         throw new Error(result.message)
       }
@@ -206,10 +225,18 @@ export default function RecipeGridWrapper({
       })
     } finally {
       setIsMoving(false)
-      setShowMoveToFolderDialog(false)
       setRecipeToMove(null)
+      setSelectedMoveToFolderId(null) // 🆕 선택 초기화
       setFolderSearchTerm("")
     }
+  }
+
+  // 🆕 이동 다이얼로그 닫기
+  const handleCloseMoveDialog = () => {
+    setShowMoveToFolderDialog(false)
+    setRecipeToMove(null)
+    setSelectedMoveToFolderId(null)
+    setFolderSearchTerm("")
   }
 
   const filteredFolders = initialFolders.filter((folder) =>
@@ -285,8 +312,8 @@ export default function RecipeGridWrapper({
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* 레시피 폴더 이동 Dialog */}
-      <Dialog open={showMoveToFolderDialog} onOpenChange={setShowMoveToFolderDialog}>
+      {/* 🔧 레시피 폴더 이동 Dialog - 선택 방식 변경 */}
+      <Dialog open={showMoveToFolderDialog} onOpenChange={handleCloseMoveDialog}>
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
             <DialogTitle>&quot;{recipeToMove?.name || "이 레시피"}&quot; 폴더 이동</DialogTitle>
@@ -300,10 +327,14 @@ export default function RecipeGridWrapper({
               className="mb-4"
             />
             <ScrollArea className="h-[200px] w-full rounded-md border p-4">
+              {/* 🔧 모든 레시피 버튼 - 선택 방식 */}
               <Button
-                variant="ghost"
-                className="w-full justify-start mb-1"
-                onClick={() => handleSelectFolderForMove(null)}
+                variant={selectedMoveToFolderId === null ? "default" : "ghost"}
+                className={cn(
+                  "w-full justify-start mb-1",
+                  selectedMoveToFolderId === null && "bg-blue-600 hover:bg-blue-700 text-white"
+                )}
+                onClick={() => handleSelectFolderToMove(null)}
                 disabled={isMoving}
               >
                 <Folder className="mr-2 h-4 w-4" /> 모든 레시피
@@ -313,9 +344,12 @@ export default function RecipeGridWrapper({
                 filteredFolders.map((folder) => (
                   <Button
                     key={folder.id}
-                    variant="ghost"
-                    className="w-full justify-start mb-1"
-                    onClick={() => handleSelectFolderForMove(folder.id)}
+                    variant={selectedMoveToFolderId === folder.id ? "default" : "ghost"}
+                    className={cn(
+                      "w-full justify-start mb-1",
+                      selectedMoveToFolderId === folder.id && "bg-blue-600 hover:bg-blue-700 text-white"
+                    )}
+                    onClick={() => handleSelectFolderToMove(folder.id)}
                     disabled={isMoving}
                   >
                     <Folder className="mr-2 h-4 w-4" /> {folder.name}
@@ -326,9 +360,24 @@ export default function RecipeGridWrapper({
               )}
             </ScrollArea>
           </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowMoveToFolderDialog(false)} disabled={isMoving}>
+          {/* 🆕 저장/취소 버튼 */}
+          <DialogFooter className="flex gap-2">
+            <Button variant="outline" onClick={handleCloseMoveDialog} disabled={isMoving}>
               취소
+            </Button>
+            <Button 
+              onClick={handleConfirmMoveToFolder} 
+              disabled={isMoving}
+              className="bg-blue-600 hover:bg-blue-700"
+            >
+              {isMoving ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  이동 중...
+                </>
+              ) : (
+                "저장"
+              )}
             </Button>
           </DialogFooter>
         </DialogContent>
