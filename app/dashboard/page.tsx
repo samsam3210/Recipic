@@ -4,7 +4,7 @@ import { Header } from "@/components/header"
 import { HandlePendingRecipe } from "@/components/handle-pending-recipe"
 import { HeroSection } from "@/components/hero-section"
 import { DashboardRecentRecipesServer } from "@/components/dashboard-recent-recipes-server"
-import { fetchRecentRecipes } from "@/lib/actions/recipe-fetch
+import { fetchRecentRecipes } from "@/lib/actions/recipe-fetch"
 import { getOrCreateUserProfile } from "@/lib/actions/user"
 import { SidebarNav } from "@/components/sidebar-nav"
 
