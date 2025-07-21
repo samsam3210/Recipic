@@ -14,6 +14,8 @@ import { checkDailyUsage, incrementDailyUsage } from "@/lib/actions/usage"
 import { Badge } from "@/components/ui/badge"
 import { CustomDialog } from "./custom-dialog"
 import { Skeleton } from "@/components/ui/skeleton"
+import { ClipboardToast } from "./clipboard-toast"
+import { isYouTubeURL } from "@/lib/utils"
 
 interface RecipeData {
   id?: string
@@ -82,6 +84,7 @@ export function HeroSection({ user, isDashboard = false }: HeroSectionProps) {
   const [currentUsageCount, setCurrentUsageCount] = useState<number | null>(null)
   const [isAdmin, setIsAdmin] = useState(false)
   const [isLoadingUsage, setIsLoadingUsage] = useState(true)
+  const [showClipboardToast, setShowClipboardToast] = useState(false)
   const router = useRouter()
   const { toast } = useToast()
 
@@ -175,6 +178,27 @@ export function HeroSection({ user, isDashboard = false }: HeroSectionProps) {
     }
     fetchUsage()
   }, [user])
+
+  useEffect(() => {
+    const checkClipboardForYouTubeURL = async () => {
+      if (youtubeUrl) return
+      
+      if (!navigator.clipboard || !window.isSecureContext) return
+      
+      try {
+        const clipboardText = await navigator.clipboard.readText()
+        
+        if (clipboardText && isYouTubeURL(clipboardText)) {
+          setYoutubeUrl(clipboardText.trim())
+          setShowClipboardToast(true)
+        }
+      } catch (err) {
+        console.debug('Clipboard access denied or failed:', err)
+      }
+    }
+  
+    checkClipboardForYouTubeURL()
+  }, [])
 
   // MODIFIED: 함수 분리 - 유튜브 메타데이터만 가져오는 함수
   const fetchAndCheckVideoMetadata = async (url: string, forceReExtract: boolean): Promise<VideoMetadata> => {
@@ -722,6 +746,11 @@ export function HeroSection({ user, isDashboard = false }: HeroSectionProps) {
       />
 
       <ConsentModal isOpen={showConsentModal} onClose={() => setShowConsentModal(false)} />
+      <ClipboardToast
+        isVisible={showClipboardToast}
+        onClose={() => setShowClipboardToast(false)}
+        message="유튜브 링크를 자동으로 불러왔어요!"
+      />
     </section>
   )
 }
