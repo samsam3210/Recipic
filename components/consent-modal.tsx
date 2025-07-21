@@ -60,7 +60,7 @@ export function ConsentModal({ isOpen, onClose }: ConsentModalProps) {
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-[calc(100vw-2rem)] w-full sm:max-w-[425px] mx-4 p-4 sm:p-6 flex flex-col items-center">
+      <DialogContent className="max-w-[calc(100vw-2rem)] w-full sm:max-w-[425px] mx-auto p-4 sm:p-6 flex flex-col items-center">
         {/* DialogContent는 전체 콘텐츠를 중앙 정렬합니다. */}
         <DialogHeader className="mb-6 text-center w-full">
           {" "}
@@ -74,7 +74,7 @@ export function ConsentModal({ isOpen, onClose }: ConsentModalProps) {
         </DialogHeader>
         
 
-        <div className="flex justify-center mb-6 w-full">
+        <div className="flex justify-center mb-4 w-full">
           {" "}
           {/* 버튼 컨테이너를 중앙 정렬합니다. */}
           <Button
@@ -93,7 +93,7 @@ export function ConsentModal({ isOpen, onClose }: ConsentModalProps) {
           </Button>
         </div>
 
-        <DialogFooter className="flex flex-col items-center mt-4 w-full">
+        <DialogFooter className="flex flex-col items-center mt-2 w-full">
           {" "}
           {/* Footer 콘텐츠를 세로로 쌓고 중앙 정렬합니다. w-full 추가 */}
           <p className="text-xs sm:text-sm text-muted-foreground mb-4 text-center w-full px-2">

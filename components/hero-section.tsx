@@ -638,10 +638,10 @@ export function HeroSection({ user, isDashboard = false }: HeroSectionProps) {
         disableClose={true}
         hideCloseButton={true}
         className="sm:max-w-[425px] p-6 rounded-2xl bg-white shadow-xl border border-gray-100"
-        headerClassName="mb-6 text-left w-full"
+        headerClassName="mb-4 text-left w-full"
         titleClassName="text-xl font-semibold text-gray-900"
         descriptionClassName="hidden"
-        footerClassName="w-full mt-6"
+        footerClassName="w-full mt-4"
         overlayClassName="bg-black/50 backdrop-blur-sm"
         footer={
           <Button
@@ -654,7 +654,7 @@ export function HeroSection({ user, isDashboard = false }: HeroSectionProps) {
         }
       >
         {/* Progress Steps */}
-        <div className="space-y-3 mb-6">
+        <div className="space-y-3 mb-4">
           {[
             { id: 1, text: "유튜브 영상 확인 중..." },
             { id: 2, text: "자막 및 음성 분석 중..." },
@@ -686,7 +686,7 @@ export function HeroSection({ user, isDashboard = false }: HeroSectionProps) {
                   ${isCompleted 
                     ? 'text-gray-400' 
                     : isCurrent 
-                      ? 'text-gray-900 animate-pulse'  // 🆕 animate-pulse 추가
+                      ? 'text-gray-900 animate-pulse'
                       : 'text-gray-400'
                   }
                 `}>
@@ -718,14 +718,14 @@ export function HeroSection({ user, isDashboard = false }: HeroSectionProps) {
       <CustomDialog
         isOpen={showDuplicateModal}
         onClose={() => setShowDuplicateModal(false)}
-        title="이전에 레시피를 조회했던 영상이에요."
-        description="레시피 정보 화면으로 바로 이동할까요?"
+        title="이미 조회했던 레시피에요."
+        description="레시피 정보를 다시 보여드릴까요?"
         disableClose={false}
-        hideCloseButton={false}
+        hideCloseButton={true}
         className="sm:max-w-[425px] p-6 rounded-2xl bg-white shadow-xl border border-gray-100"
         headerClassName="mb-6 text-left w-full"
-        titleClassName="text-xl font-semibold text-gray-900 mb-2"
-        descriptionClassName="text-sm text-gray-600"
+        titleClassName="text-2xl font-semibold text-gray-900 mb-2"
+        descriptionClassName="text-base text-gray-600"
         footerClassName="w-full"
         overlayClassName="bg-black/50 backdrop-blur-sm"
         footer={
@@ -735,7 +735,7 @@ export function HeroSection({ user, isDashboard = false }: HeroSectionProps) {
                 onClick={handleViewExistingRecipe}
                 className="w-full py-3 px-4 text-sm font-medium text-white bg-gray-900 hover:bg-gray-800 rounded-xl transition-colors duration-200"
               >
-                예, 기존 레시피 보기
+                네, 볼게요
               </Button>
               
               <Button 
@@ -743,13 +743,13 @@ export function HeroSection({ user, isDashboard = false }: HeroSectionProps) {
                 onClick={() => setShowDuplicateModal(false)}
                 className="w-full py-3 px-4 text-sm font-medium text-gray-600 bg-gray-50 hover:bg-gray-100 border border-gray-200 rounded-xl transition-colors duration-200"
               >
-                아니요, 다른 영상 입력할게요
+                아니요, 다른 영상 조회할래요
               </Button>
             </div>
 
             <div className="text-center pt-3 border-t border-gray-100">
               <p className="text-xs text-gray-500 mb-2">
-                다시 레시피를 새로 추출하고 싶다면
+                이미 조회한 레시피를 업데이트하고 싶다면
               </p>
               <Button
                 variant="link"
