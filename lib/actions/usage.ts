@@ -141,3 +141,43 @@ export async function incrementDailyUsage(): Promise<UsageResult> {
     return { success: false, message: `사용량 증가 실패: ${(error as Error).message}` }
   }
 }
+
+// 누락된 getUserDailyUsage 함수 추가
+export async function getUserDailyUsage(
+  userId: string,
+): Promise<{ currentCount: number; limit: number; isAdmin: boolean; error: string | null }> {
+  const supabase = createClient()
+  const {
+    data: { user },
+    error: authError,
+  } = await supabase.auth.getUser()
+
+  if (authError || !user || user.id !== userId) {
+    return { currentCount: 0, limit: DAILY_LIMIT, isAdmin: false, error: "User not authenticated or unauthorized." }
+  }
+
+  if (user.email === ADMIN_EMAIL) {
+    return { currentCount: 0, limit: DAILY_LIMIT, isAdmin: true, error: null }
+  }
+
+  const todayKst = getKstTodayDateString()
+
+  try {
+    const [usageRecord] = await db
+      .select()
+      .from(dailyUsage)
+      .where(and(eq(dailyUsage.userId, user.id), eq(dailyUsage.usageDate, todayKst)))
+      .limit(1)
+
+    const currentCount = usageRecord ? usageRecord.count : 0
+    return { currentCount, limit: DAILY_LIMIT, isAdmin: false, error: null }
+  } catch (error) {
+    console.error("[getUserDailyUsage] Error fetching daily usage:", error)
+    return {
+      currentCount: 0,
+      limit: DAILY_LIMIT,
+      isAdmin: false,
+      error: `Failed to fetch usage: ${(error as Error).message}`,
+    }
+  }
+}

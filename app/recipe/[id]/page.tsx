@@ -39,7 +39,7 @@ export default async function RecipeDetailPage({ params }: { params: { id: strin
     const youtubeUrl = recipe.youtubeUrl
     // YouTube Shorts URL을 포함하도록 정규 표현식 업데이트
     const videoIdMatch = youtubeUrl.match(
-      /(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/(?:shorts\/|watch\?v=|embed\/|v\/)|youtu\.be\/)([\w-]{11})(?:\S+)?/,
+      /(?:https?:\/\/)?(?:www\.)?(?:m\.)?(?:youtube\.com|youtu\.be)\/(?:watch\?v=|embed\/|v\/|shorts\/|)([a-zA-Z0-9_-]{11})(?:\S+)?/,
     )
     if (videoIdMatch && videoIdMatch[1]) {
       videoId = videoIdMatch[1]
