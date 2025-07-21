@@ -561,7 +561,7 @@ export function HeroSection({ user, isDashboard = false }: HeroSectionProps) {
             </Button>
           </div>
 
-          {user ? ( // 사용자가 로그인되어 있을 때만 사용량 정보 표시
+                    {user ? ( // 사용자가 로그인되어 있을 때만 사용량 정보 표시
             isLoadingUsage ? ( // isLoadingUsage가 true일 때 스켈레톤 표시
               <Skeleton className="h-4 w-48 mx-auto mt-2" />
             ) : (
@@ -569,13 +569,18 @@ export function HeroSection({ user, isDashboard = false }: HeroSectionProps) {
               <p className="text-sm text-muted-foreground text-center mt-2 font-light">
                 {isAdmin ? (
                   <>
+                    <Badge variant="secondary" className="bg-red-100 text-red-700 mr-1">
+                      SUPER
+                    </Badge>
+                    관리자 계정(제한 없음)
+                  </>
+                ) : (
+                  <>
                     <Badge variant="secondary" className="bg-green-100 text-green-700 mr-1">
                       FREE
                     </Badge>
-                    조회 횟수 제한 없음
+                    총 2회 중 {currentUsageCount !== null ? currentUsageCount : 0}회 사용
                   </>
-                ) : (
-                  currentUsageCount !== null && `오늘 ${currentUsageCount}/2회 사용`
                 )}
               </p>
             )
