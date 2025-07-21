@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Plus, Folder, Edit, Trash2, Save, X, Loader2 } from "lucide-react"
+import { Plus, Folder, Edit, Trash2, Save, X, Loader2, MoreHorizontal } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import { createFolder, updateFolder, deleteFolder } from "@/lib/actions/folder"
 import { cn } from "@/lib/utils"
@@ -37,7 +37,8 @@ export function FolderList({ folders, selectedFolderId }: FolderListProps) {
   const [isCreating, setIsCreating] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
   const [folderToDelete, setFolderToDelete] = useState<FolderItem | null>(null)
-  const [loadingFolderId, setLoadingFolderId] = useState<string | null>(null) // 🆕 로딩 상태
+  const [loadingFolderId, setLoadingFolderId] = useState<string | null>(null)
+  const [showEditMode, setShowEditMode] = useState(false) // 🆕 편집 모드 상태
   const { toast } = useToast()
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -48,7 +49,7 @@ export function FolderList({ folders, selectedFolderId }: FolderListProps) {
   // selectedFolderId prop이 변경될 때마다 optimisticSelectedFolderId를 동기화
   useEffect(() => {
     setOptimisticSelectedFolderId(selectedFolderId)
-    // 🆕 실제 폴더 변경이 완료되면 로딩 상태 해제
+    // 🔧 실제 폴더 변경이 완료되면 로딩 상태 해제
     setLoadingFolderId(null)
   }, [selectedFolderId])
 
@@ -130,10 +131,13 @@ export function FolderList({ folders, selectedFolderId }: FolderListProps) {
     }
   }
 
-  // 🆕 폴더 선택 핸들러 (즉시 로딩 상태 표시)
+  // 🔧 폴더 선택 핸들러 (로딩 조건 수정)
   const handleSelectFolder = (folderId: string | null) => {
-    setOptimisticSelectedFolderId(folderId) // 클릭 즉시 UI 업데이트
-    setLoadingFolderId(folderId) // 🆕 로딩 상태 시작
+    // 현재 선택된 폴더와 같으면 로딩하지 않음
+    if (optimisticSelectedFolderId === folderId) return
+    
+    setOptimisticSelectedFolderId(folderId)
+    setLoadingFolderId(folderId) // 클릭한 폴더만 로딩 상태
     
     const newSearchParams = new URLSearchParams(searchParams.toString())
     if (folderId) {
@@ -145,11 +149,29 @@ export function FolderList({ folders, selectedFolderId }: FolderListProps) {
     router.push(`/recipes?${newSearchParams.toString()}`)
   }
 
+  // 🆕 편집 모드 토글
+  const toggleEditMode = () => {
+    setShowEditMode(!showEditMode)
+    setEditingFolderId(null) // 편집 중인 폴더 초기화
+  }
+
   return (
     <div className="space-y-4">
-      <h3 className="text-lg font-semibold text-gray-800 mb-2">폴더</h3>
+      {/* 🆕 폴더 제목과 편집 버튼 */}
+      <div className="flex justify-between items-center mb-2">
+        <h3 className="text-lg font-semibold text-gray-800">폴더</h3>
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={toggleEditMode}
+          className="h-6 w-6"
+        >
+          {showEditMode ? <X className="h-4 w-4" /> : <MoreHorizontal className="h-4 w-4" />}
+        </Button>
+      </div>
+      
       <div className="flex flex-col space-y-1">
-        {/* 🆕 "모든 레시피" 버튼 (로딩 상태 포함) */}
+        {/* 🔧 "모든 레시피" 버튼 (로딩 조건 수정) */}
         <Button
           variant="ghost"
           className={cn(
@@ -157,76 +179,88 @@ export function FolderList({ folders, selectedFolderId }: FolderListProps) {
             optimisticSelectedFolderId === null ? "bg-muted hover:bg-muted" : "hover:bg-transparent hover:underline",
           )}
           onClick={() => handleSelectFolder(null)}
-          disabled={loadingFolderId !== null} // 🆕 로딩 중 클릭 방지
+          disabled={loadingFolderId !== null}
         >
-          {loadingFolderId === null ? (
+          {loadingFolderId === null ? ( // 🔧 "모든 레시피" 선택 시만 스피너
             <Folder className="mr-2 h-4 w-4" />
           ) : (
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" /> // 🆕 스피너 표시
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
           )}
           모든 레시피
-          {loadingFolderId === null && (
-            <span className="ml-auto text-xs text-muted-foreground">로딩 중...</span> // 🆕 로딩 텍스트
-          )}
+          {/* 🔧 "로딩 중..." 텍스트 제거 */}
         </Button>
         <Separator className="my-2" />
+        
         {folders.map((folder) => (
-          <div key={folder.id} className="flex items-center justify-between group">
+          <div key={folder.id} className="flex items-center justify-between">
             {editingFolderId === folder.id ? (
-              <Input
-                value={editingFolderName}
-                onChange={(e) => setEditingFolderName(e.target.value)}
-                className="flex-grow mr-2 h-8"
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") handleSaveEdit(folder.id)
-                  if (e.key === "Escape") setEditingFolderId(null)
-                }}
-              />
-            ) : (
-              // 🆕 폴더 버튼 (로딩 상태 포함)
-              <Button
-                variant="ghost"
-                className={cn(
-                  "justify-start flex-grow transition-all duration-200",
-                  optimisticSelectedFolderId === folder.id
-                    ? "bg-muted hover:bg-muted"
-                    : "hover:bg-transparent hover:underline",
-                )}
-                onClick={() => handleSelectFolder(folder.id)}
-                disabled={loadingFolderId !== null} // 🆕 로딩 중 클릭 방지
-              >
-                {loadingFolderId === folder.id ? (
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" /> // 🆕 스피너 표시
-                ) : (
-                  <Folder className="mr-2 h-4 w-4" />
-                )}
-                {folder.name}
-                {loadingFolderId === folder.id && (
-                  <span className="ml-auto text-xs text-blue-500">로딩 중...</span> // 🆕 로딩 텍스트
-                )}
-              </Button>
-            )}
-            <div className="flex items-center space-x-1 opacity-0 group-hover:opacity-100 transition-opacity">
-              {editingFolderId === folder.id ? (
-                <>
-                  <Button variant="ghost" size="icon" onClick={() => handleSaveEdit(folder.id)}>
+              // 편집 중일 때
+              <>
+                <Input
+                  value={editingFolderName}
+                  onChange={(e) => setEditingFolderName(e.target.value)}
+                  className="flex-grow mr-2 h-8"
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") handleSaveEdit(folder.id)
+                    if (e.key === "Escape") setEditingFolderId(null)
+                  }}
+                />
+                <div className="flex items-center space-x-1">
+                  <Button variant="ghost" size="icon" onClick={() => handleSaveEdit(folder.id)} className="h-8 w-8">
                     <Save className="h-4 w-4" />
                   </Button>
-                  <Button variant="ghost" size="icon" onClick={() => setEditingFolderId(null)}>
+                  <Button variant="ghost" size="icon" onClick={() => setEditingFolderId(null)} className="h-8 w-8">
                     <X className="h-4 w-4" />
                   </Button>
-                </>
-              ) : (
-                <>
-                  <Button variant="ghost" size="icon" onClick={() => handleStartEdit(folder)}>
-                    <Edit className="h-4 w-4" />
-                  </Button>
-                  <Button variant="ghost" size="icon" onClick={() => handleDeleteConfirm(folder)}>
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </>
-              )}
-            </div>
+                </div>
+              </>
+            ) : (
+              // 일반 상태일 때
+              <>
+                {/* 🔧 폴더 버튼 (로딩 조건 수정) */}
+                <Button
+                  variant="ghost"
+                  className={cn(
+                    "justify-start flex-grow transition-all duration-200",
+                    optimisticSelectedFolderId === folder.id
+                      ? "bg-muted hover:bg-muted"
+                      : "hover:bg-transparent hover:underline",
+                  )}
+                  onClick={() => handleSelectFolder(folder.id)}
+                  disabled={loadingFolderId !== null}
+                >
+                  {loadingFolderId === folder.id ? (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  ) : (
+                    <Folder className="mr-2 h-4 w-4" />
+                  )}
+                  {folder.name}
+                  {/* 🔧 "로딩 중..." 텍스트 제거 */}
+                </Button>
+                
+                {/* 🆕 편집 모드일 때만 편집/삭제 버튼 표시 */}
+                {showEditMode && (
+                  <div className="flex items-center space-x-1 ml-2">
+                    <Button 
+                      variant="ghost" 
+                      size="icon" 
+                      onClick={() => handleStartEdit(folder)}
+                      className="h-8 w-8"
+                    >
+                      <Edit className="h-4 w-4" />
+                    </Button>
+                    <Button 
+                      variant="ghost" 
+                      size="icon" 
+                      onClick={() => handleDeleteConfirm(folder)}
+                      className="h-8 w-8"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                )}
+              </>
+            )}
           </div>
         ))}
       </div>

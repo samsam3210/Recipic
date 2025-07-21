@@ -31,7 +31,7 @@ import { Input } from "@/components/ui/input"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Separator } from "@/components/ui/separator"
 import { RecipeCardSkeleton } from "@/components/recipe-card-skeleton"
-import { getPaginatedRecipes } from "@/lib/actions/recipe-fetch" // 서버 액션 임포트
+import { getPaginatedRecipes } from "@/lib/actions/recipe-fetch"
 import type { recipes as recipesSchema, folders as foldersSchema } from "@/lib/db/schema"
 
 interface RecipeGridWrapperProps {
@@ -39,7 +39,7 @@ interface RecipeGridWrapperProps {
   initialSelectedFolderId: string | null
   initialPage: number
   initialLimit: number
-  initialFolders: (typeof foldersSchema.$inferSelect)[] // 폴더 이동 다이얼로그를 위해 전달
+  initialFolders: (typeof foldersSchema.$inferSelect)[]
 }
 
 export default function RecipeGridWrapper({
@@ -52,9 +52,10 @@ export default function RecipeGridWrapper({
   const [allRecipes, setAllRecipes] = useState<(typeof recipesSchema.$inferSelect)[]>([])
   const [hasMore, setHasMore] = useState(false)
   const [currentPage, setCurrentPage] = useState(initialPage)
-  const [isLoadingRecipes, setIsLoadingRecipes] = useState(true) // 레시피 로딩 상태
-  const [isFolderChanging, setIsFolderChanging] = useState(false) // 🆕 추가
-  const [previousFolderId, setPreviousFolderId] = useState<string | null>(initialSelectedFolderId) // 🆕 추가
+  const [isLoadingRecipes, setIsLoadingRecipes] = useState(true)
+  const [isFolderChanging, setIsFolderChanging] = useState(false) // 폴더 변경 중 상태
+  const [previousFolderId, setPreviousFolderId] = useState<string | null>(initialSelectedFolderId) // 이전 폴더 ID 추적
+  const [isLoadingMore, setIsLoadingMore] = useState(false) // 더 불러오기 로딩 상태
   const { toast } = useToast()
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -74,9 +75,14 @@ export default function RecipeGridWrapper({
   const [isMoving, setIsMoving] = useState(false)
   const [folderSearchTerm, setFolderSearchTerm] = useState("")
 
-  // 레시피 데이터 로드 함수
-  const loadRecipes = useCallback(async () => {
-    setIsLoadingRecipes(true) // 레시피 로딩 시작
+  // 레시피 데이터 로드 함수 (수정됨)
+  const loadRecipes = useCallback(async (isAppending = false) => {
+    if (isAppending) {
+      setIsLoadingMore(true) // 더 불러오기 로딩 상태
+    } else {
+      setIsLoadingRecipes(true) // 일반 로딩 상태
+    }
+    
     try {
       const {
         recipes: fetchedRecipes,
@@ -92,7 +98,15 @@ export default function RecipeGridWrapper({
       if (error) {
         throw new Error(error)
       }
-      setAllRecipes(fetchedRecipes)
+      
+      if (isAppending) {
+        // 더 불러오기: 기존 데이터에 추가
+        setAllRecipes(prev => [...prev, ...fetchedRecipes])
+      } else {
+        // 새로운 조회: 기존 데이터 교체
+        setAllRecipes(fetchedRecipes)
+      }
+      
       setHasMore(fetchedHasMore)
       setCurrentPage(page)
     } catch (err: any) {
@@ -102,27 +116,39 @@ export default function RecipeGridWrapper({
         description: err.message || "레시피를 불러오는 데 실패했습니다.",
         variant: "destructive",
       })
-      setAllRecipes([])
-      setHasMore(false)
+      if (!isAppending) {
+        setAllRecipes([])
+        setHasMore(false)
+      }
     } finally {
-      setIsLoadingRecipes(false) // 레시피 로딩 완료
+      if (isAppending) {
+        setIsLoadingMore(false)
+      } else {
+        setIsLoadingRecipes(false)
+      }
     }
   }, [userId, page, initialLimit, selectedFolderId, toast])
 
- 
   useEffect(() => {
     // 폴더가 실제로 변경되었는지 확인
     if (previousFolderId !== selectedFolderId) {
-      setIsFolderChanging(true) // 즉시 폴더 변경 상태 시작
+      setIsFolderChanging(true)
       setPreviousFolderId(selectedFolderId)
+      loadRecipes(false) // 폴더 변경 시에는 새로운 조회
+    } else if (page > 1) {
+      loadRecipes(true) // 페이지가 증가한 경우에는 추가 로드
+    } else {
+      loadRecipes(false) // 첫 페이지는 새로운 조회
     }
-    
-    loadRecipes().finally(() => {
-      setIsFolderChanging(false) // 로딩 완료 후 폴더 변경 상태 종료
-    })
-  }, [loadRecipes, selectedFolderId, previousFolderId])
+  }, [loadRecipes, selectedFolderId, previousFolderId, page])
 
-  
+  // 폴더 변경 완료 처리
+  useEffect(() => {
+    if (isFolderChanging && !isLoadingRecipes) {
+      setIsFolderChanging(false)
+    }
+  }, [isFolderChanging, isLoadingRecipes])
+
   // 레시피 삭제 핸들러
   const handleDeleteClick = (id: string, name: string | null) => {
     setRecipeToDelete({ id, name })
@@ -192,7 +218,7 @@ export default function RecipeGridWrapper({
 
   return (
     <>
-      {(isLoadingRecipes || isFolderChanging) ? (
+      {(isLoadingRecipes || isFolderChanging) && currentPage === 1 ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {Array.from({ length: initialLimit }).map((_, i) => (
             <RecipeCardSkeleton key={i} />
@@ -215,12 +241,12 @@ export default function RecipeGridWrapper({
           recipes={allRecipes}
           onDelete={handleDeleteClick}
           onMove={handleMoveClick}
-          folders={initialFolders} // 폴더 목록 전달
+          folders={initialFolders}
           currentFolderId={selectedFolderId}
         />
       )}
 
-      {/* 페이지네이션 버튼 (필요시 추가) */}
+      {/* 더 불러오기 버튼 */}
       {hasMore && (
         <div className="flex justify-center mt-8">
           <Button
@@ -229,9 +255,9 @@ export default function RecipeGridWrapper({
               newSearchParams.set("page", (currentPage + 1).toString())
               router.push(`/recipes?${newSearchParams.toString()}`)
             }}
-            disabled={isLoadingRecipes}
+            disabled={isLoadingMore || isLoadingRecipes}
           >
-            {isLoadingRecipes ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}더 불러오기
+            {isLoadingMore ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}더 불러오기
           </Button>
         </div>
       )}
