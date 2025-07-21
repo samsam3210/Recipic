@@ -35,7 +35,7 @@ export default async function RecipeDetailPage({ params }: { params: { id: strin
 
   // YouTube URL에서 videoId 추출
   const videoIdMatch = parsedRecipe.youtubeUrl.match(
-    /(?:https?:\/\/)?(?:www\.)?(?:youtube\.com|youtu\.be)\/(?:watch\?v=|embed\/|v\/|)([\w-]{11})(?:\S+)?/,
+    /(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/(?:watch\?v=|embed\/|v\/|shorts\/)|youtu\.be\/)([\w-]{11})(?:\S+)?/,
   )
   const videoId = videoIdMatch ? videoIdMatch[1] : null
 
