@@ -33,18 +33,15 @@ export default async function RecipeDetailPage({ params }: { params: { id: strin
     tips: recipeData.tips as any,
   }
 
-  // YouTube URL에서 videoId 추출
-  const videoIdMatch = parsedRecipe.youtubeUrl.match(
-    /(?:https?:\/\/)?(?:www\.)?(?:youtube\.com|youtu\.be)\/(?:watch\?v=|embed\/|v\/|)([\w-]{11})(?:\S+)?/,
-  )
-  const videoId = videoIdMatch ? videoIdMatch[1] : null
+  // MODIFIED: YouTube URL에서 videoId를 추출하는 대신, DB에서 직접 가져옵니다.
+  const videoId = parsedRecipe.video_id || null
 
-  console.log("[RecipeDetailPage] Original YouTube URL:", parsedRecipe.youtubeUrl) // 추가
-  console.log("[RecipeDetailPage] Extracted Video ID:", videoId) // 기존 로그 유지 또는 수정
-  console.log("[RecipeDetailPage] Video ID Match Result:", videoIdMatch) // 추가
+  console.log("[RecipeDetailPage] Original YouTube URL:", parsedRecipe.youtubeUrl)
+  console.log("[RecipeDetailPage] Extracted Video ID from DB:", videoId) // 로그 메시지 수정
+  // console.log("[RecipeDetailPage] Video ID Match Result:", videoIdMatch) // REMOVED: 더 이상 필요 없음
 
   console.log("[RecipeDetailPage] Parsed Recipe Data:", parsedRecipe)
-  console.log("[RecipeDetailPage] Extracted Video ID:", videoId)
+  // console.log("[RecipeDetailPage] Extracted Video ID:", videoId) // 중복 로그 제거
 
   const userProfile = await getOrCreateUserProfile(user?.id)
 
