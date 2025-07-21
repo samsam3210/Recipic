@@ -34,7 +34,8 @@ export function ClipboardToast({ isVisible, onClose, message }: ClipboardToastPr
   if (!shouldRender) return null
 
   return (
-    <>
+    <div>
+      {/* 데스크톱 토스트 */}
       <div
         className={cn(
           "fixed top-6 left-1/2 transform -translate-x-1/2 z-50 transition-all duration-300 ease-in-out hidden md:block",
@@ -48,7 +49,7 @@ export function ClipboardToast({ isVisible, onClose, message }: ClipboardToastPr
             <CheckCircle className="h-5 w-5 text-green-600" />
           </div>
           <div className="flex-1">
-            <p className="text-sm font-medium text-gray-9<p className="text-sm font-medium text-green-700 whitespace-nowrap">{message}</p>00">{message}</p>
+            <p className="text-sm font-medium text-green-700 whitespace-nowrap">{message}</p>
           </div>
           <button
             onClick={onClose}
@@ -58,7 +59,8 @@ export function ClipboardToast({ isVisible, onClose, message }: ClipboardToastPr
           </button>
         </div>
       </div>
-
+  
+      {/* 모바일/태블릿 토스트 */}
       <div
         className={cn(
           "fixed bottom-6 left-1/2 transform -translate-x-1/2 z-50 transition-all duration-300 ease-in-out md:hidden px-4",
@@ -72,7 +74,7 @@ export function ClipboardToast({ isVisible, onClose, message }: ClipboardToastPr
             <CheckCircle className="h-5 w-5 text-green-600" />
           </div>
           <div className="flex-1">
-            <p className="text-sm font-medium text-gray-900">{message}<p className="text-sm font-medium text-green-700 whitespace-nowrap">{message}</p></p>
+            <p className="text-sm font-medium text-green-700 whitespace-nowrap">{message}</p>
           </div>
           <button
             onClick={onClose}
@@ -82,6 +84,5 @@ export function ClipboardToast({ isVisible, onClose, message }: ClipboardToastPr
           </button>
         </div>
       </div>
-    </>
+    </div>
   )
-}
