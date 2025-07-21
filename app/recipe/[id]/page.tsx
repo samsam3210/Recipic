@@ -1,57 +1,52 @@
-import { createClient } from "@/lib/supabase/server"
-import { db } from "@/lib/db"
-import { recipes } from "@/lib/db/schema"
-import { eq } from "drizzle-orm"
 import { notFound } from "next/navigation"
 import { RecipeDetailClient } from "@/components/recipe-detail-client"
-import { getOrCreateUserProfile } from "@/lib/actions/user"
+import { getRecipeById } from "@/lib/actions/recipe-fetch"
+import { getSupabaseServerClient } from "@/lib/supabase/server"
+import { getUserDailyUsage, incrementDailyUsage } from "@/lib/actions/usage"
 
 export default async function RecipeDetailPage({ params }: { params: { id: string } }) {
-  const supabase = createClient()
+  const supabase = getSupabaseServerClient()
   const {
     data: { user },
   } = await supabase.auth.getUser()
 
-  const recipeId = params.id
-
-  if (!recipeId) {
+  if (!user) {
+    // 로그인하지 않은 사용자는 레시피 상세 페이지에 접근할 수 없도록 리다이렉트 또는 오류 처리
+    // 여기서는 간단히 notFound()를 사용하지만, 실제 앱에서는 로그인 페이지로 리다이렉트하는 것이 좋습니다.
     notFound()
   }
 
-  const [recipeData] = await db.select().from(recipes).where(eq(recipes.id, recipeId)).limit(1)
+  const recipe = await getRecipeById(params.id)
 
-  if (!recipeData || recipeData.userId !== user?.id) {
-    // 레시피가 없거나, 현재 로그인한 사용자의 레시피가 아닌 경우
+  if (!recipe) {
     notFound()
   }
 
-  // JSONB 필드 타입 변환 (Drizzle ORM이 자동으로 처리하지 않을 경우)
-  const parsedRecipe = {
-    ...recipeData,
-    ingredients: recipeData.ingredients as any, // 실제 타입에 맞게 캐스팅
-    steps: recipeData.steps as any,
-    tips: recipeData.tips as any,
+  // 사용량 제한 확인 및 증가 (관리자 제외)
+  const { isAdmin } = await getUserDailyUsage(user.id)
+  if (!isAdmin) {
+    const { canView, message } = await incrementDailyUsage(user.id)
+    if (!canView) {
+      // 사용량 초과 시 오류 페이지 또는 메시지 표시
+      // 여기서는 간단히 notFound()를 사용하지만, 실제 앱에서는 사용자에게 알리는 페이지로 리다이렉트하는 것이 좋습니다.
+      console.warn(`User ${user.id} exceeded daily usage limit: ${message}`)
+      notFound() // 또는 사용량 초과 페이지로 리다이렉트
+    }
   }
 
-  // YouTube URL에서 videoId 추출
-  const videoIdMatch = parsedRecipe.youtubeUrl.match(
-    /(?:https?:\/\/)?(?:www\.)?(?:youtube\.com|youtu\.be)\/(?:watch\?v=|embed\/|v\/|)([\w-]{11})(?:\S+)?/,
-  )
-  const videoId = videoIdMatch ? videoIdMatch[1] : null
+  let videoId: string | null = null
+  if (recipe?.youtubeUrl) {
+    const youtubeUrl = recipe.youtubeUrl
+    // YouTube Shorts URL을 포함하도록 정규 표현식 업데이트
+    const videoIdMatch = youtubeUrl.match(
+      /(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/(?:shorts\/|watch\?v=|embed\/|v\/)|youtu\.be\/)([\w-]{11})(?:\S+)?/,
+    )
+    if (videoIdMatch && videoIdMatch[1]) {
+      videoId = videoIdMatch[1]
+    }
+  }
 
-  console.log("[RecipeDetailPage] Parsed Recipe Data:", parsedRecipe)
-  console.log("[RecipeDetailPage] Extracted Video ID:", videoId)
+  console.log("app/recipe/[id]/page.tsx: Extracted videoId:", videoId) // 디버깅 로그 추가
 
-  const userProfile = await getOrCreateUserProfile(user?.id)
-
-  return (
-    <div className="flex flex-col min-h-screen">
-      <main className="flex-1">
-        <RecipeDetailClient recipe={parsedRecipe} videoId={videoId} />
-      </main>
-      <footer className="border-t bg-background py-4 text-center text-sm text-muted-foreground">
-        © {new Date().getFullYear()} Recipick. All rights reserved.
-      </footer>
-    </div>
-  )
+  return <RecipeDetailClient recipe={recipe} videoId={videoId} />
 }
