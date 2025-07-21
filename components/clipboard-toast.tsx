@@ -43,12 +43,12 @@ export function ClipboardToast({ isVisible, onClose, message }: ClipboardToastPr
             : "opacity-0 -translate-y-2"
         )}
       >
-        <div className="bg-white border border-green-200 rounded-lg shadow-lg px-4 py-3 flex items-center gap-3 min-w-[320px]">
+        <div className="bg-green-50 border border-green-200 rounded-lg shadow-lg px-4 py-3 flex items-center gap-3 max-w-fit">
           <div className="flex-shrink-0">
             <CheckCircle className="h-5 w-5 text-green-600" />
           </div>
           <div className="flex-1">
-            <p className="text-sm font-medium text-gray-900">{message}</p>
+            <p className="text-sm font-medium text-gray-9<p className="text-sm font-medium text-green-700 whitespace-nowrap">{message}</p>00">{message}</p>
           </div>
           <button
             onClick={onClose}
@@ -67,12 +67,12 @@ export function ClipboardToast({ isVisible, onClose, message }: ClipboardToastPr
             : "opacity-0 translate-y-2"
         )}
       >
-        <div className="bg-white border border-green-200 rounded-lg shadow-lg px-4 py-3 flex items-center gap-3 w-full max-w-sm">
+        <div className="bg-green-50 border border-green-200 rounded-lg shadow-lg px-4 py-3 flex items-center gap-3 max-w-fit">
           <div className="flex-shrink-0">
             <CheckCircle className="h-5 w-5 text-green-600" />
           </div>
           <div className="flex-1">
-            <p className="text-sm font-medium text-gray-900">{message}</p>
+            <p className="text-sm font-medium text-gray-900">{message}<p className="text-sm font-medium text-green-700 whitespace-nowrap">{message}</p></p>
           </div>
           <button
             onClick={onClose}
