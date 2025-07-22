@@ -806,7 +806,7 @@ export function HeroSection({ user, isDashboard = false }: HeroSectionProps) {
                     <div className="flex flex-col md:flex-row">
                       {/* 썸네일 - 최근 조회한 레시피와 동일한 반응형 클래스 */}
                       <div className="w-full md:w-48 md:h-32 flex-shrink-0 md:mr-4 mb-4 md:mb-0">
-                        <div className="aspect-video">
+                        <div className="relative aspect-video">
                           <img
                             src={video.thumbnail}
                             alt={video.title}
