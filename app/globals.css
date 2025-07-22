@@ -80,3 +80,11 @@
     height: 100% !important;
   }
 }
+
+/* YouTube 검색 결과용 line-clamp 스타일 */
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
