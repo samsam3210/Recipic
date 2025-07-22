@@ -25,7 +25,7 @@ export async function POST(req: Request) {
         maxResults: maxResults.toString(),
         order: 'relevance', // 관련성 순으로 정렬
         videoDefinition: 'any',
-        videoDuration: 'any',
+        videoDuration: 'medium',
         key: youtubeApiKey
       }).toString()
     )

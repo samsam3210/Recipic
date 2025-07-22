@@ -60,7 +60,7 @@ export default async function DashboardPage() {
                 {/* 폰트 사이즈를 동일하게 변경하고, 기본 마진을 제거합니다. */}
                 <h1 className="text-3xl md:text-4xl font-extrabold text-gray-900 my-0">안녕하세요, {userName}님! 👋</h1>
                 {/* h2의 폰트 사이즈를 h1과 동일하게 맞추고, 불필요한 마진을 제거합니다. */}
-                <h2 className="text-3xl md:text-4xl font-bold text-gray-800 my-0">어떤 요리를 해볼까요?</h2>
+                <h2 className="text-3xl md:text-4xl font-bold text-gray-800 my-0">어떤 레시피를 알려드릴까요?</h2>
               </div>
 
               <HeroSection user={user} isDashboard={true} />
