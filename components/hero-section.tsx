@@ -787,7 +787,7 @@ export function HeroSection({ user, isDashboard = false }: HeroSectionProps) {
             </div>
           )}
 
-          {/* ✅ 검색 결과 영역 - 최근 조회한 레시피와 완전히 동일한 반응형 디자인 */}
+          {/* ✅ 검색 결과 영역 - 최근 조회한 레시피와 완전히 동일한 구조 */}
           {searchMode === 'keyword' && searchResults.length > 0 && (
             <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
               <div className="flex justify-between items-center mb-6">
@@ -802,7 +802,7 @@ export function HeroSection({ user, isDashboard = false }: HeroSectionProps) {
                     className="border border-gray-100 rounded-lg p-4 hover:shadow-sm transition-shadow cursor-pointer group"
                     onClick={() => handleVideoSelect(video)}
                   >
-                    {/* 최근 조회한 레시피와 완전히 동일한 반응형 구조 */}
+                    {/* 최근 조회한 레시피와 완전히 동일한 flex 구조 */}
                     <div className="flex flex-col md:flex-row">
                       {/* 썸네일 - 최근 조회한 레시피와 동일한 반응형 클래스 */}
                       <div className="w-full md:w-48 md:h-32 flex-shrink-0 md:mr-4 mb-4 md:mb-0">
@@ -823,7 +823,7 @@ export function HeroSection({ user, isDashboard = false }: HeroSectionProps) {
                         </div>
                       </div>
 
-                      {/* 정보 영역 - 최근 조회한 레시피와 완전히 동일한 구조 및 좌측 정렬 */}
+                      {/* 정보 영역 - 최근 조회한 레시피와 완전히 동일한 구조 */}
                       <div className="flex-1 space-y-2">
                         <h3 className="text-sm font-medium text-gray-900 mb-1 group-hover:text-black line-clamp-2 text-left">
                           {video.title}
@@ -845,20 +845,20 @@ export function HeroSection({ user, isDashboard = false }: HeroSectionProps) {
                             </div>
                           )}
                         </div>
-                        
-                        {/* 레시피 조회 버튼 - 호버 시 표시 */}
-                        <div className="pt-2">
-                          <Button
-                            size="sm"
-                            className="px-3 py-1.5 bg-black text-white text-xs rounded-md hover:bg-gray-800 transition-colors opacity-0 group-hover:opacity-100"
-                            onClick={(e) => {
-                              e.stopPropagation()
-                              handleVideoSelect(video)
-                            }}
-                          >
-                            레시피 조회
-                          </Button>
-                        </div>
+                      </div>
+
+                      {/* 우측 호버 버튼 영역 - 최근 조회한 레시피와 동일한 위치 */}
+                      <div className="flex items-center md:ml-4">
+                        <Button
+                          size="sm"
+                          className="px-3 py-1.5 bg-black text-white text-xs rounded-md hover:bg-gray-800 transition-colors opacity-0 group-hover:opacity-100"
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            handleVideoSelect(video)
+                          }}
+                        >
+                          레시피 조회
+                        </Button>
                       </div>
                     </div>
                   </div>
