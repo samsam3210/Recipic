@@ -508,51 +508,101 @@ export function HeroSection({ user, isDashboard = false }: HeroSectionProps) {
           console.warn("[HeroSection] Already processing, ignoring duplicate click from handleDiscoverClick.")
           return
         }
-
+      
+        // ✅ 키워드 검색 모드인 경우 검색만 실행 (팝업 없음)
+        if (searchMode === 'keyword') {
+          await handleKeywordSearch()
+          return
+        }
+      
+        // ✅ URL 모드인 경우 기존 레시피 추출 로직 실행
         setIsProcessing(true)
         setShowLoadingOverlay(true)
         setCurrentLoadingStep(1)
-
+      
         if (!user) {
           setShowConsentModal(true)
           setIsProcessing(false)
           setShowLoadingOverlay(false)
           return
         }
-
-        // ✅ 키워드 검색 모드인 경우 검색 실행 후 종료
-        if (searchMode === 'keyword') {
-          await handleKeywordSearch()
-          setIsProcessing(false)
-          setShowLoadingOverlay(false)
-          return
-        }
-
-        // ✅ URL 모드인 경우 기존 로직 실행
+      
         // 로그인된 사용자의 경우, 사용량 제한을 먼저 체크
         const usageCheckResult = await checkDailyUsage()
-        // CRITICAL FIX: Update usage count and admin status immediately
         setCurrentUsageCount(usageCheckResult.currentCount || 0)
         setIsAdmin(usageCheckResult.isAdmin || false)
-
+      
         if (!usageCheckResult.isAllowed) {
           setShowUsageLimitModal(true)
           resetLoadingState()
-          return // IMPORTANT: 사용량 제한 초과 시 여기서 실행 중단
+          return
         }
-
+      
         // 사용이 허용되면 레시피 추출 진행
         handleDiscoverRecipe(false)
       }
-      // 키워드 검색 함수
-    const handleKeywordSearch = async () => {
-      if (!youtubeUrl.trim()) {
-        toast({
-          title: "검색 키워드를 입력해주세요",
-          description: "요리 이름이나 재료를 입력해서 검색해보세요.",
-          variant: "destructive"
-        })
-        return
+            // 키워드 검색 함수 - 간단한 로딩만 표시
+      const handleKeywordSearch = async () => {
+        if (!youtubeUrl.trim()) {
+          toast({
+            title: "검색 키워드를 입력해주세요",
+            description: "요리 이름이나 재료를 입력해서 검색해보세요.",
+            variant: "destructive"
+          })
+          return
+        }
+
+        // 단순 검색 로딩만 표시 (팝업 없음)
+        setIsSearching(true)
+        
+        try {
+          const response = await fetch('/api/youtube/search', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              query: youtubeUrl,
+              maxResults: 10
+            })
+          })
+
+          if (!response.ok) {
+            throw new Error('검색 요청이 실패했습니다.')
+          }
+
+          const data = await response.json()
+          
+          if (data.error) {
+            throw new Error(data.error)
+          }
+
+          if (data.results && data.results.length > 0) {
+            setSearchResults(data.results)
+            toast({
+              title: "검색 완료",
+              description: `${data.results.length}개의 영상을 찾았습니다.`,
+            })
+          } else {
+            setSearchResults([])
+            toast({
+              title: "검색 결과가 없습니다",
+              description: "다른 키워드로 다시 검색해보세요.",
+              variant: "info"
+            })
+          }
+        } catch (error) {
+          console.error('YouTube search error:', error)
+          toast({
+            title: "검색 오류",
+            description: "검색 중 문제가 발생했습니다. 다시 시도해주세요.",
+            variant: "destructive"
+          })
+          setSearchResults([])
+        } finally {
+          // 검색 로딩만 종료 (팝업이나 다른 상태는 건드리지 않음)
+          setIsSearching(false)
+        }
       }
 
       setIsSearching(true)
@@ -605,9 +655,35 @@ export function HeroSection({ user, isDashboard = false }: HeroSectionProps) {
       }
     }
 
-    // 영상 선택 함수
-    const handleVideoSelect = (video: SearchResult) => {
+        // 영상 선택 함수 - 기존 URL 입력과 동일한 UX 흐름
+    const handleVideoSelect = async (video: SearchResult) => {
+      // 사용량 제한 체크
+      if (user) {
+        const usageCheckResult = await checkDailyUsage()
+        setCurrentUsageCount(usageCheckResult.currentCount || 0)
+        setIsAdmin(usageCheckResult.isAdmin || false)
+
+        if (!usageCheckResult.isAllowed) {
+          setShowUsageLimitModal(true)
+          return
+        }
+      }
+
+      // URL 설정 후 기존 레시피 추출 플로우 실행
       setYoutubeUrl(video.youtubeUrl)
+      
+      // 기존과 동일한 레시피 추출 프로세스 시작
+      setIsProcessing(true)
+      setShowLoadingOverlay(true)
+      setCurrentLoadingStep(1)
+      
+      if (!user) {
+        setShowConsentModal(true)
+        setIsProcessing(false)
+        setShowLoadingOverlay(false)
+        return
+      }
+
       // 기존 handleDiscoverRecipe 함수 호출
       handleDiscoverRecipe(false)
     }
@@ -671,8 +747,6 @@ export function HeroSection({ user, isDashboard = false }: HeroSectionProps) {
         </div>
       )}
 
-        // components/hero-section.tsx
-        // isDashboard 섹션의 JSX 부분을 다음과 같이 수정
 
         {isDashboard && (
           <div className="w-full space-y-4">
@@ -771,9 +845,8 @@ export function HeroSection({ user, isDashboard = false }: HeroSectionProps) {
               </div>
             )}
 
-            {/* ✅ 검색 결과 영역 추가 */}
-        {searchMode === 'keyword' && searchResults.length > 0 && (
-          <div className="w-full max-w-4xl mx-auto mt-6">
+                {/* ✅ 검색 결과 영역 - 기존 레시피 카드와 동일한 디자인으로 변경 */}
+          {searchMode === 'keyword' && searchResults.length > 0 && (
             <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
               <div className="flex justify-between items-center mb-6">
                 <h2 className="text-xl font-semibold text-gray-900">
@@ -784,69 +857,70 @@ export function HeroSection({ user, isDashboard = false }: HeroSectionProps) {
                 {searchResults.map((video: SearchResult) => (
                   <div
                     key={video.videoId}
-                    className="flex items-start space-x-4 p-4 border border-gray-100 rounded-lg hover:border-gray-200 hover:shadow-sm transition-all cursor-pointer group bg-white"
+                    className="border border-gray-100 rounded-lg p-4 hover:shadow-sm transition-shadow cursor-pointer group"
                     onClick={() => handleVideoSelect(video)}
                   >
-                    {/* 썸네일 */}
-                    <div className="relative flex-shrink-0">
-                      <img
-                        src={video.thumbnail}
-                        alt={video.title}
-                        className="w-32 h-20 object-cover rounded-lg"
-                      />
-                      <div className="absolute inset-0 bg-black/20 rounded-lg group-hover:bg-black/10 transition-colors flex items-center justify-center">
-                        <Play className="h-6 w-6 text-white opacity-80" />
-                      </div>
-                      {video.duration && (
-                        <div className="absolute bottom-1 right-1 bg-black/80 text-white text-xs px-1 py-0.5 rounded text-[10px]">
-                          {video.duration}
+                    <div className="flex space-x-4">
+                      {/* 썸네일 - 최근 조회한 레시피와 동일한 크기 */}
+                      <div className="relative flex-shrink-0">
+                        <img
+                          src={video.thumbnail}
+                          alt={video.title}
+                          className="w-24 h-16 object-cover rounded-md"
+                        />
+                        <div className="absolute inset-0 bg-black/20 rounded-md group-hover:bg-black/10 transition-colors flex items-center justify-center">
+                          <Play className="h-4 w-4 text-white opacity-80" />
                         </div>
-                      )}
-                    </div>
-
-                    {/* 영상 정보 */}
-                    <div className="flex-1 min-w-0 space-y-1">
-                      <h3 className="text-sm font-medium text-gray-900 group-hover:text-black leading-tight">
-                        {video.title}
-                      </h3>
-                      <p className="text-xs text-gray-600">
-                        {video.channelName}
-                      </p>
-                      <div className="flex items-center space-x-3 text-xs text-gray-500">
-                        {video.viewCount && (
-                          <div className="flex items-center space-x-1">
-                            <Users className="h-3 w-3" />
-                            <span>{video.viewCount}</span>
-                          </div>
-                        )}
-                        {video.publishedTime && (
-                          <div className="flex items-center space-x-1">
-                            <Clock className="h-3 w-3" />
-                            <span>{video.publishedTime}</span>
+                        {video.duration && (
+                          <div className="absolute bottom-1 right-1 bg-black/80 text-white text-xs px-1 py-0.5 rounded text-[10px]">
+                            {video.duration}
                           </div>
                         )}
                       </div>
-                    </div>
 
-                    {/* 선택 버튼 */}
-                    <div className="flex-shrink-0">
-                      <Button 
-                        size="sm"
-                        className="px-3 py-1.5 bg-black text-white text-xs rounded-md hover:bg-gray-800 transition-colors opacity-0 group-hover:opacity-100"
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          handleVideoSelect(video)
-                        }}
-                      >
-                        레시피 추출
-                      </Button>
+                      {/* 영상 정보 - 좌측 정렬, 최근 조회한 레시피와 동일한 스타일 */}
+                      <div className="flex-1 min-w-0">
+                        <h3 className="text-sm font-medium text-gray-900 mb-1 group-hover:text-black">
+                          {video.title}
+                        </h3>
+                        <p className="text-xs text-gray-600 mb-1">
+                          {video.channelName}
+                        </p>
+                        <div className="flex items-center space-x-3 text-xs text-gray-500">
+                          {video.viewCount && (
+                            <div className="flex items-center space-x-1">
+                              <Users className="h-3 w-3" />
+                              <span>{video.viewCount}</span>
+                            </div>
+                          )}
+                          {video.publishedTime && (
+                            <div className="flex items-center space-x-1">
+                              <Clock className="h-3 w-3" />
+                              <span>{video.publishedTime}</span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* 선택 버튼 - 호버 시 표시 */}
+                      <div className="flex-shrink-0 flex items-center">
+                        <Button 
+                          size="sm"
+                          className="px-3 py-1.5 bg-black text-white text-xs rounded-md hover:bg-gray-800 transition-colors opacity-0 group-hover:opacity-100"
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            handleVideoSelect(video)
+                          }}
+                        >
+                          레시피 추출
+                        </Button>
+                      </div>
                     </div>
                   </div>
                 ))}
               </div>
             </div>
-          </div>
-        )}
+          )}
 
             {/* 다음 단계에서 검색 결과 영역을 추가할 예정... */}
           </div>
