@@ -738,7 +738,7 @@ export function HeroSection({ user, isDashboard = false }: HeroSectionProps) {
               id="youtube-url"
               placeholder={
                 searchMode === 'keyword'
-                  ? '요리 이름를 검색해보세요'
+                  ? '요리 이름을 검색해보세요'
                   : '유튜브 URL를 입력해주세요.'
               }
               value={youtubeUrl}
@@ -787,7 +787,7 @@ export function HeroSection({ user, isDashboard = false }: HeroSectionProps) {
             </div>
           )}
 
-          {/* ✅ 검색 결과 영역 - 최근 조회한 레시피와 완전히 동일한 세로형 디자인 */}
+          {/* ✅ 검색 결과 영역 - 최근 조회한 레시피와 완전히 동일한 반응형 디자인 */}
           {searchMode === 'keyword' && searchResults.length > 0 && (
             <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
               <div className="flex justify-between items-center mb-6">
@@ -802,10 +802,10 @@ export function HeroSection({ user, isDashboard = false }: HeroSectionProps) {
                     className="border border-gray-100 rounded-lg p-4 hover:shadow-sm transition-shadow cursor-pointer group"
                     onClick={() => handleVideoSelect(video)}
                   >
-                    {/* 세로형 레이아웃 - 썸네일이 위, 정보가 아래 */}
-                    <div className="w-full">
-                      {/* 썸네일 영역 - 최근 조회한 레시피와 동일한 크기 */}
-                      <div className="relative w-full mb-4">
+                    {/* 최근 조회한 레시피와 완전히 동일한 반응형 구조 */}
+                    <div className="flex flex-col md:flex-row">
+                      {/* 썸네일 - 최근 조회한 레시피와 동일한 반응형 클래스 */}
+                      <div className="w-full md:w-48 md:h-32 flex-shrink-0 md:mr-4 mb-4 md:mb-0">
                         <div className="aspect-video">
                           <img
                             src={video.thumbnail}
@@ -813,7 +813,7 @@ export function HeroSection({ user, isDashboard = false }: HeroSectionProps) {
                             className="h-full w-full object-cover rounded-md"
                           />
                           <div className="absolute inset-0 bg-black/20 rounded-md group-hover:bg-black/10 transition-colors flex items-center justify-center">
-                            <Play className="h-8 w-8 text-white opacity-80" />
+                            <Play className="h-6 w-6 text-white opacity-80" />
                           </div>
                           {video.duration && (
                             <div className="absolute bottom-2 right-2 bg-black/80 text-white text-xs px-2 py-1 rounded">
@@ -823,12 +823,12 @@ export function HeroSection({ user, isDashboard = false }: HeroSectionProps) {
                         </div>
                       </div>
 
-                      {/* 정보 영역 - 최근 조회한 레시피와 완전히 동일한 구조 */}
-                      <div className="space-y-2">
-                        <h3 className="text-sm font-medium text-gray-900 group-hover:text-black line-clamp-2 leading-tight">
+                      {/* 정보 영역 - 최근 조회한 레시피와 완전히 동일한 구조 및 좌측 정렬 */}
+                      <div className="flex-1 space-y-2">
+                        <h3 className="text-sm font-medium text-gray-900 mb-1 group-hover:text-black line-clamp-2 text-left">
                           {video.title}
                         </h3>
-                        <p className="text-xs text-gray-600">
+                        <p className="text-xs text-gray-600 mb-1 text-left">
                           {video.channelName}
                         </p>
                         <div className="flex items-center space-x-3 text-xs text-gray-500">
