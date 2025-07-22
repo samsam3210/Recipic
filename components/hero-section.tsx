@@ -788,7 +788,7 @@ export function HeroSection({ user, isDashboard = false }: HeroSectionProps) {
             </div>
           )}
 
-          {/* ✅ 검색 결과 영역 - 기존 레시피 카드와 동일한 디자인으로 변경 */}
+          {/* ✅ 검색 결과 영역 - 최근 조회한 레시피와 완전히 동일한 디자인 */}
           {searchMode === 'keyword' && searchResults.length > 0 && (
             <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
               <div className="flex justify-between items-center mb-6">
@@ -804,26 +804,28 @@ export function HeroSection({ user, isDashboard = false }: HeroSectionProps) {
                     onClick={() => handleVideoSelect(video)}
                   >
                     <div className="flex space-x-4">
-                      {/* 썸네일 - 최근 조회한 레시피와 동일한 크기 */}
-                      <div className="relative flex-shrink-0">
-                        <img
-                          src={video.thumbnail}
-                          alt={video.title}
-                          className="w-24 h-16 object-cover rounded-md"
-                        />
-                        <div className="absolute inset-0 bg-black/20 rounded-md group-hover:bg-black/10 transition-colors flex items-center justify-center">
-                          <Play className="h-4 w-4 text-white opacity-80" />
-                        </div>
-                        {video.duration && (
-                          <div className="absolute bottom-1 right-1 bg-black/80 text-white text-xs px-1 py-0.5 rounded text-[10px]">
-                            {video.duration}
+                      {/* 썸네일 - 최근 조회한 레시피와 완전히 동일한 크기와 비율 */}
+                      <div className="relative w-full md:w-48 md:h-32 flex-shrink-0 md:mr-0 mb-4 md:mb-0">
+                        <div className="aspect-video">
+                          <img
+                            src={video.thumbnail}
+                            alt={video.title}
+                            className="h-full w-full object-cover rounded-md"
+                          />
+                          <div className="absolute inset-0 bg-black/20 rounded-md group-hover:bg-black/10 transition-colors flex items-center justify-center">
+                            <Play className="h-6 w-6 text-white opacity-80" />
                           </div>
-                        )}
+                          {video.duration && (
+                            <div className="absolute bottom-2 right-2 bg-black/80 text-white text-xs px-1 py-0.5 rounded">
+                              {video.duration}
+                            </div>
+                          )}
+                        </div>
                       </div>
 
-                      {/* 영상 정보 - 좌측 정렬, 최근 조회한 레시피와 동일한 스타일 */}
-                      <div className="flex-1 min-w-0">
-                        <h3 className="text-sm font-medium text-gray-900 mb-1 group-hover:text-black">
+                      {/* 영상 정보 - 최근 조회한 레시피와 완전히 동일한 구조 */}
+                      <div className="flex-1 space-y-2">
+                        <h3 className="text-sm font-medium text-gray-900 mb-1 group-hover:text-black line-clamp-2">
                           {video.title}
                         </h3>
                         <p className="text-xs text-gray-600 mb-1">
@@ -843,20 +845,20 @@ export function HeroSection({ user, isDashboard = false }: HeroSectionProps) {
                             </div>
                           )}
                         </div>
-                      </div>
-
-                      {/* 선택 버튼 - 호버 시 표시 */}
-                      <div className="flex-shrink-0 flex items-center">
-                        <Button
-                          size="sm"
-                          className="px-3 py-1.5 bg-black text-white text-xs rounded-md hover:bg-gray-800 transition-colors opacity-0 group-hover:opacity-100"
-                          onClick={(e) => {
-                            e.stopPropagation()
-                            handleVideoSelect(video)
-                          }}
-                        >
-                          레시피 추출
-                        </Button>
+                        
+                        {/* 레시피 추출 버튼 - 호버 시 표시 */}
+                        <div className="pt-2">
+                          <Button
+                            size="sm"
+                            className="px-3 py-1.5 bg-black text-white text-xs rounded-md hover:bg-gray-800 transition-colors opacity-0 group-hover:opacity-100"
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              handleVideoSelect(video)
+                            }}
+                          >
+                            레시피 추출
+                          </Button>
+                        </div>
                       </div>
                     </div>
                   </div>
