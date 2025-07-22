@@ -603,32 +603,31 @@ export function HeroSection({ user, isDashboard = false }: HeroSectionProps) {
     }
   }
 
-  // 영상 선택 함수 - 기존 URL 입력과 동일한 UX 흐름
+  // 영상 선택 함수 - 즉시 팝업 표시
   const handleVideoSelect = async (video: SearchResult) => {
-    // 사용량 제한 체크
-    if (user) {
-      const usageCheckResult = await checkDailyUsage()
-      setCurrentUsageCount(usageCheckResult.currentCount || 0)
-      setIsAdmin(usageCheckResult.isAdmin || false)
-
-      if (!usageCheckResult.isAllowed) {
-        setShowUsageLimitModal(true)
-        return
-      }
-    }
-
-    // URL 설정 후 기존 레시피 추출 플로우 실행
-    setYoutubeUrl(video.youtubeUrl)
-
-    // 기존과 동일한 레시피 추출 프로세스 시작
+    // ✅ 즉시 로딩 팝업 표시
     setIsProcessing(true)
     setShowLoadingOverlay(true)
     setCurrentLoadingStep(1)
+
+    // URL 설정
+    setYoutubeUrl(video.youtubeUrl)
 
     if (!user) {
       setShowConsentModal(true)
       setIsProcessing(false)
       setShowLoadingOverlay(false)
+      return
+    }
+
+    // 사용량 제한 체크
+    const usageCheckResult = await checkDailyUsage()
+    setCurrentUsageCount(usageCheckResult.currentCount || 0)
+    setIsAdmin(usageCheckResult.isAdmin || false)
+
+    if (!usageCheckResult.isAllowed) {
+      setShowUsageLimitModal(true)
+      resetLoadingState()
       return
     }
 
@@ -739,8 +738,8 @@ export function HeroSection({ user, isDashboard = false }: HeroSectionProps) {
               id="youtube-url"
               placeholder={
                 searchMode === 'keyword'
-                  ? '요리 키워드를 검색해보세요 (예: 000의 제육볶음)'
-                  : '유튜브 요리 영상 주소를 입력해주세요.'
+                  ? '요리 이름를 검색해보세요'
+                  : '유튜브 URL를 입력해주세요.'
               }
               value={youtubeUrl}
               onChange={(e) => setYoutubeUrl(e.target.value)}
@@ -788,7 +787,7 @@ export function HeroSection({ user, isDashboard = false }: HeroSectionProps) {
             </div>
           )}
 
-          {/* ✅ 검색 결과 영역 - 최근 조회한 레시피와 완전히 동일한 디자인 */}
+          {/* ✅ 검색 결과 영역 - 최근 조회한 레시피와 완전히 동일한 세로형 디자인 */}
           {searchMode === 'keyword' && searchResults.length > 0 && (
             <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
               <div className="flex justify-between items-center mb-6">
@@ -803,9 +802,10 @@ export function HeroSection({ user, isDashboard = false }: HeroSectionProps) {
                     className="border border-gray-100 rounded-lg p-4 hover:shadow-sm transition-shadow cursor-pointer group"
                     onClick={() => handleVideoSelect(video)}
                   >
-                    <div className="flex space-x-4">
-                      {/* 썸네일 - 최근 조회한 레시피와 완전히 동일한 크기와 비율 */}
-                      <div className="relative w-full md:w-48 md:h-32 flex-shrink-0 md:mr-0 mb-4 md:mb-0">
+                    {/* 세로형 레이아웃 - 썸네일이 위, 정보가 아래 */}
+                    <div className="w-full">
+                      {/* 썸네일 영역 - 최근 조회한 레시피와 동일한 크기 */}
+                      <div className="relative w-full mb-4">
                         <div className="aspect-video">
                           <img
                             src={video.thumbnail}
@@ -813,22 +813,22 @@ export function HeroSection({ user, isDashboard = false }: HeroSectionProps) {
                             className="h-full w-full object-cover rounded-md"
                           />
                           <div className="absolute inset-0 bg-black/20 rounded-md group-hover:bg-black/10 transition-colors flex items-center justify-center">
-                            <Play className="h-6 w-6 text-white opacity-80" />
+                            <Play className="h-8 w-8 text-white opacity-80" />
                           </div>
                           {video.duration && (
-                            <div className="absolute bottom-2 right-2 bg-black/80 text-white text-xs px-1 py-0.5 rounded">
+                            <div className="absolute bottom-2 right-2 bg-black/80 text-white text-xs px-2 py-1 rounded">
                               {video.duration}
                             </div>
                           )}
                         </div>
                       </div>
 
-                      {/* 영상 정보 - 최근 조회한 레시피와 완전히 동일한 구조 */}
-                      <div className="flex-1 space-y-2">
-                        <h3 className="text-sm font-medium text-gray-900 mb-1 group-hover:text-black line-clamp-2">
+                      {/* 정보 영역 - 최근 조회한 레시피와 완전히 동일한 구조 */}
+                      <div className="space-y-2">
+                        <h3 className="text-sm font-medium text-gray-900 group-hover:text-black line-clamp-2 leading-tight">
                           {video.title}
                         </h3>
-                        <p className="text-xs text-gray-600 mb-1">
+                        <p className="text-xs text-gray-600">
                           {video.channelName}
                         </p>
                         <div className="flex items-center space-x-3 text-xs text-gray-500">
@@ -846,7 +846,7 @@ export function HeroSection({ user, isDashboard = false }: HeroSectionProps) {
                           )}
                         </div>
                         
-                        {/* 레시피 추출 버튼 - 호버 시 표시 */}
+                        {/* 레시피 조회 버튼 - 호버 시 표시 */}
                         <div className="pt-2">
                           <Button
                             size="sm"
@@ -856,7 +856,7 @@ export function HeroSection({ user, isDashboard = false }: HeroSectionProps) {
                               handleVideoSelect(video)
                             }}
                           >
-                            레시피 추출
+                            레시피 조회
                           </Button>
                         </div>
                       </div>
