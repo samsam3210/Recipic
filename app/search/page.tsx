@@ -12,6 +12,7 @@ import { createClient } from "@/lib/supabase/client"
 import { CustomDialog } from "@/components/custom-dialog"
 import { ClipboardToast } from "@/components/clipboard-toast"
 import { checkDailyUsage } from "@/lib/actions/usage"
+import { checkAndSaveRecipe } from "@/lib/actions/recipe"
 
 interface SearchResult {
   videoId: string
@@ -34,6 +35,9 @@ export default function SearchPage() {
   
   const { toast } = useToast()
   const router = useRouter()
+
+  const [showErrorModal, setShowErrorModal] = useState(false)
+  const [errorMessage, setErrorMessage] = useState("")
 
   // 사용자 정보 가져오기
   useEffect(() => {
@@ -83,16 +87,18 @@ export default function SearchPage() {
       return
     }
   
-    try {
-      const usageCheckResult = await checkDailyUsage()
-      if (!usageCheckResult.isAllowed) {
-        setShowUsageLimitModal(true)
-        return
-      }
-  
-      setIsProcessing(true)
-      setShowLoadingOverlay(true)
-      setCurrentLoadingStep(1)
+            // 즉시 로딩 상태 설정 (맨 앞으로 이동)
+        setIsProcessing(true)
+        setShowLoadingOverlay(true)
+        setCurrentLoadingStep(1)
+
+        try {
+        // 사용량 제한 체크
+        const usageCheckResult = await checkDailyUsage()
+        if (!usageCheckResult.isAllowed) {
+            setShowUsageLimitModal(true)
+            return
+        }
   
       console.log("1단계: 영상 정보 가져오기 시작")
   
@@ -161,18 +167,25 @@ export default function SearchPage() {
         videoInfo,
         extractedRecipe,
       }
-  
-      localStorage.setItem("recipick_pending_recipe", JSON.stringify(previewData))
-      console.log("로컬스토리지 저장 완료, 페이지 이동 시작")
-      router.push("/temp-preview")
-  
+    
+      const result = await checkAndSaveRecipe(url, videoInfo, extractedRecipe, false)
+
+        if (result.success && result.recipeId) {
+        toast({
+            title: "저장 완료",
+            description: "레시피가 성공적으로 저장되었습니다.",
+        })
+        router.push(`/recipe/${result.recipeId}`)
+        } else {
+        throw new Error(result.message || "레시피 저장에 실패했습니다.")
+        }
+      
     } catch (error: any) {
-      console.error("Recipe extraction error:", error)
-      toast({
-        title: "오류",
-        description: error.message || "레시피 추출 중 오류가 발생했습니다.",
-        variant: "destructive"
-      })
+        console.error("Recipe extraction error:", error)
+        
+        // 에러 모달 표시
+        setErrorMessage(error.message || "레시피 추출 중 오류가 발생했습니다.")
+        setShowErrorModal(true)
     } finally {
       console.log("finally 블록 실행")
       setIsProcessing(false)
