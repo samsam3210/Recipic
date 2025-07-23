@@ -13,6 +13,8 @@ import { CustomDialog } from "@/components/custom-dialog"
 import { ClipboardToast } from "@/components/clipboard-toast"
 import { checkDailyUsage } from "@/lib/actions/usage"
 import { checkAndSaveRecipe } from "@/lib/actions/recipe"
+import { checkDuplicateRecipe, checkAndSaveRecipe } from "@/lib/actions/recipe"
+import { incrementDailyUsage } from "@/lib/actions/usage"
 
 interface SearchResult {
   videoId: string
@@ -38,6 +40,11 @@ export default function SearchPage() {
 
   const [showErrorModal, setShowErrorModal] = useState(false)
   const [errorMessage, setErrorMessage] = useState("")
+
+  const [showDuplicateModal, setShowDuplicateModal] = useState(false)
+  const [duplicateRecipeId, setDuplicateRecipeId] = useState<string | null>(null)
+  const [showRecipeUnavailableModal, setShowRecipeUnavailableModal] = useState(false)
+  const [recipeUnavailableMessage, setRecipeUnavailableMessage] = useState("")
 
   // 사용자 정보 가져오기
   useEffect(() => {
@@ -77,7 +84,8 @@ export default function SearchPage() {
   }
 
   // 레시피 추출 함수
-  const handleRecipeExtraction = async (url: string) => {
+  // 레시피 추출 함수 - hero-section 로직 완전 복사
+const handleRecipeExtraction = async (url: string) => {
     if (!user) {
       toast({
         title: "로그인 필요",
@@ -87,46 +95,70 @@ export default function SearchPage() {
       return
     }
   
-            // 즉시 로딩 상태 설정 (맨 앞으로 이동)
-        setIsProcessing(true)
-        setShowLoadingOverlay(true)
-        setCurrentLoadingStep(1)
-
-        try {
-        // 사용량 제한 체크
-        const usageCheckResult = await checkDailyUsage()
-        if (!usageCheckResult.isAllowed) {
-            setShowUsageLimitModal(true)
-            return
-        }
+    // 즉시 로딩 상태 설정
+    setIsProcessing(true)
+    setShowLoadingOverlay(true)
+    setCurrentLoadingStep(1)
   
-      console.log("1단계: 영상 정보 가져오기 시작")
+    try {
+      // 사용량 제한 체크
+      const usageCheckResult = await checkDailyUsage()
+      if (!usageCheckResult.isAllowed) {
+        setShowUsageLimitModal(true)
+        return
+      }
   
-      // metadata 호출 제거하고 바로 youtube API 호출
-      const response = await fetch("/api/youtube", {
+      // 사용량 증가
+      await incrementDailyUsage()
+  
+      // 1단계: 메타데이터 가져오기 + 중복 체크
+      const metadataResponse = await fetch("/api/youtube/metadata", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ youtubeUrl: url }),
       })
   
-      console.log("API 응답 상태:", response.ok, response.status)
-  
-      if (!response.ok) {
-        const errorData = await response.json()
-        console.error("API 에러:", errorData)
-        throw new Error("영상 정보를 가져오는 데 실패했습니다.")
+      if (!metadataResponse.ok) {
+        const errorData = await metadataResponse.json()
+        throw new Error(errorData.error || "유튜브 영상 정보를 불러오는 데 실패했습니다.")
       }
   
-      const videoInfo = await response.json()
-      console.log("비디오 정보:", videoInfo)
+      const videoMetadata = await metadataResponse.json()
   
-      if (!videoInfo.hasSubtitles || !videoInfo.transcriptText) {
-        throw new Error("이 영상에는 추출 가능한 자막이 없습니다.")
+      // 중복 레시피 체크
+      const duplicateCheckResult = await checkDuplicateRecipe(videoMetadata.videoTitle, videoMetadata.channelName)
+      if (duplicateCheckResult.isDuplicate && duplicateCheckResult.recipeId) {
+        setDuplicateRecipeId(duplicateCheckResult.recipeId)
+        setShowDuplicateModal(true)
+        return
       }
   
       setCurrentLoadingStep(2)
-      console.log("2단계: Gemini API 호출 시작")
   
+      // 2단계: 자막 가져오기
+      const videoResponse = await fetch("/api/youtube", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ youtubeUrl: url }),
+      })
+  
+      if (!videoResponse.ok) {
+        const errorData = await videoResponse.json()
+        throw new Error(errorData.error || "유튜브 자막을 불러오는 데 실패했습니다.")
+      }
+  
+      const videoInfo = await videoResponse.json()
+  
+      // 자막 검증
+      if (!videoInfo.hasSubtitles || !videoInfo.transcriptText) {
+        setRecipeUnavailableMessage("이 영상에는 추출 가능한 자막이 없습니다. 다른 영상을 시도해 주세요.")
+        setShowRecipeUnavailableModal(true)
+        return
+      }
+  
+      setCurrentLoadingStep(3)
+  
+      // 3단계: AI 레시피 분석
       const geminiResponse = await fetch("/api/gemini", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -136,58 +168,68 @@ export default function SearchPage() {
         }),
       })
   
-      console.log("Gemini 응답 상태:", geminiResponse.ok, geminiResponse.status)
-  
+      // AI 응답 검증
       if (!geminiResponse.ok) {
-        throw new Error("레시피 추출에 실패했습니다.")
+        const errorText = await geminiResponse.text()
+        if (errorText.includes("The model is overloaded")) {
+          setErrorMessage("현재 AI 모델에 요청이 많아 레시피 추출이 어렵습니다. 잠시 후 다시 시도해 주세요.")
+          setShowErrorModal(true)
+          return
+        } else {
+          setErrorMessage(`AI 레시피 추출 중 오류가 발생했습니다: ${errorText}`)
+          setShowErrorModal(true)
+          return
+        }
       }
   
-      setCurrentLoadingStep(3)
-        const geminiResponseText = await geminiResponse.text()
-        console.log("Gemini 원본 응답:", geminiResponseText)
-
-        let extractedRecipe
-        try {
+      const geminiResponseText = await geminiResponse.text()
+      let extractedRecipe
+  
+      try {
         let cleanedResponse = geminiResponseText
         if (cleanedResponse.startsWith("```json")) {
-            cleanedResponse = cleanedResponse.substring("```json".length, cleanedResponse.lastIndexOf("```")).trim()
+          cleanedResponse = cleanedResponse.substring("```json".length, cleanedResponse.lastIndexOf("```")).trim()
         }
-        
         extractedRecipe = JSON.parse(cleanedResponse)
-        console.log("파싱된 레시피:", extractedRecipe)
-        } catch (parseError) {
-        console.error("JSON 파싱 에러:", parseError)
-        console.log("파싱 실패한 응답:", geminiResponseText.substring(0, 500))
-        throw new Error("AI 응답을 처리하는 중 오류가 발생했습니다.")
-        }
-      console.log("추출된 레시피:", extractedRecipe)
-  
-      const previewData = {
-        youtubeUrl: url,
-        videoInfo,
-        extractedRecipe,
+      } catch (parseError) {
+        setErrorMessage(`AI 응답이 올바른 JSON 형식이 아닙니다. 원시 응답: ${geminiResponseText.substring(0, 200)}...`)
+        setShowErrorModal(true)
+        return
       }
-    
+  
+      // 레시피 데이터 검증
+      if (
+        !extractedRecipe ||
+        !extractedRecipe.ingredients ||
+        extractedRecipe.ingredients.length === 0 ||
+        !extractedRecipe.steps ||
+        extractedRecipe.steps.length === 0
+      ) {
+        setRecipeUnavailableMessage("제공된 영상에서 레시피 정보를 충분히 추출할 수 없습니다. 영상에 정확한 재료나 조리 단계가 명시되어 있지 않을 수 있습니다. 다른 영상을 시도해 주세요.")
+        setShowRecipeUnavailableModal(true)
+        return
+      }
+  
+      setCurrentLoadingStep(4)
+  
+      // 4단계: 레시피 저장
       const result = await checkAndSaveRecipe(url, videoInfo, extractedRecipe, false)
-
-        if (result.success && result.recipeId) {
+  
+      if (result.success && result.recipeId) {
         toast({
-            title: "저장 완료",
-            description: "레시피가 성공적으로 저장되었습니다.",
+          title: "저장 완료",
+          description: "레시피가 성공적으로 저장되었습니다.",
         })
         router.push(`/recipe/${result.recipeId}`)
-        } else {
+      } else {
         throw new Error(result.message || "레시피 저장에 실패했습니다.")
-        }
-      
+      }
+  
     } catch (error: any) {
-        console.error("Recipe extraction error:", error)
-        
-        // 에러 모달 표시
-        setErrorMessage(error.message || "레시피 추출 중 오류가 발생했습니다.")
-        setShowErrorModal(true)
+      console.error("Recipe extraction error:", error)
+      setErrorMessage(error.message || "레시피 추출 중 오류가 발생했습니다.")
+      setShowErrorModal(true)
     } finally {
-      console.log("finally 블록 실행")
       setIsProcessing(false)
       setShowLoadingOverlay(false)
       setCurrentLoadingStep(1)
@@ -395,6 +437,55 @@ export default function SearchPage() {
             onClick={() => setShowUsageLimitModal(false)}
             className="w-full py-3 px-4 text-sm font-medium text-gray-600 bg-gray-50 hover:bg-gray-100 border border-gray-200 rounded-xl transition-colors duration-200"
           >
+            확인
+          </Button>
+        }
+      />
+
+      {/* 에러 모달 */}
+      <CustomDialog
+        isOpen={showErrorModal}
+        onClose={() => setShowErrorModal(false)}
+        title="레시피 추출 실패"
+        description={errorMessage}
+        footer={
+          <Button onClick={() => setShowErrorModal(false)} className="w-full">
+            확인
+          </Button>
+        }
+      />
+
+      {/* 중복 레시피 모달 */}
+      <CustomDialog
+        isOpen={showDuplicateModal}
+        onClose={() => setShowDuplicateModal(false)}
+        title="이전에 레시피를 조회했던 영상이에요."
+        description="레시피 정보 화면으로 바로 이동할까요?"
+        footer={
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={() => setShowDuplicateModal(false)}>
+              아니요, 다른 영상 입력할게요
+            </Button>
+            <Button onClick={() => {
+              if (duplicateRecipeId) {
+                router.push(`/recipe/${duplicateRecipeId}`)
+                setShowDuplicateModal(false)
+              }
+            }}>
+              예, 기존 레시피 보기
+            </Button>
+          </div>
+        }
+      />
+
+      {/* 레시피 없음 모달 */}
+      <CustomDialog
+        isOpen={showRecipeUnavailableModal}
+        onClose={() => setShowRecipeUnavailableModal(false)}
+        title="레시피 조회 불가능"
+        description={recipeUnavailableMessage}
+        footer={
+          <Button onClick={() => setShowRecipeUnavailableModal(false)} className="w-full">
             확인
           </Button>
         }
