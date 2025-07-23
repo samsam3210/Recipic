@@ -3,7 +3,7 @@
 import { useState, useRef, useCallback, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Loader2, X, ArrowRight } from "lucide-react"
+import { Loader2, X, ArrowRight, Search } from "lucide-react"
 import { useRouter } from "next/navigation"
 import type { User } from "@supabase/supabase-js"
 import { checkAndSaveRecipe, checkDuplicateRecipe } from "@/lib/actions/recipe"
