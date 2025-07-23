@@ -12,7 +12,6 @@ import { createClient } from "@/lib/supabase/client"
 import { CustomDialog } from "@/components/custom-dialog"
 import { ClipboardToast } from "@/components/clipboard-toast"
 import { checkDailyUsage } from "@/lib/actions/usage"
-import { checkAndSaveRecipe } from "@/lib/actions/recipe"
 import { checkDuplicateRecipe, checkAndSaveRecipe } from "@/lib/actions/recipe"
 import { incrementDailyUsage } from "@/lib/actions/usage"
 
