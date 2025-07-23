@@ -57,7 +57,7 @@ export function CustomDialog({
         />
         <DialogContent
           className={cn(
-            "sm:max-w-[425px]",  // ← 이렇게만 하면 됩니다
+            "max-w-[calc(100%-2rem)] mx-auto", // Added for consistent horizontal margin on all screen sizes
             className,
           )}
           onPointerDownOutside={disableClose ? (e) => e.preventDefault() : undefined}
