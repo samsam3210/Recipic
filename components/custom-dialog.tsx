@@ -57,6 +57,7 @@ export function CustomDialog({
         />
         <DialogContent
           className={cn(
+            "sm:max-w-[425px]",  // ← 이렇게만 하면 됩니다
             className,
           )}
           onPointerDownOutside={disableClose ? (e) => e.preventDefault() : undefined}

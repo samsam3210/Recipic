@@ -1,8 +1,11 @@
 "use client"
 
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { useRouter } from "next/navigation"
+import { FolderList } from "@/components/folder-list"
 import type { folders as foldersSchema } from "@/lib/db/schema"
+import { useState } from "react"
+import { Button } from "@/components/ui/button"
+import { ChevronDown, Folder } from "lucide-react"
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
 
 interface MobileFolderSelectorProps {
   folders: (typeof foldersSchema.$inferSelect)[]
@@ -10,36 +13,27 @@ interface MobileFolderSelectorProps {
 }
 
 export function MobileFolderSelector({ folders, selectedFolderId }: MobileFolderSelectorProps) {
-  const router = useRouter()
+  const [isOpen, setIsOpen] = useState(false)
 
   return (
     <div className="lg:hidden mb-6">
-      <label className="block text-sm font-medium text-gray-700 mb-2">폴더 선택</label>
-      <Select 
-        value={selectedFolderId || "all"} 
-        onValueChange={(value) => {
-          const folderId = value === "all" ? null : value;
-          const params = new URLSearchParams(window.location.search);
-          if (folderId) {
-            params.set('folder', folderId);
-          } else {
-            params.delete('folder');
-          }
-          router.push(`/recipes?${params.toString()}`);
-        }}
-      >
-        <SelectTrigger className="w-full">
-          <SelectValue placeholder="폴더를 선택하세요" />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="all">모든 레시피</SelectItem>
-          {folders.map((folder) => (
-            <SelectItem key={folder.id} value={folder.id}>
-              {folder.name} ({folder.recipeCount || 0})
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
+      <Collapsible open={isOpen} onOpenChange={setIsOpen}>
+        <CollapsibleTrigger asChild>
+          <Button
+            variant="outline"
+            className="w-full justify-between h-12 px-4"
+          >
+            <div className="flex items-center gap-2">
+              <Folder className="h-4 w-4" />
+              <span className="font-medium">폴더 관리</span>
+            </div>
+            <ChevronDown className={`h-4 w-4 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+          </Button>
+        </CollapsibleTrigger>
+        <CollapsibleContent className="mt-3 p-4 border rounded-lg bg-gray-50">
+          <FolderList folders={folders} selectedFolderId={selectedFolderId} />
+        </CollapsibleContent>
+      </Collapsible>
     </div>
   )
 }
