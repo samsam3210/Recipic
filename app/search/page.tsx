@@ -137,7 +137,23 @@ export default function SearchPage() {
       }
   
       setCurrentLoadingStep(3)
-      const extractedRecipe = await geminiResponse.json()
+        const geminiResponseText = await geminiResponse.text()
+        console.log("Gemini 원본 응답:", geminiResponseText)
+
+        let extractedRecipe
+        try {
+        let cleanedResponse = geminiResponseText
+        if (cleanedResponse.startsWith("```json")) {
+            cleanedResponse = cleanedResponse.substring("```json".length, cleanedResponse.lastIndexOf("```")).trim()
+        }
+        
+        extractedRecipe = JSON.parse(cleanedResponse)
+        console.log("파싱된 레시피:", extractedRecipe)
+        } catch (parseError) {
+        console.error("JSON 파싱 에러:", parseError)
+        console.log("파싱 실패한 응답:", geminiResponseText.substring(0, 500))
+        throw new Error("AI 응답을 처리하는 중 오류가 발생했습니다.")
+        }
       console.log("추출된 레시피:", extractedRecipe)
   
       const previewData = {
