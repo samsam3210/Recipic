@@ -3,17 +3,7 @@
 import { useState, useRef, useCallback, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import {
-  Loader2,
-  X,
-  ArrowRight,
-  Check,
-  Search,        // 새로 추가
-  ExternalLink,  // 새로 추가
-  Play,          // 새로 추가
-  Users,         // 새로 추가
-  Clock          // 새로 추가
-} from "lucide-react"
+import { Loader2, X, ArrowRight } from "lucide-react"
 import { useRouter } from "next/navigation"
 import type { User } from "@supabase/supabase-js"
 import { checkAndSaveRecipe, checkDuplicateRecipe } from "@/lib/actions/recipe"
@@ -24,20 +14,6 @@ import { checkDailyUsage, incrementDailyUsage } from "@/lib/actions/usage"
 import { Badge } from "@/components/ui/badge"
 import { CustomDialog } from "./custom-dialog"
 import { Skeleton } from "@/components/ui/skeleton"
-import { ClipboardToast } from "./clipboard-toast"
-import { isYouTubeURL } from "@/lib/utils"
-
-interface SearchResult {
-  videoId: string
-  title: string
-  channelName: string
-  thumbnail: string
-  description: string
-  duration?: string
-  viewCount?: string
-  publishedTime?: string
-  youtubeUrl: string
-}
 
 interface RecipeData {
   id?: string
@@ -106,8 +82,12 @@ export function HeroSection({ user, isDashboard = false }: HeroSectionProps) {
   const [currentUsageCount, setCurrentUsageCount] = useState<number | null>(null)
   const [isAdmin, setIsAdmin] = useState(false)
   const [isLoadingUsage, setIsLoadingUsage] = useState(true)
-  const [showClipboardToast, setShowClipboardToast] = useState(false)
   const router = useRouter()
+  const handleInputClick = () => {
+    if (isDashboard) {
+      router.push('/search')
+    }
+  }
   const { toast } = useToast()
 
   const [showLoadingOverlay, setShowLoadingOverlay] = useState(false)
@@ -119,10 +99,6 @@ export function HeroSection({ user, isDashboard = false }: HeroSectionProps) {
   const [showErrorModal, setShowErrorModal] = useState(false)
   const [errorModalTitle, setErrorModalTitle] = useState("")
   const [errorModalDescription, setErrorModalDescription] = useState("")
-
-  const [searchMode, setSearchMode] = useState<'url' | 'keyword'>('url')
-  const [searchResults, setSearchResults] = useState<SearchResult[]>([])
-  const [isSearching, setIsSearching] = useState(false)
 
   // Updated step messages
   const stepMessages = {
@@ -205,27 +181,6 @@ export function HeroSection({ user, isDashboard = false }: HeroSectionProps) {
     fetchUsage()
   }, [user])
 
-  useEffect(() => {
-    const checkClipboardForYouTubeURL = async () => {
-      if (youtubeUrl) return
-
-      if (!navigator.clipboard || !window.isSecureContext) return
-
-      try {
-        const clipboardText = await navigator.clipboard.readText()
-
-        if (clipboardText && isYouTubeURL(clipboardText)) {
-          setYoutubeUrl(clipboardText.trim())
-          setShowClipboardToast(true)
-        }
-      } catch (err) {
-        console.debug('Clipboard access denied or failed:', err)
-      }
-    }
-
-    checkClipboardForYouTubeURL()
-  }, [])
-
   // MODIFIED: 함수 분리 - 유튜브 메타데이터만 가져오는 함수
   const fetchAndCheckVideoMetadata = async (url: string, forceReExtract: boolean): Promise<VideoMetadata> => {
     const response = await fetch(`/api/youtube/metadata`, {
@@ -289,7 +244,7 @@ export function HeroSection({ user, isDashboard = false }: HeroSectionProps) {
     // Removed: transcriptLinesRef.current = videoInfo.transcriptText.split(". ").filter(Boolean);
 
     await new Promise((resolve) => setTimeout(resolve, 2000))
-    setCurrentLoadingStep(3)
+    setCurrentLoadingStep(2)
     animateAiMessages() // Call the new animation function
 
     const geminiResponse = await fetch(`/api/gemini`, {
@@ -304,7 +259,6 @@ export function HeroSection({ user, isDashboard = false }: HeroSectionProps) {
 
     let recipeJsonString = ""
     if (!geminiResponse.ok) {
-      setCurrentLoadingStep(4)
       const errorText = await geminiResponse.text()
       if (errorText.includes("The model is overloaded")) {
         setErrorModalTitle("AI 모델 과부하")
@@ -501,18 +455,12 @@ export function HeroSection({ user, isDashboard = false }: HeroSectionProps) {
   }
 
   const handleDiscoverClick = async () => {
+    // Make it async
     if (isProcessing) {
       console.warn("[HeroSection] Already processing, ignoring duplicate click from handleDiscoverClick.")
       return
     }
 
-    // ✅ 키워드 검색 모드인 경우 검색만 실행 (팝업 없음)
-    if (searchMode === 'keyword') {
-      await handleKeywordSearch()
-      return
-    }
-
-    // ✅ URL 모드인 경우 기존 레시피 추출 로직 실행
     setIsProcessing(true)
     setShowLoadingOverlay(true)
     setCurrentLoadingStep(1)
@@ -526,120 +474,18 @@ export function HeroSection({ user, isDashboard = false }: HeroSectionProps) {
 
     // 로그인된 사용자의 경우, 사용량 제한을 먼저 체크
     const usageCheckResult = await checkDailyUsage()
+    // CRITICAL FIX: Update usage count and admin status immediately
     setCurrentUsageCount(usageCheckResult.currentCount || 0)
     setIsAdmin(usageCheckResult.isAdmin || false)
 
     if (!usageCheckResult.isAllowed) {
       setShowUsageLimitModal(true)
       resetLoadingState()
-      return
+      return // IMPORTANT: 사용량 제한 초과 시 여기서 실행 중단
     }
 
     // 사용이 허용되면 레시피 추출 진행
     handleDiscoverRecipe(false)
-  }
-
-  // 키워드 검색 함수 - 간단한 로딩만 표시
-  const handleKeywordSearch = async () => {
-    if (!youtubeUrl.trim()) {
-      toast({
-        title: "검색 키워드를 입력해주세요",
-        description: "요리 이름이나 재료를 입력해서 검색해보세요.",
-        variant: "destructive"
-      })
-      return
-    }
-
-    // 단순 검색 로딩만 표시 (팝업 없음)
-    setIsSearching(true)
-
-    try {
-      const response = await fetch('/api/youtube/search', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          query: youtubeUrl,
-          maxResults: 10
-        })
-      })
-
-      if (!response.ok) {
-        throw new Error('검색 요청이 실패했습니다.')
-      }
-
-      const data = await response.json()
-
-      if (data.error) {
-        throw new Error(data.error)
-      }
-
-      if (data.results && data.results.length > 0) {
-        setSearchResults(data.results)
-        toast({
-          title: "검색 완료",
-          description: `${data.results.length}개의 영상을 찾았습니다.`,
-        })
-      } else {
-        setSearchResults([])
-        toast({
-          title: "검색 결과가 없습니다",
-          description: "다른 키워드로 다시 검색해보세요.",
-          variant: "info"
-        })
-      }
-    } catch (error) {
-      console.error('YouTube search error:', error)
-      toast({
-        title: "검색 오류",
-        description: "검색 중 문제가 발생했습니다. 다시 시도해주세요.",
-        variant: "destructive"
-      })
-      setSearchResults([])
-    } finally {
-      // 검색 로딩만 종료 (팝업이나 다른 상태는 건드리지 않음)
-      setIsSearching(false)
-    }
-  }
-
-  // 영상 선택 함수 - 즉시 팝업 표시
-  const handleVideoSelect = async (video: SearchResult) => {
-    // ✅ 즉시 로딩 팝업 표시
-    setIsProcessing(true)
-    setShowLoadingOverlay(true)
-    setCurrentLoadingStep(1)
-
-    // URL 설정
-    setYoutubeUrl(video.youtubeUrl)
-
-    if (!user) {
-      setShowConsentModal(true)
-      setIsProcessing(false)
-      setShowLoadingOverlay(false)
-      return
-    }
-
-    // 사용량 제한 체크
-    const usageCheckResult = await checkDailyUsage()
-    setCurrentUsageCount(usageCheckResult.currentCount || 0)
-    setIsAdmin(usageCheckResult.isAdmin || false)
-
-    if (!usageCheckResult.isAllowed) {
-      setShowUsageLimitModal(true)
-      resetLoadingState()
-      return
-    }
-
-    // 기존 handleDiscoverRecipe 함수 호출
-    handleDiscoverRecipe(false)
-  }
-
-  // 검색 모드 토글 함수
-  const toggleSearchMode = () => {
-    setSearchMode(searchMode === 'url' ? 'keyword' : 'url')
-    setYoutubeUrl('')
-    setSearchResults([])
   }
 
   return (
@@ -671,17 +517,14 @@ export function HeroSection({ user, isDashboard = false }: HeroSectionProps) {
               placeholder="YouTube 주소를 입력해주세요."
               value={youtubeUrl}
               onChange={(e) => setYoutubeUrl(e.target.value)}
-              className="h-12 flex-grow pl-5 pr-20 border-none focus:outline-none focus:ring-0 focus:ring-offset-0 text-base rounded-l-full rounded-r-none placeholder:text-gray-400"
+              className="h-12 flex-grow pl-5 pr-12 border-none focus:outline-none focus:ring-0 focus:ring-offset-0 text-base rounded-l-full rounded-r-none placeholder:text-gray-400"
               disabled={isProcessing || showLoadingOverlay}
             />
             <Button
               onClick={handleDiscoverClick}
               disabled={!youtubeUrl || isProcessing || showLoadingOverlay}
               size="icon"
-              className={`absolute right-0 h-full w-12 ${!youtubeUrl || isProcessing || showLoadingOverlay
-                  ? 'bg-gray-600'
-                  : 'bg-black hover:bg-gray-800'
-                } text-white rounded-r-full rounded-l-none transition-colors duration-200`}
+              className="absolute right-0 h-full w-12 bg-soft-blue hover:bg-soft-blue/90 text-white rounded-r-full rounded-l-none"
             >
               {isProcessing && showLoadingOverlay ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
@@ -693,181 +536,27 @@ export function HeroSection({ user, isDashboard = false }: HeroSectionProps) {
         </div>
       )}
 
-      {isDashboard && (
-        <div className="w-full space-y-4">
-          {/* ✅ 검색 모드 토글 추가 */}
-          <div className="flex justify-center mb-4">
-            <div className="bg-gray-100 p-1 rounded-lg flex text-xs">
-              <button
-                onClick={() => searchMode !== 'url' && toggleSearchMode()}
-                className={`px-3 py-1.5 rounded-md font-medium transition-all ${searchMode === 'url'
-                    ? 'bg-white text-gray-900 shadow-sm'
-                    : 'text-gray-600 hover:text-gray-900'
-                  }`}
-              >
-                YouTube 주소 입력
-              </button>
-              <button
-                onClick={() => searchMode !== 'keyword' && toggleSearchMode()}
-                className={`px-3 py-1.5 rounded-md font-medium transition-all ${searchMode === 'keyword'
-                    ? 'bg-white text-gray-900 shadow-sm'
-                    : 'text-gray-600 hover:text-gray-900'
-                  }`}
-              >
-                YouTube 키워드 검색
-              </button>
+        {isDashboard && (
+          <div className="w-full max-w-2xl space-y-4">
+            <div className="relative w-full">
+              <Input
+                type="text"
+                placeholder="레시픽에서 찾아보세요!"
+                value={youtubeUrl}
+                onChange={(e) => setYoutubeUrl(e.target.value)}
+                onClick={handleInputClick}
+                readOnly
+                className="w-full h-14 pl-4 pr-12 text-base rounded-xl border-2 border-gray-200 focus:border-gray-400 focus:ring-0 transition-colors cursor-pointer"
+              />
+              <Search className="absolute right-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
             </div>
+            <p className="text-sm text-gray-600 leading-relaxed">
+              YouTube 요리 영상에서 AI가 자동으로 레시피를 추출해드립니다.
+              <br />
+              지금 바로 당신의 요리 경험을 업그레이드하세요!
+            </p>
           </div>
-
-          {/* ✅ 기존 입력 필드에 아이콘 및 placeholder 수정 */}
-          <div
-            className={cn(
-              "relative flex items-center w-full max-w-xl mx-auto rounded-full shadow-input-unit-shadow overflow-hidden",
-              isDashboard ? "" : "border border-gray-100",
-            )}
-          >
-            {/* ✅ 아이콘 추가 */}
-            <div className="pl-5">
-              {searchMode === 'keyword' ? (
-                <Search className="h-5 w-5 text-gray-400" />
-              ) : (
-                <ExternalLink className="h-5 w-5 text-gray-400" />
-              )}
-            </div>
-            <Input
-              id="youtube-url"
-              placeholder={
-                searchMode === 'keyword'
-                  ? '요리 이름을 검색해보세요'
-                  : '유튜브 URL를 입력해주세요.'
-              }
-              value={youtubeUrl}
-              onChange={(e) => setYoutubeUrl(e.target.value)}
-              className="flex-1 h-12 pl-4 pr-20 text-base border-none focus-visible:ring-0 focus-visible:ring-offset-0 rounded-l-full rounded-r-none placeholder:text-gray-400"
-              disabled={isProcessing || showLoadingOverlay || isSearching}
-              onKeyPress={(e) => e.key === 'Enter' && handleDiscoverClick()}
-            />
-            <Button
-              onClick={handleDiscoverClick}
-              disabled={!youtubeUrl || isProcessing || showLoadingOverlay || isSearching}
-              size="icon"
-              className={`absolute right-0 h-full w-12 ${!youtubeUrl || isProcessing || showLoadingOverlay || isSearching
-                  ? 'bg-gray-600'
-                  : 'bg-black hover:bg-gray-800'
-                } text-white rounded-r-full rounded-l-none transition-colors duration-200`}
-            >
-              {isProcessing || showLoadingOverlay || isSearching ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                <ArrowRight className="h-5 w-5" />
-              )}
-            </Button>
-          </div>
-
-          {/* 사용량 표시 */}
-          {user && !isLoadingUsage && (
-            <div className="text-center">
-              <p className="text-sm text-gray-500">
-                {isAdmin ? (
-                  <>
-                    <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 mr-2">
-                      ADMIN
-                    </span>
-                    무제한 사용 가능
-                  </>
-                ) : (
-                  <>
-                    <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 mr-2">
-                      FREE
-                    </span>
-                    총 2회 중 {currentUsageCount}회 사용
-                  </>
-                )}
-              </p>
-            </div>
-          )}
-
-          {/* ✅ 검색 결과 영역 - 최근 조회한 레시피와 완전히 동일한 구조 */}
-          {searchMode === 'keyword' && searchResults.length > 0 && (
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-              <div className="flex justify-between items-center mb-6">
-                <h2 className="text-xl font-semibold text-gray-900">
-                  검색 결과 ({searchResults.length}개)
-                </h2>
-              </div>
-              <div className="space-y-4">
-                {searchResults.map((video: SearchResult) => (
-                  <div
-                    key={video.videoId}
-                    className="border border-gray-100 rounded-lg p-4 hover:shadow-sm transition-shadow cursor-pointer group"
-                    onClick={() => handleVideoSelect(video)}
-                  >
-                    {/* 최근 조회한 레시피와 완전히 동일한 flex 구조 */}
-                    <div className="flex flex-col md:flex-row">
-                      {/* 썸네일 - 최근 조회한 레시피와 동일한 반응형 클래스 */}
-                      <div className="w-full md:w-48 md:h-32 flex-shrink-0 md:mr-4 mb-4 md:mb-0">
-                        <div className="relative aspect-video">
-                          <img
-                            src={video.thumbnail}
-                            alt={video.title}
-                            className="h-full w-full object-cover rounded-md"
-                          />
-                          <div className="absolute inset-0 bg-black/20 rounded-md group-hover:bg-black/10 transition-colors flex items-center justify-center">
-                            <Play className="h-6 w-6 text-white opacity-80" />
-                          </div>
-                          {video.duration && (
-                            <div className="absolute bottom-2 right-2 bg-black/80 text-white text-xs px-2 py-1 rounded">
-                              {video.duration}
-                            </div>
-                          )}
-                        </div>
-                      </div>
-
-                      {/* 정보 영역 - 최근 조회한 레시피와 완전히 동일한 구조 */}
-                      <div className="flex-1 space-y-2">
-                        <h3 className="text-sm font-medium text-gray-900 mb-1 group-hover:text-black line-clamp-2 text-left">
-                          {video.title}
-                        </h3>
-                        <p className="text-xs text-gray-600 mb-1 text-left">
-                          {video.channelName}
-                        </p>
-                        <div className="flex items-center space-x-3 text-xs text-gray-500">
-                          {video.viewCount && (
-                            <div className="flex items-center space-x-1">
-                              <Users className="h-3 w-3" />
-                              <span>{video.viewCount}</span>
-                            </div>
-                          )}
-                          {video.publishedTime && (
-                            <div className="flex items-center space-x-1">
-                              <Clock className="h-3 w-3" />
-                              <span>{video.publishedTime}</span>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-
-                      {/* 우측 호버 버튼 영역 - 최근 조회한 레시피와 동일한 위치 */}
-                      <div className="flex items-center md:ml-4">
-                        <Button
-                          size="sm"
-                          className="px-3 py-1.5 bg-black text-white text-xs rounded-md hover:bg-gray-800 transition-colors opacity-0 group-hover:opacity-100"
-                          onClick={(e) => {
-                            e.stopPropagation()
-                            handleVideoSelect(video)
-                          }}
-                        >
-                          레시피 조회
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
-      )}
+        )}
 
       {!isDashboard && (
         <p className="text-sm text-gray-500 mt-8">
@@ -880,70 +569,36 @@ export function HeroSection({ user, isDashboard = false }: HeroSectionProps) {
       {/* 로딩 다이얼로그 (모달 스타일) */}
       <CustomDialog
         isOpen={showLoadingOverlay}
-        onClose={handleCancelProcessing}
-        title="레시피 분석 중입니다"
-        description=""
-        disableClose={true}
-        hideCloseButton={true}
-        className="sm:max-w-[425px] p-6 rounded-2xl bg-white shadow-xl border border-gray-100"
-        headerClassName="mb-4 text-left w-full"
-        titleClassName="text-xl font-semibold text-gray-900"
-        descriptionClassName="hidden"
-        footerClassName="w-full mt-4"
-        overlayClassName="bg-black/50 backdrop-blur-sm"
+        onClose={handleCancelProcessing} // 취소 버튼과 동일한 동작
+        title="레시피 추출 중"
+        description={stepMessages[currentLoadingStep as keyof typeof stepMessages]}
+        disableClose={true} // 외부 클릭 및 ESC 키 방지
+        hideCloseButton={true} // Hide the 'X' button
+        className="sm:max-w-[425px] p-6 flex flex-col items-center rounded-xl bg-white shadow-subtle-dialog" // Apply rounded corners, white background, and subtle shadow
+        headerClassName="mb-6 text-center w-full"
+        titleClassName="text-3xl font-bold text-gray-900"
+        descriptionClassName="text-lg text-gray-700 mt-2" // Changed to text-gray-700 for consistency
+        footerClassName="w-full mt-6"
+        overlayClassName="bg-black/60" // Apply custom overlay background
         footer={
           <Button
             variant="outline"
             onClick={handleCancelProcessing}
-            className="w-full py-3 px-4 text-sm font-medium text-gray-600 bg-gray-50 hover:bg-gray-100 border border-gray-200 rounded-xl transition-colors duration-200"
+            className="w-full rounded-md border-gray-300 text-gray-700 hover:bg-gray-50 bg-transparent" // Adjusted button style
           >
+            <X className="mr-2 h-4 w-4" />
             괜찮아요, 그만둘래요
           </Button>
         }
       >
-        {/* Progress Steps */}
-        <div className="space-y-3 mb-4">
-          {[
-            { id: 1, text: "유튜브 영상 확인 중..." },
-            { id: 2, text: "자막 및 음성 분석 중..." },
-            { id: 3, text: "레시피 정보 추출 중..." },
-            { id: 4, text: "레시피 구성 중..." }
-          ].map((step) => {
-            const isCompleted = step.id < currentLoadingStep;
-            const isCurrent = step.id === currentLoadingStep;
-
-            return (
-              <div key={step.id} className="flex items-center gap-3">
-                <div className={`
-                    relative w-5 h-5 rounded-full transition-all duration-300 ease-out
-                    ${isCompleted
-                    ? 'bg-gray-600'
-                    : isCurrent
-                      ? 'bg-gray-100 border-2 border-gray-600'
-                      : 'bg-gray-100 border-2 border-gray-200'
-                  }
-                  `}>
-                  {isCompleted ? (
-                    <Check className="w-3 h-3 text-white absolute inset-0 m-auto" />
-                  ) : isCurrent ? (
-                    <div className="w-2 h-2 bg-gray-600 rounded-full absolute inset-0 m-auto animate-pulse" />
-                  ) : null}
-                </div>
-                <span className={`
-                    text-sm font-medium transition-all duration-300
-                    ${isCompleted
-                    ? 'text-gray-400'
-                    : isCurrent
-                      ? 'text-gray-900 animate-pulse'
-                      : 'text-gray-400'
-                  }
-                  `}>
-                  {step.text}
-                </span>
-              </div>
-            );
-          })}
-        </div>
+        <Loader2 className="h-12 w-12 animate-spin text-primary mb-4" /> {/* Spinner color is primary */}
+        {currentLoadingStep === 2 && (
+          <div className="mt-4 p-3 bg-gray-50 rounded-md w-full text-sm text-gray-700 font-mono h-16 overflow-hidden flex items-center justify-center text-center">
+            <p className="animate-fade-in-out">{displayedAiMessage || "AI가 자막을 분석 중..."}</p>{" "}
+            {/* Use displayedAiMessage */}
+          </div>
+        )}
+        {/* Removed the specific text area for "AI가 영상 자막을 읽고 있습니다..." */}
       </CustomDialog>
 
       <CustomDialog
@@ -951,19 +606,13 @@ export function HeroSection({ user, isDashboard = false }: HeroSectionProps) {
         onClose={() => setShowRecipeUnavailableModal(false)}
         title="레시피 조회 불가능"
         description={recipeUnavailableMessage}
-        disableClose={false}
-        hideCloseButton={true}
-        className="sm:max-w-[425px] p-6 rounded-2xl bg-white shadow-xl border border-gray-100"
-        headerClassName="mb-6 text-left w-full"
-        titleClassName="text-xl font-semibold text-gray-900"
-        descriptionClassName="text-sm text-gray-600 mt-2"
-        footerClassName="w-full mt-6"
-        overlayClassName="bg-black/50 backdrop-blur-sm"
+        className="sm:max-w-[425px] p-6 flex flex-col items-center text-center"
+        headerClassName="mb-4 w-full"
+        titleClassName="text-2xl font-bold text-gray-900"
+        descriptionClassName="text-base text-gray-600 mt-2"
+        footerClassName="w-full mt-4"
         footer={
-          <Button
-            onClick={() => setShowRecipeUnavailableModal(false)}
-            className="w-full py-3 px-4 text-sm font-medium text-gray-600 bg-gray-50 hover:bg-gray-100 border border-gray-200 rounded-xl transition-colors duration-200"
-          >
+          <Button onClick={() => setShowRecipeUnavailableModal(false)} className="w-full">
             확인
           </Button>
         }
@@ -972,50 +621,25 @@ export function HeroSection({ user, isDashboard = false }: HeroSectionProps) {
       <CustomDialog
         isOpen={showDuplicateModal}
         onClose={() => setShowDuplicateModal(false)}
-        title="이미 조회했던 레시피에요."
-        description="레시피 정보를 다시 보여드릴까요?"
-        disableClose={false}
-        hideCloseButton={true}
-        className="sm:max-w-[425px] p-6 rounded-2xl bg-white shadow-xl border border-gray-100"
-        headerClassName="mb-6 text-left w-full"
-        titleClassName="text-2xl font-semibold text-gray-900 mb-2"
-        descriptionClassName="text-base text-gray-600"
-        footerClassName="w-full"
-        overlayClassName="bg-black/50 backdrop-blur-sm"
+        title="이전에 레시피를 조회했던 영상이에요."
+        description="레시피 정보 화면으로 바로 이동할까요?"
+        className="sm:max-w-[425px]"
+        footerClassName="flex flex-col sm:flex-row sm:justify-end gap-2 mt-4"
         footer={
-          <div className="space-y-3">
-            <div className="space-y-3 mb-4">
-              <Button
-                onClick={handleViewExistingRecipe}
-                className="w-full py-3 px-4 text-sm font-medium text-white bg-gray-900 hover:bg-gray-800 rounded-xl transition-colors duration-200"
-              >
-                네, 볼게요
-              </Button>
-
-              <Button
-                variant="outline"
-                onClick={() => setShowDuplicateModal(false)}
-                className="w-full py-3 px-4 text-sm font-medium text-gray-600 bg-gray-50 hover:bg-gray-100 border border-gray-200 rounded-xl transition-colors duration-200"
-              >
-                아니요, 다른 영상 조회할래요
-              </Button>
-            </div>
-
-            <div className="text-center pt-3 border-t border-gray-100">
-              <p className="text-xs text-gray-500 mb-2">
-                이미 조회한 레시피를 업데이트하고 싶다면
-              </p>
-              <Button
-                variant="link"
-                onClick={handleForceReExtract}
-                className="text-sm text-gray-700 hover:text-gray-900 underline font-medium p-0 h-auto"
-              >
-                여기를 눌러주세요
-              </Button>
-            </div>
-          </div>
+          <>
+            <Button variant="outline" onClick={() => setShowDuplicateModal(false)}>
+              아니요, 다른 영상 입력할게요
+            </Button>
+            <Button onClick={handleViewExistingRecipe}>예, 기존 레시피 보기</Button>
+          </>
         }
       >
+        <p className="text-sm text-muted-foreground text-center mt-4 w-full">
+          다시 레시피를 새로 추출하고 싶다면{" "}
+          <Button variant="link" className="p-0 h-auto text-sm" onClick={handleForceReExtract}>
+            여기를 눌러주세요.
+          </Button>
+        </p>
       </CustomDialog>
 
       <CustomDialog
@@ -1029,19 +653,13 @@ export function HeroSection({ user, isDashboard = false }: HeroSectionProps) {
             서비스 개선이 될 때까지 잠시만 기다려주세요!
           </>
         }
-        disableClose={false}
-        hideCloseButton={true}
-        className="sm:max-w-[425px] p-6 rounded-2xl bg-white shadow-xl border border-gray-100"
-        headerClassName="mb-6 text-left w-full"
-        titleClassName="text-xl font-semibold text-gray-900"
-        descriptionClassName="text-sm text-gray-600 mt-2"
-        footerClassName="w-full mt-6"
-        overlayClassName="bg-black/50 backdrop-blur-sm"
+        className="sm:max-w-[425px] p-6 flex flex-col items-center text-center"
+        headerClassName="mb-4 w-full"
+        titleClassName="text-2xl font-bold text-gray-900"
+        descriptionClassName="text-base text-gray-600 mt-2"
+        footerClassName="w-full mt-4"
         footer={
-          <Button
-            onClick={() => setShowUsageLimitModal(false)}
-            className="w-full py-3 px-4 text-sm font-medium text-gray-600 bg-gray-50 hover:bg-gray-100 border border-gray-200 rounded-xl transition-colors duration-200"
-          >
+          <Button onClick={() => setShowUsageLimitModal(false)} className="w-full">
             확인
           </Button>
         }
@@ -1053,31 +671,19 @@ export function HeroSection({ user, isDashboard = false }: HeroSectionProps) {
         onClose={() => setShowErrorModal(false)}
         title={errorModalTitle}
         description={errorModalDescription}
-        disableClose={false}
-        hideCloseButton={true}
-        className="sm:max-w-[425px] p-6 rounded-2xl bg-white shadow-xl border border-gray-100"
-        headerClassName="mb-6 text-left w-full"
-        titleClassName="text-xl font-semibold text-gray-900"
-        descriptionClassName="text-sm text-gray-600 mt-2"
-        footerClassName="w-full mt-6"
-        overlayClassName="bg-black/50 backdrop-blur-sm"
+        className="sm:max-w-[425px] p-6 flex flex-col items-center text-center"
+        headerClassName="mb-4 w-full"
+        titleClassName="text-2xl font-bold text-gray-900"
+        descriptionClassName="text-base text-gray-600 mt-2"
+        footerClassName="w-full mt-4"
         footer={
-          <Button
-            onClick={() => setShowErrorModal(false)}
-            className="w-full py-3 px-4 text-sm font-medium text-gray-600 bg-gray-50 hover:bg-gray-100 border border-gray-200 rounded-xl transition-colors duration-200"
-          >
+          <Button onClick={() => setShowErrorModal(false)} className="w-full">
             확인
           </Button>
         }
       />
 
       <ConsentModal isOpen={showConsentModal} onClose={() => setShowConsentModal(false)} />
-      <ClipboardToast
-        isVisible={showClipboardToast}
-        onClose={() => setShowClipboardToast(false)}
-        message="유튜브 링크를 자동으로 불러왔어요!"
-      />
-
     </section>
   )
 }
