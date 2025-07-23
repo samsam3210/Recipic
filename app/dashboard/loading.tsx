@@ -3,21 +3,7 @@ import { SidebarNav } from "@/components/sidebar-nav"
 import { Skeleton } from "@/components/ui/skeleton"
 import { AspectRatio } from "@/components/ui/aspect-ratio"
 import { Card } from "@/components/ui/card"
-
-const dashboardSidebarNavItems = [
-  {
-    title: "Home",
-    href: "/dashboard",
-  },
-  {
-    title: "My Recipes",
-    href: "/recipes",
-  },
-  {
-    title: "My Page",
-    href: "/settings",
-  },
-]
+import { dashboardSidebarNavItems } from "@/lib/navigation"
 
 export default function Loading() {
   return (

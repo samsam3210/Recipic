@@ -1,8 +1,8 @@
 "use client"
 
 import { useState } from "react"
-
 import Link from "next/link"
+import { usePathname } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import {
@@ -13,7 +13,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { UserIcon } from "lucide-react"
+import { UserIcon, Menu, X } from "lucide-react"
 import { signOut } from "@/lib/actions/auth"
 import type { User } from "@supabase/supabase-js"
 import { createClient } from "@/lib/supabase/client"
@@ -23,6 +23,7 @@ import { LoadingOverlay } from "./loading-overlay"
 import { ConsentModal } from "./consent-modal"
 import type { UserProfile } from "@/lib/actions/user"
 import { Skeleton } from "@/components/ui/skeleton"
+import { cn } from "@/lib/utils"
 
 interface NavItem {
   title: string
@@ -32,7 +33,7 @@ interface NavItem {
 interface HeaderProps {
   user: User | null
   userProfile: UserProfile | null
-  navItems?: NavItem[] // Add navItems prop
+  navItems?: NavItem[]
   hideAuthButton?: boolean
 }
 
@@ -40,8 +41,10 @@ export function Header({ user, userProfile, navItems, hideAuthButton = false }: 
   const router = useRouter()
   const { toast } = useToast()
   const supabase = createClient()
+  const pathname = usePathname()
   const [isAuthLoading, setIsAuthLoading] = useState(false)
   const [showConsentModal, setShowConsentModal] = useState(false)
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
 
   const displayName = userProfile?.nickname || user?.user_metadata?.full_name || user?.email?.split("@")[0] || "사용자"
   const displayAvatarUrl = userProfile?.avatarUrl || user?.user_metadata?.avatar_url
@@ -94,88 +97,140 @@ export function Header({ user, userProfile, navItems, hideAuthButton = false }: 
     }
   }
 
-  const handleSignInClick = () => {
+  const handleSignIn = () => {
     setShowConsentModal(true)
   }
 
-  const isValidHttpUrl = (str: string | undefined | null) => {
-    if (!str) return false
-    try {
-      const url = new URL(str)
-      return url.protocol === "http:" || url.protocol === "https:"
-    } catch (_) {
-      return false
-    }
-  }
-
-  const avatarSrc = isValidHttpUrl(displayAvatarUrl) ? displayAvatarUrl : "/placeholder.svg"
-
   return (
     <>
-      <header className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="container flex h-16 items-center py-4 px-6 md:px-8 relative">
-          {" "}
-          <div className="flex items-center space-x-4 flex-1">
-            {" "}
-            <Link href={user ? "/dashboard" : "/"} className="text-2xl font-bold tracking-tight">
-              Recipick
+      {/* Loading Overlay */}
+      {isAuthLoading && (
+        <LoadingOverlay
+          isVisible={isAuthLoading}
+          currentStep={1}
+          steps={["로그아웃 처리 중..."]}
+        />
+      )}
+
+      {/* Consent Modal */}
+      {showConsentModal && (
+        <ConsentModal
+          isOpen={showConsentModal}
+          onClose={() => setShowConsentModal(false)}
+        />
+      )}
+
+      <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+        <div className="container flex h-16 items-center">
+          {/* 로고 */}
+          <div className="mr-6 flex items-center space-x-2">
+            <Link href="/" className="flex items-center space-x-2">
+              <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center">
+                <span className="text-primary-foreground font-bold text-sm">R</span>
+              </div>
+              <span className="font-bold text-xl">Recipick</span>
             </Link>
-            <nav className="hidden md:flex items-center space-x-6 text-sm font-medium">
-              {navItems?.map((item) => (
-                <Link key={item.href} href={item.href} className="hover:text-primary">
+          </div>
+
+          {/* 데스크톱 네비게이션 (1024px 이상) */}
+          {navItems && navItems.length > 0 && (
+            <nav className="hidden lg:flex items-center space-x-6 text-sm font-medium">
+              {navItems.map((item) => (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={cn(
+                    "transition-colors hover:text-foreground/80",
+                    pathname === item.href ? "text-foreground" : "text-foreground/60"
+                  )}
+                >
                   {item.title}
                 </Link>
               ))}
             </nav>
-          </div>
-          <div className="flex items-center space-x-2 absolute right-6 md:right-8">
-            {" "}
-            {user ? (
-              <>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" className="relative h-8 w-8 rounded-full">
-                      <Avatar className="h-8 w-8">
-                        <AvatarImage src={avatarSrc || "/placeholder.svg"} alt={displayName} />
-                        <AvatarFallback>
-                          <UserIcon className="h-4 w-4" />
-                        </AvatarFallback>
-                      </Avatar>
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent className="w-56" align="end" forceMount>
-                    <DropdownMenuLabel className="font-normal">
-                      <div className="flex flex-col space-y-1">
-                        <p className="text-sm font-medium leading-none">{displayName}</p>
-                        <p className="text-xs leading-none text-muted-foreground">{user.email}</p>
-                      </div>
-                    </DropdownMenuLabel>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-                      <Button onClick={handleSignOut} variant="ghost" className="w-full justify-start p-0 h-auto">
-                        로그아웃
-                      </Button>
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </>
-            ) : hideAuthButton ? ( // hideAuthButton이 true일 경우 스켈레톤 표시
-              <Skeleton className="h-8 w-8 rounded-full" />
-            ) : (
-              // hideAuthButton이 false일 경우 로그인 버튼 표시
+          )}
+
+          {/* 우측 영역 */}
+          <div className="ml-auto flex items-center space-x-4">
+            {/* 모바일 메뉴 버튼 (1024px 미만) */}
+            {navItems && navItems.length > 0 && (
               <Button
-                onClick={handleSignInClick}
-                className="bg-primary hover:bg-primary/90 text-primary-foreground"
-                disabled={isAuthLoading}
+                variant="ghost"
+                size="icon"
+                className="lg:hidden"
+                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
               >
-                Google로 시작하기
+                {isMobileMenuOpen ? (
+                  <X className="h-5 w-5" />
+                ) : (
+                  <Menu className="h-5 w-5" />
+                )}
               </Button>
+            )}
+
+            {/* 인증 버튼 영역 */}
+            {!hideAuthButton && (
+              <>
+                {user ? (
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" className="relative h-8 w-8 rounded-full">
+                        <Avatar className="h-8 w-8">
+                          <AvatarImage src={displayAvatarUrl} alt={displayName} />
+                          <AvatarFallback>
+                            <UserIcon className="h-4 w-4" />
+                          </AvatarFallback>
+                        </Avatar>
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent className="w-56" align="end" forceMount>
+                      <DropdownMenuLabel className="font-normal">
+                        <div className="flex flex-col space-y-1">
+                          <p className="text-sm font-medium leading-none">{displayName}</p>
+                          <p className="text-xs leading-none text-muted-foreground">
+                            {user.email}
+                          </p>
+                        </div>
+                      </DropdownMenuLabel>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem onClick={handleSignOut} disabled={isAuthLoading}>
+                        {isAuthLoading ? "로그아웃 중..." : "로그아웃"}
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                ) : (
+                  <Button onClick={handleSignIn} size="sm">
+                    로그인
+                  </Button>
+                )}
+              </>
             )}
           </div>
         </div>
+
+        {/* 모바일 네비게이션 메뉴 (1024px 미만) */}
+        {navItems && navItems.length > 0 && isMobileMenuOpen && (
+          <div className="lg:hidden">
+            <div className="border-t bg-background p-4">
+              <nav className="flex flex-col space-y-3">
+                {navItems.map((item) => (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    className={cn(
+                      "text-sm font-medium transition-colors hover:text-foreground",
+                      pathname === item.href ? "text-foreground" : "text-foreground/70"
+                    )}
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    {item.title}
+                  </Link>
+                ))}
+              </nav>
+            </div>
+          </div>
+        )}
       </header>
-      <LoadingOverlay isLoading={isAuthLoading} />
-      <ConsentModal isOpen={showConsentModal} onClose={() => setShowConsentModal(false)} />
     </>
   )
 }

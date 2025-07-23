@@ -11,29 +11,15 @@ import { FolderListSkeleton } from "@/components/folder-list-skeleton"
 import { RecipeCardSkeleton } from "@/components/recipe-card-skeleton"
 import { FolderList } from "@/components/folder-list"
 import RecipeGridWrapper from "@/components/recipe-grid-wrapper"
-import { CurrentFolderTitle } from "@/components/current-folder-title" // Import the new component
+import { CurrentFolderTitle } from "@/components/current-folder-title"
+import { mainNavItems, myRecipesSidebarNavItems } from "@/lib/navigation"
 
 export const dynamic = "force-dynamic"
-
-const myRecipesSidebarNavItems = [
-  {
-    title: "Home",
-    href: "/dashboard",
-  },
-  {
-    title: "My Recipes",
-    href: "/recipes",
-  },
-  {
-    title: "My Page",
-    href: "/settings",
-  },
-]
 
 export default async function RecipesPage({
   searchParams,
 }: {
-  parsedRecipesearchParams: { [key: string]: string | string[] | undefined }
+  searchParams: { [key: string]: string | string[] | undefined }
 }) {
   const supabaseClient = createServerClient()
   const {
@@ -73,10 +59,13 @@ export default async function RecipesPage({
 
   return (
     <div className="flex flex-col min-h-screen">
-      <Header user={user} userProfile={userProfile} />
+      {/* 통일된 헤더 네비게이션 적용 */}
+      <Header user={user} userProfile={userProfile} navItems={mainNavItems} />
+      
       <main className="flex-1 flex flex-col lg:flex-row py-8 px-4 md:px-6 lg:px-8 max-w-7xl mx-auto w-full gap-8">
         <aside className="lg:w-1/5 lg:min-w-[200px] lg:border-r lg:pr-8">
           <h2 className="text-2xl font-bold text-gray-900 mb-6 hidden lg:block">메뉴</h2>
+          {/* 검색 메뉴가 포함된 사이드바 네비게이션 */}
           <SidebarNav items={myRecipesSidebarNavItems} className="mb-8" />
           <Suspense fallback={<FolderListSkeleton />}>
             <FolderList folders={initialFolders} selectedFolderId={selectedFolderId} />
@@ -106,6 +95,7 @@ export default async function RecipesPage({
           </Suspense>
         </section>
       </main>
+      
       <footer className="border-t bg-background py-4 text-center text-sm text-muted-foreground">
         © {new Date().getFullYear()} Recipick. All rights reserved.
       </footer>

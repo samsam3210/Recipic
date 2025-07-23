@@ -2,22 +2,8 @@ import { Header } from "@/components/header"
 import { SidebarNav } from "@/components/sidebar-nav"
 import { FolderListSkeleton } from "@/components/folder-list-skeleton"
 import { RecipeCardSkeleton } from "@/components/recipe-card-skeleton"
-import { Skeleton } from "@/components/ui/skeleton" // Skeleton 컴포넌트 임포트
-
-const myRecipesSidebarNavItems = [
-  {
-    title: "Home",
-    href: "/dashboard",
-  },
-  {
-    title: "My Recipes",
-    href: "/recipes",
-  },
-  {
-    title: "My Page",
-    href: "/settings",
-  },
-]
+import { Skeleton } from "@/components/ui/skeleton"
+import { myRecipesSidebarNavItems } from "@/lib/navigation"
 
 export default function Loading() {
   return (
@@ -31,7 +17,7 @@ export default function Loading() {
         </aside>
         <section className="flex-1 lg:w-4/5 space-y-10">
           {/* '모든 레시피' 텍스트 대신 스켈레톤으로 변경 */}
-          <Skeleton className="h-10 w-48 mb-8" /> {/* h1 태그의 크기에 맞춰 스켈레톤 크기 조정 */}
+          <Skeleton className="h-10 w-48 mb-8" />
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {Array.from({ length: 6 }).map((_, i) => (
               <RecipeCardSkeleton key={i} />
