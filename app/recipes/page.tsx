@@ -14,8 +14,7 @@ import { FolderList } from "@/components/folder-list"
 import RecipeGridWrapper from "@/components/recipe-grid-wrapper"
 import { CurrentFolderTitle } from "@/components/current-folder-title"
 import { myRecipesSidebarNavItems } from "@/lib/navigation"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { useRouter, useSearchParams } from "next/navigation"
+import { MobileFolderSelector } from "@/components/mobile-folder-selector"
 
 export const dynamic = "force-dynamic"
 
@@ -76,36 +75,8 @@ export default async function RecipesPage({
         </aside>
 
         <section className="flex-1 lg:w-4/5 space-y-10">
-           {/* 모바일용 폴더 선택기 (1024px 미만에서만 표시) */}
-            <div className="lg:hidden mb-6">
-              <label className="block text-sm font-medium text-gray-700 mb-2">폴더 선택</label>
-              <Select 
-                value={selectedFolderId || "all"} 
-                onValueChange={(value) => {
-                  const folderId = value === "all" ? null : value;
-                  const params = new URLSearchParams(window.location.search);
-                  if (folderId) {
-                    params.set('folder', folderId);
-                  } else {
-                    params.delete('folder');
-                  }
-                  window.location.href = `/recipes?${params.toString()}`;
-                }}
-              >
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="폴더를 선택하세요" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">모든 레시피</SelectItem>
-                  {initialFolders.map((folder) => (
-                    <SelectItem key={folder.id} value={folder.id}>
-                      {folder.name} ({folder.recipeCount || 0})
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            
+          <MobileFolderSelector folders={initialFolders} selectedFolderId={selectedFolderId} />
+          
           <CurrentFolderTitle folders={initialFolders} />
 
           <Suspense
