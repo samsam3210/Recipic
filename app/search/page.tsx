@@ -82,57 +82,64 @@ export default function SearchPage() {
       })
       return
     }
-
+  
     // 사용량 제한 체크
     const usageCheckResult = await checkDailyUsage()
     if (!usageCheckResult.isAllowed) {
       setShowUsageLimitModal(true)
       return
     }
-
+  
     setIsProcessing(true)
     setShowLoadingOverlay(true)
     setCurrentLoadingStep(1)
-
+  
     try {
-      // 레시피 추출 로직 (기존 hero-section에서 가져옴)
+      // 1단계: 영상 정보 가져오기
       const response = await fetch("/api/youtube", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ url }),
       })
-
+  
       if (!response.ok) {
         throw new Error("영상 정보를 가져오는 데 실패했습니다.")
       }
-
+  
       setCurrentLoadingStep(2)
       const videoInfo = await response.json()
-
+  
+      if (!videoInfo.hasSubtitles || !videoInfo.transcriptText) {
+        throw new Error("이 영상에는 추출 가능한 자막이 없습니다.")
+      }
+  
       setCurrentLoadingStep(3)
       const geminiResponse = await fetch("/api/gemini", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ videoInfo }),
+        body: JSON.stringify({
+          structuredTranscript: videoInfo.structuredTranscript,
+          videoDescription: videoInfo.videoDescription,
+        }),
       })
-
+  
       if (!geminiResponse.ok) {
         throw new Error("레시피 추출에 실패했습니다.")
       }
-
+  
       setCurrentLoadingStep(4)
       const extractedRecipe = await geminiResponse.json()
-
+  
       // 임시 미리보기 페이지로 이동
       const previewData = {
         youtubeUrl: url,
         videoInfo,
         extractedRecipe,
       }
-
+  
       const encodedData = encodeURIComponent(JSON.stringify(previewData))
       router.push(`/temp-preview?data=${encodedData}`)
-
+  
     } catch (error: any) {
       toast({
         title: "오류",
@@ -226,11 +233,6 @@ export default function SearchPage() {
       
       <main className="flex-1 py-8 px-4 md:px-6 lg:px-8 max-w-4xl mx-auto w-full pb-20 lg:pb-8">
         <div className="space-y-8">
-          {/* 검색 헤더 */}
-          <div className="text-center space-y-2">
-            <h1 className="text-2xl font-bold text-gray-900">레시피 검색</h1>
-            <p className="text-gray-600">YouTube URL을 입력하거나 키워드로 검색해보세요</p>
-          </div>
 
           {/* 검색 폼 */}
           <form onSubmit={handleSearch} className="w-full max-w-2xl mx-auto">
@@ -241,7 +243,7 @@ export default function SearchPage() {
               
               <Input
                 type="text"
-                placeholder="YouTube URL 또는 키워드를 입력하세요"
+                placeholder="URL 또는 키워드 입력"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="flex-1 h-14 pl-4 pr-20 text-base border-none focus-visible:ring-0 focus-visible:ring-offset-0 rounded-l-full rounded-r-none placeholder:text-gray-400"

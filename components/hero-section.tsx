@@ -536,27 +536,50 @@ export function HeroSection({ user, isDashboard = false }: HeroSectionProps) {
         </div>
       )}
 
-        {isDashboard && (
-          <div className="w-full max-w-2xl space-y-4">
-            <div className="relative w-full">
-              <Input
-                type="text"
-                placeholder="레시픽에서 찾아보세요!"
-                value={youtubeUrl}
-                onChange={(e) => setYoutubeUrl(e.target.value)}
-                onClick={handleInputClick}
-                readOnly
-                className="w-full h-14 pl-4 pr-12 text-base rounded-xl border-2 border-gray-200 focus:border-gray-400 focus:ring-0 transition-colors cursor-pointer"
-              />
-              <Search className="absolute right-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+          {isDashboard && (
+            <div className="w-full max-w-2xl space-y-4">
+              <div className="relative w-full">
+                <Input
+                  type="text"
+                  placeholder="레시픽에서 찾아보세요!"
+                  value={youtubeUrl}
+                  onChange={(e) => setYoutubeUrl(e.target.value)}
+                  onClick={handleInputClick}
+                  readOnly
+                  className="w-full h-14 pl-4 pr-12 text-base rounded-xl border-2 border-gray-200 focus:border-gray-400 focus:ring-0 transition-colors cursor-pointer"
+                />
+                <Search className="absolute right-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+              </div>
+              <p className="text-sm text-gray-600 leading-relaxed">
+                YouTube 요리 영상에서 AI가 자동으로 레시피를 추출해드립니다.
+                <br />
+                지금 바로 당신의 요리 경험을 업그레이드하세요!
+              </p>
+              
+              {/* 사용량 표시 복구 */}
+              {user && !isLoadingUsage && (
+                <div className="text-center">
+                  <p className="text-sm text-gray-500">
+                    {isAdmin ? (
+                      <>
+                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 mr-2">
+                          ADMIN
+                        </span>
+                        무제한 사용 가능
+                      </>
+                    ) : (
+                      <>
+                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 mr-2">
+                          FREE
+                        </span>
+                        총 2회 중 {currentUsageCount}회 사용
+                      </>
+                    )}
+                  </p>
+                </div>
+              )}
             </div>
-            <p className="text-sm text-gray-600 leading-relaxed">
-              YouTube 요리 영상에서 AI가 자동으로 레시피를 추출해드립니다.
-              <br />
-              지금 바로 당신의 요리 경험을 업그레이드하세요!
-            </p>
-          </div>
-        )}
+          )}
 
       {!isDashboard && (
         <p className="text-sm text-gray-500 mt-8">
