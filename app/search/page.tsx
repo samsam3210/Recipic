@@ -84,7 +84,6 @@ export default function SearchPage() {
     }
   
     try {
-      // 사용량 제한 체크
       const usageCheckResult = await checkDailyUsage()
       if (!usageCheckResult.isAllowed) {
         setShowUsageLimitModal(true)
@@ -95,41 +94,33 @@ export default function SearchPage() {
       setShowLoadingOverlay(true)
       setCurrentLoadingStep(1)
   
-      // 1단계: 영상 메타데이터 먼저 가져오기
-      const metadataResponse = await fetch("/api/youtube/metadata", {
+      console.log("1단계: 영상 정보 가져오기 시작")
+  
+      // metadata 호출 제거하고 바로 youtube API 호출
+      const response = await fetch("/api/youtube", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ youtubeUrl: url }),
       })
   
-      if (!metadataResponse.ok) {
+      console.log("API 응답 상태:", response.ok, response.status)
+  
+      if (!response.ok) {
+        const errorData = await response.json()
+        console.error("API 에러:", errorData)
         throw new Error("영상 정보를 가져오는 데 실패했습니다.")
       }
   
-      const videoMetadata = await metadataResponse.json()
-      
-      setCurrentLoadingStep(2)
-  
-      // 2단계: 자막과 함께 전체 영상 정보 가져오기
-      const videoResponse = await fetch("/api/youtube", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ youtubeUrl: url }),
-      })
-  
-      if (!videoResponse.ok) {
-        throw new Error("영상 자막을 가져오는 데 실패했습니다.")
-      }
-  
-      const videoInfo = await videoResponse.json()
+      const videoInfo = await response.json()
+      console.log("비디오 정보:", videoInfo)
   
       if (!videoInfo.hasSubtitles || !videoInfo.transcriptText) {
         throw new Error("이 영상에는 추출 가능한 자막이 없습니다.")
       }
   
-      setCurrentLoadingStep(3)
+      setCurrentLoadingStep(2)
+      console.log("2단계: Gemini API 호출 시작")
   
-      // 3단계: AI 레시피 분석
       const geminiResponse = await fetch("/api/gemini", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -139,24 +130,24 @@ export default function SearchPage() {
         }),
       })
   
+      console.log("Gemini 응답 상태:", geminiResponse.ok, geminiResponse.status)
+  
       if (!geminiResponse.ok) {
         throw new Error("레시피 추출에 실패했습니다.")
       }
   
-      setCurrentLoadingStep(4)
+      setCurrentLoadingStep(3)
       const extractedRecipe = await geminiResponse.json()
+      console.log("추출된 레시피:", extractedRecipe)
   
-      // 임시 미리보기 페이지로 이동
       const previewData = {
         youtubeUrl: url,
         videoInfo,
         extractedRecipe,
       }
   
-      // 로컬 스토리지에 저장
       localStorage.setItem("recipick_pending_recipe", JSON.stringify(previewData))
-      
-      // 미리보기 페이지로 이동
+      console.log("로컬스토리지 저장 완료, 페이지 이동 시작")
       router.push("/temp-preview")
   
     } catch (error: any) {
@@ -167,6 +158,7 @@ export default function SearchPage() {
         variant: "destructive"
       })
     } finally {
+      console.log("finally 블록 실행")
       setIsProcessing(false)
       setShowLoadingOverlay(false)
       setCurrentLoadingStep(1)
