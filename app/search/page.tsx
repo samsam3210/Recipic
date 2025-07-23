@@ -12,6 +12,7 @@ import { createClient } from "@/lib/supabase/client"
 import { checkDailyUsage } from "@/lib/actions/usage"
 import { CustomDialog } from "@/components/custom-dialog"
 import { ClipboardToast } from "@/components/clipboard-toast"
+import { checkDailyUsage } from "@/lib/actions/usage"
 
 interface SearchResult {
   videoId: string
@@ -83,37 +84,53 @@ export default function SearchPage() {
       return
     }
   
-    // 사용량 제한 체크
-    const usageCheckResult = await checkDailyUsage()
-    if (!usageCheckResult.isAllowed) {
-      setShowUsageLimitModal(true)
-      return
-    }
-  
-    setIsProcessing(true)
-    setShowLoadingOverlay(true)
-    setCurrentLoadingStep(1)
-  
     try {
-      // 1단계: 영상 정보 가져오기
-      const response = await fetch("/api/youtube", {
+      // 사용량 제한 체크
+      const usageCheckResult = await checkDailyUsage()
+      if (!usageCheckResult.isAllowed) {
+        setShowUsageLimitModal(true)
+        return
+      }
+  
+      setIsProcessing(true)
+      setShowLoadingOverlay(true)
+      setCurrentLoadingStep(1)
+  
+      // 1단계: 영상 메타데이터 먼저 가져오기
+      const metadataResponse = await fetch("/api/youtube/metadata", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ url }),
+        body: JSON.stringify({ youtubeUrl: url }),
       })
   
-      if (!response.ok) {
+      if (!metadataResponse.ok) {
         throw new Error("영상 정보를 가져오는 데 실패했습니다.")
       }
   
+      const videoMetadata = await metadataResponse.json()
+      
       setCurrentLoadingStep(2)
-      const videoInfo = await response.json()
+  
+      // 2단계: 자막과 함께 전체 영상 정보 가져오기
+      const videoResponse = await fetch("/api/youtube", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ youtubeUrl: url }),
+      })
+  
+      if (!videoResponse.ok) {
+        throw new Error("영상 자막을 가져오는 데 실패했습니다.")
+      }
+  
+      const videoInfo = await videoResponse.json()
   
       if (!videoInfo.hasSubtitles || !videoInfo.transcriptText) {
         throw new Error("이 영상에는 추출 가능한 자막이 없습니다.")
       }
   
       setCurrentLoadingStep(3)
+  
+      // 3단계: AI 레시피 분석
       const geminiResponse = await fetch("/api/gemini", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -137,10 +154,14 @@ export default function SearchPage() {
         extractedRecipe,
       }
   
-      const encodedData = encodeURIComponent(JSON.stringify(previewData))
-      router.push(`/temp-preview?data=${encodedData}`)
+      // 로컬 스토리지에 저장
+      localStorage.setItem("recipick_pending_recipe", JSON.stringify(previewData))
+      
+      // 미리보기 페이지로 이동
+      router.push("/temp-preview")
   
     } catch (error: any) {
+      console.error("Recipe extraction error:", error)
       toast({
         title: "오류",
         description: error.message || "레시피 추출 중 오류가 발생했습니다.",
@@ -212,9 +233,9 @@ export default function SearchPage() {
       })
       return
     }
-
+  
     if (isYouTubeUrl(searchQuery)) {
-      // URL인 경우 레시피 추출
+      // URL인 경우 즉시 레시피 추출
       await handleRecipeExtraction(searchQuery)
     } else {
       // 키워드인 경우 YouTube 검색
