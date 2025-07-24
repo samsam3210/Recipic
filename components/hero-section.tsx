@@ -592,7 +592,9 @@ export function HeroSection({ user, isDashboard = false }: HeroSectionProps) {
                     </p>
                   )}
                 </div>
-              )}
+                   )}
+                   </div>
+                 )}
 
       {!isDashboard && (
         <p className="text-sm text-gray-500 mt-8">
