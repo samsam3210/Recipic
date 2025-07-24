@@ -27,10 +27,10 @@ export async function updatePopularityScore(recipeName: string | null) {
   try {
     // 1. Daily 테이블에 기록
     await db.insert(popularRecipesDaily).values({
-      recipeName,
-      yearMonth,
-      saveDate: sql`CURRENT_DATE::text`,
-    })
+        recipeName,
+        yearMonth,
+        saveDate: sql`CURRENT_DATE`,
+      })
     
     // 2. Summary 테이블 업데이트
     await updateSummaryTable(recipeName, yearMonth)
@@ -78,7 +78,7 @@ async function updateSummaryTable(recipeName: string, yearMonth: string) {
       recentCount: recent_count,
       oldCount: old_count,
       weightedScore: weighted_score,
-      lastUpdated: sql`CURRENT_DATE::text`,
+      lastUpdated: sql`CURRENT_DATE`,
     })
     .onConflictDoUpdate({
       target: [popularRecipesSummary.recipeName, popularRecipesSummary.yearMonth],
@@ -86,7 +86,7 @@ async function updateSummaryTable(recipeName: string, yearMonth: string) {
         recentCount: recent_count,
         oldCount: old_count,
         weightedScore: weighted_score,
-        lastUpdated: sql`CURRENT_DATE::text`,
+        lastUpdated: sql`CURRENT_DATE`,
         updatedAt: sql`NOW()`,
       },
     })
