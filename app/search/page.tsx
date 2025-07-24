@@ -411,15 +411,15 @@ useEffect(() => {
                     <p className="text-sm text-gray-600 mt-1">{video.channelName}</p>
                     <div className="flex items-center space-x-2 text-xs text-gray-500 mt-1">
                         {video.publishedAt && (
-                        <span>{new Date(video.publishedAt).toLocaleDateString('ko-KR')}</span>
+                            <span>{new Date(video.publishedAt).toLocaleDateString('ko-KR')}</span>
                         )}
-                        {video.viewCount && (
-                        <span>조회수 {parseInt(video.viewCount).toLocaleString()}회</span>
+                        {video.viewCountFormatted && (
+                            <span>조회수 {video.viewCountFormatted}</span> {/* 변경됨 */}
                         )}
                         {video.duration && (
-                        <span>{video.duration}</span>
+                            <span>{video.duration}</span>
                         )}
-                    </div>
+                        </div>
                     </div>
                 </div>
                 ))}

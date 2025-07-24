@@ -11,7 +11,6 @@ function formatViewCount(count: number): string {
 }
 
 function parseISODuration(isoDuration: string): string {
-  // ex: PT1H2M30S, PT5M33S, PT45S
   const match = isoDuration.match(/PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/)
   if (!match) return ""
 
@@ -30,7 +29,7 @@ function parseISODuration(isoDuration: string): string {
 
 export async function POST(req: Request) {
   const { query } = await req.json()
-  const maxResults = 20 // 최종 반환 개수
+  const maxResults = 20
 
   if (!query) {
     return NextResponse.json({ error: "검색 키워드가 필요합니다." }, { status: 400 })
@@ -42,7 +41,7 @@ export async function POST(req: Request) {
       throw new Error("YOUTUBE_API_KEY is not set in environment variables.")
     }
 
-    // 1. YouTube Search API: 최대 50개 불러오기
+    // 1. 검색
     const searchResponse = await fetch(
       `https://www.googleapis.com/youtube/v3/search?` +
         new URLSearchParams({
@@ -70,10 +69,9 @@ export async function POST(req: Request) {
       })
     }
 
-    // videoId 배열 생성
+    // 2. 비디오 상세 정보
     const videoIds = searchData.items.map((item: any) => item.id.videoId).join(",")
 
-    // 2. Videos API: 상세 정보(조회수 포함) 조회
     const videosResponse = await fetch(
       `https://www.googleapis.com/youtube/v3/videos?` +
         new URLSearchParams({
@@ -91,7 +89,7 @@ export async function POST(req: Request) {
 
     const videosData = await videosResponse.json()
 
-    // 3. 조회수 1,000 이상 필터링 및 데이터 매핑
+    // 3. 필터링 + 포맷팅
     const results = videosData.items
       .filter((video: any) => parseInt(video.statistics.viewCount, 10) >= 1000)
       .map((video: any) => {
@@ -104,9 +102,9 @@ export async function POST(req: Request) {
             video.snippet.thumbnails.medium?.url || video.snippet.thumbnails.default?.url,
           description: video.snippet.description,
           viewCount: viewCountNum,
-          viewCountFormatted: formatViewCount(viewCountNum),  // 축약 조회수
+          viewCountFormatted: formatViewCount(viewCountNum),
           duration: video.contentDetails.duration,
-          durationFormatted: parseISODuration(video.contentDetails.duration), // 사람이 읽기 좋은 재생시간
+          durationFormatted: parseISODuration(video.contentDetails.duration),
           publishedAt: video.snippet.publishedAt,
           youtubeUrl: `https://www.youtube.com/watch?v=${video.id}`,
         }
