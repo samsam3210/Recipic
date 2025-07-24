@@ -13,7 +13,14 @@ function getCurrentYearMonth(): string {
 
 // 레시피 저장시 인기도 업데이트
 export async function updatePopularityScore(recipeName: string | null) {
-  if (!recipeName) return { success: false, message: "레시피명이 없습니다." }
+    console.log('🎯 updatePopularityScore 호출됨:', recipeName)
+    
+    if (!recipeName) {
+      console.log('❌ recipeName이 null')
+      return { success: false, message: "레시피명이 없습니다." }
+    }
+    
+    console.log('✅ recipeName 있음, 처리 시작')
   
   const yearMonth = getCurrentYearMonth()
   

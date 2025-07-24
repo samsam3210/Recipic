@@ -94,8 +94,10 @@ export async function createRecipe(recipeData: CreateRecipeData) {
     if (result.length === 0) {
       throw new Error("레시피 저장에 실패했습니다.")
     }
-        // ✨ 새로 추가: 인기도 업데이트
-        await updatePopularityScore(recipeData.recipeName)
+    // ✨ 새로 추가: 인기도 업데이트
+    console.log('🔥 레시피 저장 완료, 인기도 업데이트 시작:', recipeData.recipeName)
+    await updatePopularityScore(recipeData.recipeName)
+    console.log('🔥 인기도 업데이트 완료')
 
     revalidatePath("/recipes") // 전체 레이아웃 대신 /recipes 페이지 캐시 무효화
     revalidatePath("/dashboard") // 대시보드 페이지 캐시 무효화 (최근 레시피 업데이트)
