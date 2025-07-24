@@ -72,7 +72,20 @@ async function updateSummaryTable(recipeName: string, yearMonth: string) {
       AND year_month = ${yearMonth}
   `)
   
-  const { recent_count, old_count } = stats.rows[0] as any
+  console.log('📊 SQL 쿼리 결과 전체:', stats)
+console.log('📊 SQL 쿼리 결과 rows:', stats.rows)
+console.log('📊 SQL 쿼리 결과 개수:', stats.rows?.length)
+
+const result = stats.rows?.[0] as any
+console.log('📊 첫 번째 결과:', result)
+
+if (!result) {
+  console.error('❌ 쿼리 결과가 없습니다')
+  throw new Error('통계 쿼리 결과가 없습니다')
+}
+
+const { recent_count, old_count } = result
+console.log('📊 파싱된 결과:', { recent_count, old_count })
   const weighted_score = recent_count * 5 + old_count * 1
   
   // UPSERT로 Summary 테이블 업데이트
