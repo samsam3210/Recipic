@@ -28,6 +28,45 @@ interface SearchResult {
   youtubeUrl: string
 }
 
+// === 조회수 포맷 함수 ===
+function formatViewCount(count: number): string {
+  if (count >= 100_000_000) {
+    return `${(count / 100_000_000).toFixed(1)}억회`
+  } else if (count >= 10_000) {
+    return `${(count / 10_000).toFixed(1)}만회`
+  } else {
+    return `${count.toLocaleString()}회`
+  }
+}
+
+// === 날짜 포맷 함수 === (24.03.15 형식)
+function formatPublishedDate(dateString: string): string {
+  const date = new Date(dateString)
+  const year = date.getFullYear().toString().slice(-2)
+  const month = String(date.getMonth() + 1).padStart(2, "0")
+  const day = String(date.getDate()).padStart(2, "0")
+  return `${year}.${month}.${day}`
+}
+
+// === 영상 길이 포맷 함수 ===
+function parseISO8601Duration(duration: string): string {
+  const match = duration.match(/PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/)
+  if (!match) return "00:00"
+
+  const hours = parseInt(match[1] || "0", 10)
+  const minutes = parseInt(match[2] || "0", 10)
+  const seconds = parseInt(match[3] || "0", 10)
+
+  const totalMinutes = hours * 60 + minutes
+  const pad = (num: number) => num.toString().padStart(2, "0")
+
+  if (totalMinutes === 0) {
+    return `00:${pad(seconds)}`
+  }
+
+  return `${totalMinutes}:${pad(seconds)}`
+}
+
 export default function SearchPage() {
   const [searchQuery, setSearchQuery] = useState("")
   const [searchResults, setSearchResults] = useState<SearchResult[]>([])
@@ -370,32 +409,36 @@ export default function SearchPage() {
             <div className="space-y-4">
               <h2 className="text-lg font-semibold text-gray-900">검색 결과</h2>
               <div className="grid gap-4">
-                {searchResults.map((video) => (
-                  <div
-                    key={video.videoId}
-                    className="flex gap-4 p-4 border rounded-lg hover:bg-gray-50 cursor-pointer transition-colors"
-                    onClick={() => handleVideoSelect(video)}
-                  >
-                    <img
-                      src={video.thumbnail}
-                      alt={video.title}
-                      className="w-32 h-24 object-cover rounded"
-                      loading="lazy"
-                      decoding="async"
-                    />
-                    <div className="flex-1">
-                      <h3 className="font-medium text-gray-900 line-clamp-2">{video.title}</h3>
-                      <p className="text-sm text-gray-600 mt-1">{video.channelName}</p>
-                      <div className="flex items-center space-x-2 text-xs text-gray-500 mt-1">
-                        {video.publishedAt && (
-                          <span>{new Date(video.publishedAt).toLocaleDateString("ko-KR")}</span>
-                        )}
-                        {video.viewCountFormatted && <span>조회수 {video.viewCountFormatted}</span>}
-                        {video.duration && <span>{video.duration}</span>}
+                {searchResults.map((video) => {
+                  const viewCount = video.viewCount ? formatViewCount(Number(video.viewCount)) : null
+                  const publishedDate = video.publishedAt ? formatPublishedDate(video.publishedAt) : null
+                  const duration = video.duration ? parseISO8601Duration(video.duration) : null
+
+                  return (
+                    <div
+                      key={video.videoId}
+                      className="flex gap-4 p-4 border rounded-lg hover:bg-gray-50 cursor-pointer transition-colors"
+                      onClick={() => handleVideoSelect(video)}
+                    >
+                      <img
+                        src={video.thumbnail}
+                        alt={video.title}
+                        className="w-32 h-24 object-cover rounded"
+                        loading="lazy"
+                        decoding="async"
+                      />
+                      <div className="flex-1">
+                        <h3 className="font-medium text-gray-900 line-clamp-2">{video.title}</h3>
+                        <p className="text-sm text-gray-600 mt-1">{video.channelName}</p>
+                        <div className="flex items-center space-x-2 text-xs text-gray-500 mt-1">
+                          {publishedDate && <span>{publishedDate}</span>}
+                          {viewCount && <span>조회수 {viewCount}</span>}
+                          {duration && <span>{duration}</span>}
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))}
+                  )
+                })}
               </div>
             </div>
           )}
@@ -419,116 +462,78 @@ export default function SearchPage() {
           {[
             { id: 1, text: "유튜브 영상 확인 중..." },
             { id: 2, text: "자막 및 음성 분석 중..." },
-            { id: 3, text: "레시피 정보 추출 중..." },
-            { id: 4, text: "레시피 구성 중..." },
-          ].map((step) => {
-            const isCompleted = step.id < currentLoadingStep
-            const isCurrent = step.id === currentLoadingStep
-
-            return (
-              <div key={step.id} className="flex items-center gap-3">
-                <div
-                  className={`relative w-5 h-5 rounded-full transition-all duration-300 ease-out ${
-                    isCompleted
-                      ? "bg-gray-600"
-                      : isCurrent
-                      ? "bg-gray-100 border-2 border-gray-600"
-                      : "bg-gray-100 border-2 border-gray-200"
-                  }`}
-                >
-                  {isCompleted ? (
-                    <div className="w-3 h-3 bg-white rounded-full absolute inset-0 m-auto" />
-                  ) : isCurrent ? (
-                    <div className="w-2 h-2 bg-gray-600 rounded-full absolute inset-0 m-auto animate-pulse" />
-                  ) : null}
-                </div>
-                <span
-                  className={`text-sm font-medium transition-all duration-300 ${
-                    isCompleted ? "text-gray-400" : isCurrent ? "text-gray-900 animate-pulse" : "text-gray-400"
-                  }`}
-                >
-                  {step.text}
-                </span>
-              </div>
-            )
-          })}
+            { id: 3, text: "AI 레시피 변환 중..." },
+            { id: 4, text: "레시피 저장 중..." },
+          ].map((step) => (
+            <div key={step.id} className="flex items-center space-x-2">
+              <div
+                className={`w-4 h-4 rounded-full border-2 ${
+                  currentLoadingStep >= step.id
+                    ? "border-gray-900 bg-gray-900"
+                    : "border-gray-300 bg-white"
+                }`}
+              />
+              <span
+                className={`text-sm ${
+                  currentLoadingStep >= step.id ? "text-gray-900" : "text-gray-400"
+                }`}
+              >
+                {step.text}
+              </span>
+            </div>
+          ))}
         </div>
       </CustomDialog>
 
-      {/* 사용량 제한 모달 */}
-      <CustomDialog
-        isOpen={showUsageLimitModal}
-        onClose={() => setShowUsageLimitModal(false)}
-        title="일일 사용량 제한"
-        description="하루에 최대 2회만 레시피 조회가 가능해요 🙏 서비스 개선이 될 때까지 잠시만 기다려주세요!"
-        hideCloseButton={true}
-        className="p-6 rounded-2xl bg-white shadow-xl border border-gray-100"
-        footer={
-          <Button
-            onClick={() => setShowUsageLimitModal(false)}
-            className="w-full py-3 px-4 text-sm font-medium text-gray-600 bg-gray-50 hover:bg-gray-100 border border-gray-200 rounded-xl transition-colors duration-200"
-          >
-            확인
-          </Button>
-        }
-      />
-
-      {/* 에러 모달 */}
+      {/* 오류 모달 */}
       <CustomDialog
         isOpen={showErrorModal}
         onClose={() => setShowErrorModal(false)}
-        title="레시피 추출 실패"
+        title="오류 발생"
         description={errorMessage}
-        footer={
-          <Button onClick={() => setShowErrorModal(false)} className="w-full">
-            확인
-          </Button>
-        }
+        confirmText="닫기"
+        onConfirm={() => setShowErrorModal(false)}
+      />
+
+      {/* 사용 제한 모달 */}
+      <CustomDialog
+        isOpen={showUsageLimitModal}
+        onClose={() => setShowUsageLimitModal(false)}
+        title="일일 사용량 초과"
+        description="하루 사용 가능 횟수를 모두 소진했습니다. 내일 다시 시도해주세요."
+        confirmText="확인"
+        onConfirm={() => setShowUsageLimitModal(false)}
       />
 
       {/* 중복 레시피 모달 */}
       <CustomDialog
         isOpen={showDuplicateModal}
         onClose={() => setShowDuplicateModal(false)}
-        title="이전에 레시피를 조회했던 영상이에요."
-        description="레시피 정보 화면으로 바로 이동할까요?"
-        footer={
-          <div className="flex gap-2">
-            <Button variant="outline" onClick={() => setShowDuplicateModal(false)}>
-              아니요, 다른 영상 입력할게요
-            </Button>
-            <Button
-              onClick={() => {
-                if (duplicateRecipeId) {
-                  router.push(`/recipe/${duplicateRecipeId}`)
-                  setShowDuplicateModal(false)
-                }
-              }}
-            >
-              예, 기존 레시피 보기
-            </Button>
-          </div>
-        }
+        title="이미 저장된 레시피"
+        description="이 영상은 이미 레시피로 저장되어 있습니다."
+        confirmText="레시피 보기"
+        onConfirm={() => {
+          if (duplicateRecipeId) {
+            router.push(`/recipe/${duplicateRecipeId}`)
+          }
+        }}
       />
 
-      {/* 레시피 없음 모달 */}
+      {/* 추출 불가 모달 */}
       <CustomDialog
         isOpen={showRecipeUnavailableModal}
         onClose={() => setShowRecipeUnavailableModal(false)}
-        title="레시피 조회 불가능"
+        title="레시피 추출 불가"
         description={recipeUnavailableMessage}
-        footer={
-          <Button onClick={() => setShowRecipeUnavailableModal(false)} className="w-full">
-            확인
-          </Button>
-        }
+        confirmText="확인"
+        onConfirm={() => setShowRecipeUnavailableModal(false)}
       />
 
-      {/* 클립보드 토스트 */}
       <ClipboardToast
-        isVisible={showClipboardToast}
+        isOpen={showClipboardToast}
         onClose={() => setShowClipboardToast(false)}
-        message="유튜브 링크를 자동으로 불러왔어요!"
+        onConfirm={() => handleRecipeExtraction(searchQuery)}
+        clipboardText={searchQuery}
       />
     </div>
   )
