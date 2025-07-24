@@ -6,6 +6,7 @@ import { redirect } from "next/navigation"
 import { ProfileSettingsForm } from "@/components/profile-settings-form"
 import { getOrCreateUserProfile } from "@/lib/actions/user"
 import { settingsSidebarNavItems, settingsSubNavItems } from "@/lib/navigation"
+import { Suspense } from "react"
 
 export default async function SettingsPage() {
   const supabase = createClient()
@@ -37,8 +38,9 @@ export default async function SettingsPage() {
         </aside>
 
         <section className="flex-1 lg:w-4/5 space-y-10">
-          // 기존 Suspense 감싸진 부분을 직접 컴포넌트로 변경
-          <ProfileSettingsForm userProfile={userProfile} />
+        <Suspense fallback={<div>로딩 중...</div>}>
+            <ProfileSettingsForm userProfile={userProfile} />
+          </Suspense>
         </section>
       </main>
       

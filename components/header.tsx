@@ -116,17 +116,6 @@ export function Header({ user, userProfile, hideAuthButton = false }: HeaderProp
             <Link href="/" className="flex items-center">
               <span className="font-bold text-xl">Recipick</span>
             </Link>
-            {/* 뒤로가기 버튼 조건부 표시 */}
-            {typeof window !== 'undefined' && window.history.length > 1 && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => window.history.back()}
-                className="ml-4"
-              >
-                ← 뒤로
-              </Button>
-            )}
           </div>
 
           {/* 우측 영역 - 인증 버튼만 */}

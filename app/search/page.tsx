@@ -14,6 +14,8 @@ import { ClipboardToast } from "@/components/clipboard-toast"
 import { checkDailyUsage } from "@/lib/actions/usage"
 import { checkDuplicateRecipe, checkAndSaveRecipe } from "@/lib/actions/recipe"
 import { incrementDailyUsage } from "@/lib/actions/usage"
+import { SidebarNav } from "@/components/sidebar-nav"
+import { dashboardSidebarNavItems } from "@/lib/navigation"
 
 interface SearchResult {
   videoId: string
@@ -45,6 +47,8 @@ export default function SearchPage() {
   const [showRecipeUnavailableModal, setShowRecipeUnavailableModal] = useState(false)
   const [recipeUnavailableMessage, setRecipeUnavailableMessage] = useState("")
 
+  const [lastSearchQuery, setLastSearchQuery] = useState("")
+
   // 사용자 정보 가져오기
   useEffect(() => {
     const getUser = async () => {
@@ -56,7 +60,7 @@ export default function SearchPage() {
   }, [])
 
   // 클립보드에서 YouTube URL 자동 감지 및 입력
-  useEffect(() => {
+useEffect(() => {
     const checkClipboard = async () => {
       try {
         if (typeof navigator !== 'undefined' && navigator.clipboard) {
@@ -72,9 +76,21 @@ export default function SearchPage() {
         // 클립보드 접근 실패시 무시
       }
     }
-
+   
     checkClipboard()
-  }, [])
+   }, [])
+   
+   // 뒤로가기 시 검색 상태 복원
+   useEffect(() => {
+    const handlePopState = () => {
+      if (lastSearchQuery) {
+        setSearchQuery(lastSearchQuery)
+      }
+    }
+    
+    window.addEventListener('popstate', handlePopState)
+    return () => window.removeEventListener('popstate', handlePopState)
+   }, [lastSearchQuery])
 
   // YouTube URL 검증 함수
   const isYouTubeUrl = (text: string): boolean => {
@@ -258,6 +274,7 @@ const handleRecipeExtraction = async (url: string) => {
 
       if (data.results && data.results.length > 0) {
         setSearchResults(data.results)
+        setLastSearchQuery(query)  // 이 줄 추가
         toast({
           title: "검색 완료",
           description: `${data.results.length}개의 영상을 찾았습니다.`,
@@ -313,8 +330,14 @@ const handleRecipeExtraction = async (url: string) => {
     <div className="flex flex-col min-h-screen">
       <Header user={user} />
       
-      <main className="flex-1 py-8 px-4 md:px-6 lg:px-8 max-w-4xl mx-auto w-full pb-20 lg:pb-8">
-        <div className="space-y-8">
+      <main className="flex-1 flex flex-col lg:flex-row py-8 px-4 md:px-6 lg:px-8 max-w-7xl mx-auto w-full gap-8 pb-20 lg:pb-8">
+        {/* 왼쪽 사이드바 (데스크톱만) */}
+        <aside className="hidden lg:block lg:w-1/5 lg:min-w-[200px] lg:border-r lg:pr-8">
+          <h2 className="text-2xl font-bold text-gray-900 mb-6">메뉴</h2>
+          <SidebarNav items={dashboardSidebarNavItems} />
+        </aside>
+
+        <section className="flex-1 lg:w-4/5 space-y-8">
 
           {/* 검색 폼 */}
           <form onSubmit={handleSearch} className="w-full max-w-2xl mx-auto">
@@ -384,7 +407,7 @@ const handleRecipeExtraction = async (url: string) => {
             </div>
             </div>
             )}
-        </div>
+        </section>
       </main>
 
       <BottomNavigation />
