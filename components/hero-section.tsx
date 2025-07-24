@@ -162,18 +162,26 @@ export function HeroSection({ user, isDashboard = false }: HeroSectionProps) {
     const fetchUsage = async () => {
       if (user) {
         setIsLoadingUsage(true)
-        const result = await checkDailyUsage()
-        if (result.success) {
-          setCurrentUsageCount(result.currentCount || 0)
-          setIsAdmin(result.isAdmin || false)
-        } else {
-          console.error("[HeroSection] Failed to fetch daily usage:", result.message)
-          setCurrentUsageCount(0) // Ensure it's a number even on failure for display
-          setIsAdmin(false) // Assume not admin on failure
+        try {
+          const result = await checkDailyUsage()
+          if (result.success) {
+            setCurrentUsageCount(result.currentCount || 0)
+            setIsAdmin(result.isAdmin || false)
+          } else {
+            console.error("[HeroSection] Failed to fetch daily usage:", result.message)
+            setCurrentUsageCount(0)
+            setIsAdmin(false)
+          }
+        } catch (error) {
+          console.error("[HeroSection] Error fetching usage:", error)
+          setCurrentUsageCount(0)
+          setIsAdmin(false)
+        } finally {
+          // 더 빠르게 로딩 완료 처리 (100ms 지연으로 자연스럽게)
+          setTimeout(() => setIsLoadingUsage(false), 100)
         }
-        setIsLoadingUsage(false)
       } else {
-        setCurrentUsageCount(0) // Not logged in, so 0 usage, not admin
+        setCurrentUsageCount(0)
         setIsAdmin(false)
         setIsLoadingUsage(false)
       }
@@ -558,35 +566,33 @@ export function HeroSection({ user, isDashboard = false }: HeroSectionProps) {
               {user && (
                 <div className="text-center">
                   {isLoadingUsage ? (
-                    <div className="inline-flex items-center space-x-2">
-                      <div className="h-5 w-12 bg-gray-200 rounded-full animate-pulse"></div>
-                      <div className="h-4 w-24 bg-gray-200 rounded animate-pulse"></div>
+                    <div className="text-sm text-gray-500 opacity-50">
+                      <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-400 mr-2">
+                        ...
+                      </span>
+                      사용량 확인 중...
                     </div>
                   ) : (
-                    <div className="animate-in fade-in duration-300">
-                      <p className="text-sm text-gray-500">
-                        {isAdmin ? (
-                          <>
-                            <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 mr-2">
-                              ADMIN
-                            </span>
-                            무제한 사용 가능
-                          </>
-                        ) : (
-                          <>
-                            <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 mr-2">
-                              FREE
-                            </span>
-                            총 2회 중 {currentUsageCount}회 사용
-                          </>
-                        )}
-                      </p>
-                    </div>
+                    <p className="text-sm text-gray-500 animate-in fade-in duration-200">
+                      {isAdmin ? (
+                        <>
+                          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 mr-2">
+                            ADMIN
+                          </span>
+                          무제한 사용 가능
+                        </>
+                      ) : (
+                        <>
+                          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 mr-2">
+                            FREE
+                          </span>
+                          총 2회 중 {currentUsageCount}회 사용
+                        </>
+                      )}
+                    </p>
                   )}
                 </div>
               )}
-            </div>
-          )}
 
       {!isDashboard && (
         <p className="text-sm text-gray-500 mt-8">

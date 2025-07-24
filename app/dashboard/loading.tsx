@@ -29,6 +29,14 @@ export default function Loading() {
               <Skeleton className="h-12 flex-grow rounded-full" />
             </div>
             <Skeleton className="h-4 w-48 mx-auto" />
+            
+            {/* 사용량 정보 스켈레톤 추가 */}
+            <div className="flex justify-center">
+              <div className="inline-flex items-center space-x-2">
+                <Skeleton className="h-5 w-12 rounded-full" />
+                <Skeleton className="h-4 w-24 rounded" />
+              </div>
+            </div>
           </div>
 
           {/* 최근 조회한 레시피 스켈레톤 */}
