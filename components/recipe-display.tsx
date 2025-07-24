@@ -31,14 +31,16 @@ interface RecipeDisplayProps {
   recipe: RecipeData
   isSavedRecipe?: boolean
   handleSeekVideo: (timestamp: number) => void
+  handlePauseVideo: () => void  // 🆕 이 줄 추가
   isPlayerReady: boolean
-  onSavePersonalNotes: (notes: string | null) => Promise<void> // 개인 메모 저장 핸들러 추가
+  onSavePersonalNotes: (notes: string | null) => Promise<void>
 }
 
 export function RecipeDisplay({
   recipe,
   isSavedRecipe = false,
   handleSeekVideo,
+  handlePauseVideo,  // 🆕 이 줄 추가
   isPlayerReady,
   onSavePersonalNotes,
 }: RecipeDisplayProps) {
@@ -191,16 +193,31 @@ export function RecipeDisplay({
                   {step.stepNumber}
                 </div>
                 <div className="flex-1">
-                  {step.youtubeTimestampSecond !== undefined && step.youtubeTimestampSecond !== null && (
+                {step.youtubeTimestampSecond !== undefined && step.youtubeTimestampSecond !== null && (
+                  <div className="flex gap-2 mb-2">
+                    {/* 타임스탬프 이동 버튼 - 타원형으로 감싸기 */}
                     <button
                       onClick={() => handleSeekVideo(step.youtubeTimestampSecond)}
                       disabled={!isPlayerReady}
-                      className="inline-flex items-center gap-1 text-blue-600 hover:text-blue-700 mb-2 text-sm"
+                      className="inline-flex items-center gap-1 px-3 py-1 bg-blue-50 hover:bg-blue-100 text-blue-600 hover:text-blue-700 rounded-full text-sm border border-blue-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       <Play className="h-4 w-4" />
                       {formatTime(step.youtubeTimestampSecond)}
                     </button>
-                  )}
+                    
+                    {/* 일시정지 버튼 - 타원형으로 감싸기 */}
+                    <button
+                      onClick={handlePauseVideo}
+                      disabled={!isPlayerReady}
+                      className="inline-flex items-center gap-1 px-3 py-1 bg-gray-50 hover:bg-gray-100 text-gray-600 hover:text-gray-700 rounded-full text-sm border border-gray-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z"/>
+                      </svg>
+                      일시중지
+                    </button>
+                  </div>
+                )}
                   <h3 className="font-bold mb-2">{step.description.split("\n")[0]}</h3>
                   <div className="space-y-1 text-gray-700">
                     <p className="whitespace-pre-line">{step.description.split("\n").slice(1).join("\n")}</p>

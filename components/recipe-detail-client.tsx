@@ -66,6 +66,13 @@ export function RecipeDetailClient({ recipe, videoId }: RecipeDetailClientProps)
     [youtubePlayer, isPlayerReady],
   )
 
+  // 🆕 여기에 새로운 함수를 별도로 추가하세요
+  const handlePauseVideo = useCallback(() => {
+    if (youtubePlayer && isPlayerReady) {
+      youtubePlayer.pauseVideo()
+    }
+  }, [youtubePlayer, isPlayerReady])
+
   // 개인 메모 저장 핸들러
   const handleSavePersonalNotes = async (notes: string | null) => {
     if (!recipe.id) {
@@ -125,6 +132,7 @@ export function RecipeDetailClient({ recipe, videoId }: RecipeDetailClientProps)
           recipe={recipe}
           isSavedRecipe={true}
           handleSeekVideo={handleSeekVideo}
+          handlePauseVideo={handlePauseVideo}  // 🆕 이 줄 추가
           isPlayerReady={isPlayerReady}
           onSavePersonalNotes={handleSavePersonalNotes} // 개인 메모 저장 핸들러 전달
         />
