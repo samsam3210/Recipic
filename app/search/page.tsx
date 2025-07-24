@@ -25,6 +25,7 @@ interface SearchResult {
   duration?: string
   publishedAt: string
   viewCount?: string
+  viewCountFormatted?: string // 이 부분 추가 (포맷팅된 조회수)
   youtubeUrl: string
 }
 
@@ -33,7 +34,7 @@ export default function SearchPage() {
   const [searchResults, setSearchResults] = useState<SearchResult[]>([])
   const [isSearching, setIsSearching] = useState(false)
   const [user, setUser] = useState<any>(null)
-  const [isUserLoading, setIsUserLoading] = useState(true) // 사용자 로딩 상태 추가
+  const [isUserLoading, setIsUserLoading] = useState(true)
   const [showClipboardToast, setShowClipboardToast] = useState(false)
   const [showUsageLimitModal, setShowUsageLimitModal] = useState(false)
   const [isProcessing, setIsProcessing] = useState(false)
@@ -54,19 +55,19 @@ export default function SearchPage() {
   const [lastSearchQuery, setLastSearchQuery] = useState("")
 
   // 사용자 정보 가져오기
-    useEffect(() => {
+  useEffect(() => {
     const getUser = async () => {
       setIsUserLoading(true)
       const supabase = createClient()
       const { data: { user } } = await supabase.auth.getUser()
       setUser(user)
-      setIsUserLoading(false) // 로딩 완료
+      setIsUserLoading(false)
     }
     getUser()
   }, [])
 
   // 클립보드에서 YouTube URL 자동 감지 및 입력
-useEffect(() => {
+  useEffect(() => {
     const checkClipboard = async () => {
       try {
         if (typeof navigator !== 'undefined' && navigator.clipboard) {
@@ -79,15 +80,15 @@ useEffect(() => {
           }
         }
       } catch (error) {
-        // 클립보드 접근 실패시 무시
+        // 클립보드 접근 실패 시 무시
       }
     }
    
     checkClipboard()
-   }, [])
+  }, [])
    
-   // 뒤로가기 시 검색 상태 복원
-   useEffect(() => {
+  // 뒤로가기 시 검색 상태 복원
+  useEffect(() => {
     const handlePopState = () => {
       if (lastSearchQuery) {
         setSearchQuery(lastSearchQuery)
@@ -96,7 +97,7 @@ useEffect(() => {
     
     window.addEventListener('popstate', handlePopState)
     return () => window.removeEventListener('popstate', handlePopState)
-   }, [lastSearchQuery])
+  }, [lastSearchQuery])
 
   // YouTube URL 검증 함수
   const isYouTubeUrl = (text: string): boolean => {
@@ -105,7 +106,6 @@ useEffect(() => {
   }
 
   const handleRecipeExtraction = async (url: string) => {
-    // 사용자 정보가 아직 로딩 중이면 잠시 대기
     if (isUserLoading) {
       toast({
         title: "잠시만 기다려주세요",
@@ -125,23 +125,19 @@ useEffect(() => {
       return
     }
   
-    // 즉시 로딩 상태 설정
     setIsProcessing(true)
     setShowLoadingOverlay(true)
     setCurrentLoadingStep(1)
   
     try {
-      // 사용량 제한 체크
       const usageCheckResult = await checkDailyUsage()
       if (!usageCheckResult.isAllowed) {
         setShowUsageLimitModal(true)
         return
       }
   
-      // 사용량 증가
       await incrementDailyUsage()
   
-      // 1단계: 메타데이터 가져오기 + 중복 체크
       const metadataResponse = await fetch("/api/youtube/metadata", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -155,7 +151,6 @@ useEffect(() => {
   
       const videoMetadata = await metadataResponse.json()
   
-      // 중복 레시피 체크
       const duplicateCheckResult = await checkDuplicateRecipe(videoMetadata.videoTitle, videoMetadata.channelName)
       if (duplicateCheckResult.isDuplicate && duplicateCheckResult.recipeId) {
         setDuplicateRecipeId(duplicateCheckResult.recipeId)
@@ -165,7 +160,6 @@ useEffect(() => {
   
       setCurrentLoadingStep(2)
   
-      // 2단계: 자막 가져오기
       const videoResponse = await fetch("/api/youtube", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -179,7 +173,6 @@ useEffect(() => {
   
       const videoInfo = await videoResponse.json()
   
-      // 자막 검증
       if (!videoInfo.hasSubtitles || !videoInfo.transcriptText) {
         setRecipeUnavailableMessage("이 영상에는 추출 가능한 자막이 없습니다. 다른 영상을 시도해 주세요.")
         setShowRecipeUnavailableModal(true)
@@ -188,7 +181,6 @@ useEffect(() => {
   
       setCurrentLoadingStep(3)
   
-      // 3단계: AI 레시피 분석
       const geminiResponse = await fetch("/api/gemini", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -198,7 +190,6 @@ useEffect(() => {
         }),
       })
   
-      // AI 응답 검증
       if (!geminiResponse.ok) {
         const errorText = await geminiResponse.text()
         if (errorText.includes("The model is overloaded")) {
@@ -227,7 +218,6 @@ useEffect(() => {
         return
       }
   
-      // 레시피 데이터 검증
       if (
         !extractedRecipe ||
         !extractedRecipe.ingredients ||
@@ -242,7 +232,6 @@ useEffect(() => {
   
       setCurrentLoadingStep(4)
   
-      // 4단계: 레시피 저장
       const result = await checkAndSaveRecipe(url, videoInfo, extractedRecipe, false)
   
       if (result.success && result.recipeId) {
@@ -266,7 +255,6 @@ useEffect(() => {
     }
   }
 
-  // YouTube 검색 함수
   const handleYouTubeSearch = async (query: string) => {
     setIsSearching(true)
     
@@ -289,12 +277,12 @@ useEffect(() => {
 
       if (data.results && data.results.length > 0) {
         setSearchResults(data.results)
-        setLastSearchQuery(query)  // 이 줄 추가
+        setLastSearchQuery(query)
         toast({
-            title: "검색 완료",
-            description: `${data.results.length}개의 영상을 찾았습니다.`,
-            duration: 1500,
-          })
+          title: "검색 완료",
+          description: `${data.results.length}개의 영상을 찾았습니다.`,
+          duration: 1500,
+        })
       } else {
         setSearchResults([])
         toast({
@@ -315,7 +303,6 @@ useEffect(() => {
     }
   }
 
-  // 검색 실행 함수 (URL/키워드 자동 구분)
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault()
     
@@ -329,15 +316,12 @@ useEffect(() => {
     }
   
     if (isYouTubeUrl(searchQuery)) {
-      // URL인 경우 즉시 레시피 추출
       await handleRecipeExtraction(searchQuery)
     } else {
-      // 키워드인 경우 YouTube 검색
       await handleYouTubeSearch(searchQuery)
     }
   }
 
-  // 영상 선택 핸들러
   const handleVideoSelect = async (video: SearchResult) => {
     await handleRecipeExtraction(video.youtubeUrl)
   }
@@ -347,15 +331,12 @@ useEffect(() => {
       <Header />
       
       <main className="flex-1 flex flex-col lg:flex-row py-8 px-4 md:px-6 lg:px-8 max-w-7xl mx-auto w-full gap-8 pb-20 lg:pb-8">
-        {/* 왼쪽 사이드바 (데스크톱만) */}
         <aside className="hidden lg:block lg:w-1/5 lg:min-w-[200px] lg:border-r lg:pr-8">
           <h2 className="text-2xl font-bold text-gray-900 mb-6">메뉴</h2>
           <SidebarNav items={dashboardSidebarNavItems} />
         </aside>
 
         <section className="flex-1 lg:w-4/5 space-y-8">
-
-          {/* 검색 폼 */}
           <form onSubmit={handleSearch} className="w-full max-w-2xl mx-auto">
             <div className="relative flex items-center w-full rounded-full shadow-lg border border-gray-200 bg-white overflow-hidden focus-within:border-gray-300 focus-within:shadow-xl transition-all">
               <div className="pl-5">
@@ -390,49 +371,48 @@ useEffect(() => {
             </div>
           </form>
 
-          {/* 검색 결과 */}
-            {searchResults.length > 0 && (
+          {searchResults.length > 0 && (
             <div className="space-y-4">
-            <h2 className="text-lg font-semibold text-gray-900">검색 결과</h2>
-            <div className="grid gap-4">
+              <h2 className="text-lg font-semibold text-gray-900">검색 결과</h2>
+              <div className="grid gap-4">
                 {searchResults.map((video) => (
-                <div
+                  <div
                     key={video.videoId}
                     className="flex gap-4 p-4 border rounded-lg hover:bg-gray-50 cursor-pointer transition-colors"
                     onClick={() => handleVideoSelect(video)}
-                >
+                  >
                     <img
-                    src={video.thumbnail}
-                    alt={video.title}
-                    className="w-32 h-24 object-cover rounded"
+                      src={video.thumbnail}
+                      alt={video.title}
+                      className="w-32 h-24 object-cover rounded"
                     />
                     <div className="flex-1">
-                    <h3 className="font-medium text-gray-900 line-clamp-2">{video.title}</h3>
-                    <p className="text-sm text-gray-600 mt-1">{video.channelName}</p>
-                    <div className="flex items-center space-x-2 text-xs text-gray-500 mt-1">
+                      <h3 className="font-medium text-gray-900 line-clamp-2">{video.title}</h3>
+                      <p className="text-sm text-gray-600 mt-1">{video.channelName}</p>
+                      <div className="flex items-center space-x-2 text-xs text-gray-500 mt-1">
                         {video.publishedAt && (
-                            <span>{new Date(video.publishedAt).toLocaleDateString('ko-KR')}</span>
+                          <span>{new Date(video.publishedAt).toLocaleDateString('ko-KR')}</span>
                         )}
                         {video.viewCountFormatted && (
-                            <span>조회수 {video.viewCountFormatted}</span> {/* 변경됨 */}
+                          <span>조회수 {video.viewCountFormatted}</span> {/* 포맷팅된 조회수 출력 */}
                         )}
                         {video.duration && (
-                            <span>{video.duration}</span>
+                          <span>{video.duration}</span>
                         )}
-                        </div>
+                      </div>
                     </div>
-                </div>
+                  </div>
                 ))}
+              </div>
             </div>
-            </div>
-            )}
+          )}
         </section>
       </main>
 
       <BottomNavigation />
 
       {/* 로딩 오버레이 */}
-        <CustomDialog
+      <CustomDialog
         isOpen={showLoadingOverlay}
         onClose={() => {}}
         title="레시피 분석 중입니다"
@@ -440,8 +420,8 @@ useEffect(() => {
         disableClose={true}
         hideCloseButton={true}
         className="p-6 rounded-2xl bg-white shadow-xl border border-gray-100"
-        overlayClassName="bg-black/60"  // ← 이 줄 추가
-        >
+        overlayClassName="bg-black/60"
+      >
         <div className="space-y-3 mb-4">
           {[
             { id: 1, text: "유튜브 영상 확인 중..." },
