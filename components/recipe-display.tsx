@@ -60,8 +60,9 @@ export function RecipeDisplay({
   }
 
   const formatTime = (seconds: number) => {
-    const minutes = Math.floor(seconds / 60)
-    const remainingSeconds = seconds % 60
+    const totalSeconds = Math.floor(seconds) // 정수로 변환
+    const minutes = Math.floor(totalSeconds / 60)
+    const remainingSeconds = totalSeconds % 60
     return `${minutes}:${String(remainingSeconds).padStart(2, "0")}`
   }
 
