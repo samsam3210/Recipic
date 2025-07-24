@@ -1,5 +1,33 @@
 import { NextResponse } from "next/server"
 
+function formatViewCount(count: number): string {
+  if (count >= 1_000_000) {
+    return (count / 1_000_000).toFixed(1).replace(/\.0$/, '') + '만회'
+  } else if (count >= 1_000) {
+    return (count / 1_000).toFixed(1).replace(/\.0$/, '') + '천회'
+  } else {
+    return count + '회'
+  }
+}
+
+function parseISODuration(isoDuration: string): string {
+  // ex: PT1H2M30S, PT5M33S, PT45S
+  const match = isoDuration.match(/PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/)
+  if (!match) return ""
+
+  const hours = parseInt(match[1] || "0", 10)
+  const minutes = parseInt(match[2] || "0", 10)
+  const seconds = parseInt(match[3] || "0", 10)
+
+  const secondsPadded = seconds.toString().padStart(2, "0")
+  const minutesPadded = minutes.toString().padStart(2, "0")
+
+  if (hours > 0) {
+    return `${hours}:${minutesPadded}:${secondsPadded}`
+  }
+  return `${minutes}:${secondsPadded}`
+}
+
 export async function POST(req: Request) {
   const { query } = await req.json()
   const maxResults = 20 // 최종 반환 개수
@@ -66,18 +94,23 @@ export async function POST(req: Request) {
     // 3. 조회수 1,000 이상 필터링 및 데이터 매핑
     const results = videosData.items
       .filter((video: any) => parseInt(video.statistics.viewCount, 10) >= 1000)
-      .map((video: any) => ({
-        videoId: video.id,
-        title: video.snippet.title,
-        channelName: video.snippet.channelTitle,
-        thumbnail:
-          video.snippet.thumbnails.medium?.url || video.snippet.thumbnails.default?.url,
-        description: video.snippet.description,
-        viewCount: video.statistics.viewCount,
-        duration: video.contentDetails.duration,
-        publishedAt: video.snippet.publishedAt,
-        youtubeUrl: `https://www.youtube.com/watch?v=${video.id}`,
-      }))
+      .map((video: any) => {
+        const viewCountNum = parseInt(video.statistics.viewCount, 10)
+        return {
+          videoId: video.id,
+          title: video.snippet.title,
+          channelName: video.snippet.channelTitle,
+          thumbnail:
+            video.snippet.thumbnails.medium?.url || video.snippet.thumbnails.default?.url,
+          description: video.snippet.description,
+          viewCount: viewCountNum,
+          viewCountFormatted: formatViewCount(viewCountNum),  // 축약 조회수
+          duration: video.contentDetails.duration,
+          durationFormatted: parseISODuration(video.contentDetails.duration), // 사람이 읽기 좋은 재생시간
+          publishedAt: video.snippet.publishedAt,
+          youtubeUrl: `https://www.youtube.com/watch?v=${video.id}`,
+        }
+      })
       .slice(0, maxResults)
 
     return NextResponse.json({
