@@ -26,23 +26,29 @@ export async function updatePopularityScore(recipeName: string | null) {
   
   try {
     // 1. Daily 테이블에 기록
+    console.log('📝 Daily 테이블 저장 시작:', recipeName, yearMonth)
     await db.insert(popularRecipesDaily).values({
         recipeName,
         yearMonth,
         saveDate: sql`CURRENT_DATE`,
-      })
+    })
+    console.log('✅ Daily 테이블 저장 완료')
     
     // 2. Summary 테이블 업데이트
+    console.log('📊 Summary 테이블 업데이트 시작')
     await updateSummaryTable(recipeName, yearMonth)
+    console.log('✅ Summary 테이블 업데이트 완료')
     
     // 3. 캐시 무효화
+    console.log('🔄 캐시 무효화 시작')
     revalidateTag('popular-recipes')
+    console.log('✅ 캐시 무효화 완료')
     
     return { success: true, message: "인기도 업데이트 완료" }
-  } catch (error) {
-    console.error("Error updating popularity score:", error)
+} catch (error) {
+    console.error("❌ Error updating popularity score:", error)
     return { success: false, message: `인기도 업데이트 실패: ${(error as Error).message}` }
-  }
+}
 }
 
 // Summary 테이블 업데이트 로직
