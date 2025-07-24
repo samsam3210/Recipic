@@ -29,7 +29,8 @@ export default function SearchPage() {
   const [searchQuery, setSearchQuery] = useState("")
   const [searchResults, setSearchResults] = useState<SearchResult[]>([])
   const [isSearching, setIsSearching] = useState(false)
-  const [user, setUser] = useState<any>(undefined)  // null → undefined로 변경
+  const [user, setUser] = useState<any>(null)
+  const [isUserLoading, setIsUserLoading] = useState(true) // 사용자 로딩 상태 추가
   const [showClipboardToast, setShowClipboardToast] = useState(false)
   const [showUsageLimitModal, setShowUsageLimitModal] = useState(false)
   const [isProcessing, setIsProcessing] = useState(false)
@@ -50,11 +51,13 @@ export default function SearchPage() {
   const [lastSearchQuery, setLastSearchQuery] = useState("")
 
   // 사용자 정보 가져오기
-  useEffect(() => {
+    useEffect(() => {
     const getUser = async () => {
+      setIsUserLoading(true)
       const supabase = createClient()
       const { data: { user } } = await supabase.auth.getUser()
       setUser(user)
+      setIsUserLoading(false) // 로딩 완료
     }
     getUser()
   }, [])
@@ -98,9 +101,18 @@ useEffect(() => {
     return youtubeRegex.test(text)
   }
 
-  // 레시피 추출 함수
-  // 레시피 추출 함수 - hero-section 로직 완전 복사
-const handleRecipeExtraction = async (url: string) => {
+  const handleRecipeExtraction = async (url: string) => {
+    // 사용자 정보가 아직 로딩 중이면 잠시 대기
+    if (isUserLoading) {
+      toast({
+        title: "잠시만 기다려주세요",
+        description: "사용자 정보를 확인 중입니다.",
+        variant: "info",
+        duration: 1000,
+      })
+      return
+    }
+  
     if (!user) {
       toast({
         title: "로그인 필요",
