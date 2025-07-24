@@ -15,6 +15,8 @@ import { checkDailyUsage, incrementDailyUsage } from "@/lib/actions/usage"
 import { checkDuplicateRecipe, checkAndSaveRecipe } from "@/lib/actions/recipe"
 import { SidebarNav } from "@/components/sidebar-nav"
 import { dashboardSidebarNavItems } from "@/lib/navigation"
+import { PopularKeywords } from '@/components/popular-keywords'
+import { SearchGuide } from '@/components/search-guide'
 
 interface SearchResult {
   videoId: string
@@ -110,6 +112,12 @@ export default function SearchPage() {
   const [recipeUnavailableMessage, setRecipeUnavailableMessage] = useState("")
 
   const [lastSearchQuery, setLastSearchQuery] = useState("")
+
+  const handleKeywordClick = (keyword: string) => {
+    setSearchQuery(`${keyword} 레시피`)
+    // 바로 검색 실행
+    handleYouTubeSearch(`${keyword} 레시피`)
+  }
 
   // 사용자 정보 가져오기
   useEffect(() => {
@@ -424,6 +432,15 @@ export default function SearchPage() {
               </Button>
             </div>
           </form>
+
+          {/* ✨ 새로 추가: 인기 키워드 */}
+          <PopularKeywords 
+            onKeywordClick={handleKeywordClick} 
+            isSearching={isSearching || isProcessing} 
+          />
+
+          {/* ✨ 새로 추가: 가이드 */}
+          <SearchGuide />
 
           {searchResults.length > 0 && (
             <div className="space-y-4">

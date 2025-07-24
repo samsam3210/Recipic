@@ -6,6 +6,7 @@ import { eq, and } from "drizzle-orm"
 import { revalidatePath } from "next/cache"
 import { createClient } from "@/lib/supabase/server"
 import { getUserId } from "@/lib/actions/user" // getUserId 임포트 추가
+import { updatePopularityScore } from "@/lib/actions/popular-recipes"
 
 interface UpdateRecipeData {
   recipeName?: string | null
@@ -93,6 +94,8 @@ export async function createRecipe(recipeData: CreateRecipeData) {
     if (result.length === 0) {
       throw new Error("레시피 저장에 실패했습니다.")
     }
+        // ✨ 새로 추가: 인기도 업데이트
+        await updatePopularityScore(recipeData.recipeName)
 
     revalidatePath("/recipes") // 전체 레이아웃 대신 /recipes 페이지 캐시 무효화
     revalidatePath("/dashboard") // 대시보드 페이지 캐시 무효화 (최근 레시피 업데이트)
