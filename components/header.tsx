@@ -14,21 +14,19 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { UserIcon } from "lucide-react"
 import { signOut } from "@/lib/actions/auth"
-import type { User } from "@supabase/supabase-js"
 import { createClient } from "@/lib/supabase/client"
 import { useRouter } from "next/navigation"
 import { useToast } from "@/hooks/use-toast"
 import { LoadingOverlay } from "./loading-overlay"
 import { ConsentModal } from "./consent-modal"
-import type { UserProfile } from "@/lib/actions/user"
+import { useUser } from "@/contexts/user-context"
 
 interface HeaderProps {
-  user: User | null
-  userProfile: UserProfile | null
   hideAuthButton?: boolean
 }
 
-export function Header({ user, userProfile, hideAuthButton = false }: HeaderProps) {
+export function Header({ hideAuthButton = false }: HeaderProps) {
+  const { user, userProfile, isLoading } = useUser()
   const router = useRouter()
   const { toast } = useToast()
   const supabase = createClient()
@@ -37,6 +35,24 @@ export function Header({ user, userProfile, hideAuthButton = false }: HeaderProp
 
   const displayName = userProfile?.nickname || user?.user_metadata?.full_name || user?.email?.split("@")[0] || "사용자"
   const displayAvatarUrl = userProfile?.avatarUrl || user?.user_metadata?.avatar_url
+
+  // 로딩 중일 때는 스켈레톤 표시
+  if (isLoading) {
+    return (
+      <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+        <div className="container flex h-16 items-center">
+          <div className="mr-6 flex items-center">
+            <Link href="/" className="flex items-center">
+              <span className="font-bold text-xl">Recipick</span>
+            </Link>
+          </div>
+          <div className="ml-auto flex items-center">
+            <div className="h-8 w-8 bg-gray-200 rounded-full animate-pulse"></div>
+          </div>
+        </div>
+      </header>
+    )
+  }
 
   const handleSignOut = async () => {
     setIsAuthLoading(true)
