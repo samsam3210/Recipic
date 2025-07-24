@@ -39,7 +39,7 @@ export default async function SettingsPage() {
 
         <section className="flex-1 lg:w-4/5 space-y-10">
         <Suspense fallback={<div>로딩 중...</div>}>
-            <ProfileSettingsForm userProfile={userProfile} />
+        <ProfileSettingsForm user={user} userProfile={userProfile} />
           </Suspense>
         </section>
       </main>
