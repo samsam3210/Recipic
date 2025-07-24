@@ -30,14 +30,16 @@ interface SearchResult {
 
 // === 조회수 포맷 함수 ===
 function formatViewCount(count: number): string {
-  if (count >= 100_000_000) {
-    return `${(count / 100_000_000).toFixed(1)}억회`
-  } else if (count >= 10_000) {
-    return `${(count / 10_000).toFixed(1)}만회`
-  } else {
-    return `${count.toLocaleString()}회`
+    if (count >= 100_000_000) {
+      return `${(count / 100_000_000).toFixed(1).replace(/\.0$/, '')}억회`
+    } else if (count >= 10_000) {
+      return `${(count / 10_000).toFixed(1).replace(/\.0$/, '')}만회`
+    } else if (count >= 1_000) {
+      return `${(count / 1_000).toFixed(1).replace(/\.0$/, '')}천회`
+    } else {
+      return `${count.toLocaleString()}회`
+    }
   }
-}
 
 // === 날짜 포맷 함수 === (24.03.15 형식)
 function formatPublishedDate(dateString: string): string {

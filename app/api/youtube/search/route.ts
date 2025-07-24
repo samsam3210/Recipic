@@ -1,14 +1,16 @@
 import { NextResponse } from "next/server"
 
 function formatViewCount(count: number): string {
-  if (count >= 1_000_000) {
-    return (count / 1_000_000).toFixed(1).replace(/\.0$/, '') + '만회'
-  } else if (count >= 1_000) {
-    return (count / 1_000).toFixed(1).replace(/\.0$/, '') + '천회'
-  } else {
-    return count + '회'
+    if (count >= 100_000_000) {
+      return `${(count / 100_000_000).toFixed(1).replace(/\.0$/, '')}억회`
+    } else if (count >= 10_000) {
+      return `${(count / 10_000).toFixed(1).replace(/\.0$/, '')}만회`
+    } else if (count >= 1_000) {
+      return `${(count / 1_000).toFixed(1).replace(/\.0$/, '')}천회`
+    } else {
+      return `${count}회`
+    }
   }
-}
 
 function parseISODuration(isoDuration: string): string {
   const match = isoDuration.match(/PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/)
