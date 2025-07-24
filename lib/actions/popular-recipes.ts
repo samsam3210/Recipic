@@ -53,63 +53,60 @@ export async function updatePopularityScore(recipeName: string | null) {
 
 // Summary 테이블 업데이트 로직
 async function updateSummaryTable(recipeName: string, yearMonth: string) {
-  // 최근 7일과 그 외 저장 수 계산
-  const stats = await db.execute(sql`
-    SELECT 
-      COUNT(CASE 
-        WHEN save_date::date >= CURRENT_DATE - INTERVAL '7 days' 
-        THEN 1 END
-      )::integer as recent_count,
+    console.log('📊 updateSummaryTable 시작:', recipeName, yearMonth)
+    
+    try {
+      console.log('📈 통계 쿼리 실행 중...')
       
-      COUNT(CASE 
-        WHEN save_date::date < CURRENT_DATE - INTERVAL '7 days'
-        AND save_date::date >= DATE_TRUNC('month', CURRENT_DATE)
-        THEN 1 END  
-      )::integer as old_count
+      // Drizzle select 방식으로 변경
+      const stats = await db.select({
+        recent_count: sql<number>`COUNT(CASE WHEN save_date >= CURRENT_DATE - INTERVAL '7 days' THEN 1 END)::integer`,
+        old_count: sql<number>`COUNT(CASE WHEN save_date < CURRENT_DATE - INTERVAL '7 days' AND save_date >= DATE_TRUNC('month', CURRENT_DATE) THEN 1 END)::integer`
+      }).from(popularRecipesDaily)
+      .where(and(
+        eq(popularRecipesDaily.recipeName, recipeName),
+        eq(popularRecipesDaily.yearMonth, yearMonth)
+      ))
       
-    FROM popular_recipes_daily 
-    WHERE recipe_name = ${recipeName}
-      AND year_month = ${yearMonth}
-  `)
-  
-  console.log('📊 SQL 쿼리 결과 전체:', stats)
-console.log('📊 SQL 쿼리 결과 rows:', stats.rows)
-console.log('📊 SQL 쿼리 결과 개수:', stats.rows?.length)
-
-const result = stats.rows?.[0] as any
-console.log('📊 첫 번째 결과:', result)
-
-if (!result) {
-  console.error('❌ 쿼리 결과가 없습니다')
-  throw new Error('통계 쿼리 결과가 없습니다')
-}
-
-const { recent_count, old_count } = result
-console.log('📊 파싱된 결과:', { recent_count, old_count })
-  const weighted_score = recent_count * 5 + old_count * 1
-  
-  // UPSERT로 Summary 테이블 업데이트
-  await db
-    .insert(popularRecipesSummary)
-    .values({
-      recipeName,
-      yearMonth,
-      recentCount: recent_count,
-      oldCount: old_count,
-      weightedScore: weighted_score,
-      lastUpdated: sql`CURRENT_DATE`,
-    })
-    .onConflictDoUpdate({
-      target: [popularRecipesSummary.recipeName, popularRecipesSummary.yearMonth],
-      set: {
-        recentCount: recent_count,
-        oldCount: old_count,
-        weightedScore: weighted_score,
-        lastUpdated: sql`CURRENT_DATE`,
-        updatedAt: sql`NOW()`,
-      },
-    })
-}
+      console.log('📊 통계 쿼리 결과:', stats)
+      
+      const result = stats[0]
+      const recent_count = result.recent_count || 0
+      const old_count = result.old_count || 0
+      const weighted_score = recent_count * 5 + old_count * 1
+      
+      console.log('📊 계산된 통계:', { recent_count, old_count, weighted_score })
+      
+      // 나머지 UPSERT 코드는 그대로...
+      console.log('💾 Summary 테이블 UPSERT 실행 중...')
+      await db
+        .insert(popularRecipesSummary)
+        .values({
+          recipeName,
+          yearMonth,
+          recentCount: recent_count,
+          oldCount: old_count,
+          weightedScore: weighted_score,
+          lastUpdated: sql`CURRENT_DATE`,
+        })
+        .onConflictDoUpdate({
+          target: [popularRecipesSummary.recipeName, popularRecipesSummary.yearMonth],
+          set: {
+            recentCount: recent_count,
+            oldCount: old_count,
+            weightedScore: weighted_score,
+            lastUpdated: sql`CURRENT_DATE`,
+            updatedAt: sql`NOW()`,
+          },
+        })
+        
+      console.log('✅ Summary 테이블 UPSERT 완료')
+      
+    } catch (error) {
+      console.error('❌ updateSummaryTable 에러:', error)
+      throw error
+    }
+  }
 
 // 인기 레시피 TOP 6 조회 (캐싱 적용)
 export const getPopularRecipes = unstable_cache(
@@ -140,4 +137,4 @@ export const getPopularRecipes = unstable_cache(
     revalidate: 3600, // 1시간마다 캐시 갱신
     tags: ['popular-recipes'],
   }
-) // 11
+)
