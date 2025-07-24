@@ -18,7 +18,6 @@ export default async function SettingsPage() {
     redirect("/")
   }
 
-  const userProfile = await getOrCreateUserProfile(user)
 
   return (
     <div className="flex flex-col min-h-screen">

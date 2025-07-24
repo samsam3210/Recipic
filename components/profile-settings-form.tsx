@@ -2,30 +2,107 @@
 
 import { useState, useEffect } from "react"
 import type { User } from "@supabase/supabase-js"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card" // CardDescription 제거
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { useToast } from "@/hooks/use-toast"
 import { Loader2, Edit, Save, X } from "lucide-react"
-import { updateUserName } from "@/lib/actions/user"
+import { updateUserName, getUserProfile } from "@/lib/actions/user"
 import { useRouter } from "next/navigation"
-import type { UserProfile } from "@/lib/actions/user"
+
+interface UserProfile {
+  userId: string
+  nickname: string
+  avatarUrl: string | null
+}
 
 interface ProfileSettingsFormProps {
   user: User
-  userProfile: UserProfile
+  userProfile?: UserProfile // optional로 변경
 }
 
-export function ProfileSettingsForm({ user, userProfile }: ProfileSettingsFormProps) {
+export function ProfileSettingsForm({ user, userProfile: initialProfile }: ProfileSettingsFormProps) {
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(initialProfile || null)
+  const [isLoading, setIsLoading] = useState(!initialProfile) // 프로필이 없으면 로딩
   const [isEditing, setIsEditing] = useState(false)
-  const [editedName, setEditedName] = useState(userProfile.nickname || "")
+  const [editedName, setEditedName] = useState("")
   const [isSaving, setIsSaving] = useState(false)
   const { toast } = useToast()
   const router = useRouter()
 
+  // 클라이언트에서 사용자 프로필 로드
   useEffect(() => {
-    setEditedName(userProfile.nickname || "")
-  }, [userProfile])
+    if (!initialProfile && user) {
+      const loadUserProfile = async () => {
+        try {
+          const profile = await getUserProfile(user.id)
+          const finalProfile = profile || {
+            userId: user.id,
+            nickname: user.user_metadata?.full_name || user.email?.split("@")[0] || "사용자",
+            avatarUrl: user.user_metadata?.avatar_url || null,
+          }
+          setUserProfile(finalProfile)
+          setEditedName(finalProfile.nickname)
+        } catch (error) {
+          console.error("Failed to load user profile:", error)
+          toast({
+            title: "프로필 로드 실패",
+            description: "사용자 프로필을 불러오는데 실패했습니다.",
+            variant: "destructive",
+          })
+          // 기본 프로필 설정
+          const defaultProfile = {
+            userId: user.id,
+            nickname: user.user_metadata?.full_name || user.email?.split("@")[0] || "사용자",
+            avatarUrl: user.user_metadata?.avatar_url || null,
+          }
+          setUserProfile(defaultProfile)
+          setEditedName(defaultProfile.nickname)
+        } finally {
+          setIsLoading(false)
+        }
+      }
+      
+      loadUserProfile()
+    } else if (initialProfile) {
+      setEditedName(initialProfile.nickname || "")
+    }
+  }, [user, initialProfile, toast])
+
+  // 로딩 중일 때 스켈레톤 표시
+  if (isLoading) {
+    return (
+      <Card className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+        <CardHeader className="px-0 pt-0 pb-4">
+          <div className="h-8 w-32 bg-gray-200 rounded animate-pulse"></div>
+        </CardHeader>
+        <CardContent className="px-0 py-0 space-y-6">
+          <div className="flex items-center justify-between">
+            <div className="flex-1">
+              <div className="h-4 w-24 bg-gray-200 rounded animate-pulse mb-2"></div>
+              <div className="h-6 w-48 bg-gray-200 rounded animate-pulse"></div>
+            </div>
+            <div className="h-8 w-16 bg-gray-200 rounded animate-pulse"></div>
+          </div>
+          <div>
+            <div className="h-4 w-24 bg-gray-200 rounded animate-pulse mb-2"></div>
+            <div className="h-6 w-64 bg-gray-200 rounded animate-pulse"></div>
+          </div>
+        </CardContent>
+      </Card>
+    )
+  }
+
+  // userProfile이 없으면 에러 상태
+  if (!userProfile) {
+    return (
+      <Card className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+        <CardContent className="flex items-center justify-center py-8">
+          <p className="text-gray-500">프로필 정보를 불러올 수 없습니다.</p>
+        </CardContent>
+      </Card>
+    )
+  }
 
   const handleSave = async () => {
     if (!editedName.trim()) {
@@ -46,6 +123,8 @@ export function ProfileSettingsForm({ user, userProfile }: ProfileSettingsFormPr
           description: result.message,
         })
         setIsEditing(false)
+        // 로컬 상태 업데이트
+        setUserProfile(prev => prev ? { ...prev, nickname: editedName.trim() } : null)
         router.refresh()
       } else {
         throw new Error(result.message)
@@ -70,9 +149,7 @@ export function ProfileSettingsForm({ user, userProfile }: ProfileSettingsFormPr
   return (
     <Card className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
       <CardHeader className="px-0 pt-0 pb-4">
-        <CardTitle className="text-2xl font-bold text-gray-800">프로필</CardTitle>{" "}
-        {/* '프로필 정보'를 '프로필'로 변경 */}
-        {/* CardDescription 제거 */}
+        <CardTitle className="text-2xl font-bold text-gray-800">프로필</CardTitle>
       </CardHeader>
       <CardContent className="px-0 py-0 space-y-6">
         <div className="flex items-center justify-between">
