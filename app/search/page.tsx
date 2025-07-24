@@ -401,16 +401,12 @@ export default function SearchPage() {
         <section className="flex-1 lg:w-4/5 space-y-8">
           <form onSubmit={handleSearch} className="w-full max-w-2xl mx-auto">
             <div className="relative flex items-center w-full rounded-full shadow-lg border border-gray-200 bg-white overflow-hidden focus-within:border-gray-300 focus-within:shadow-xl transition-all">
-              <div className="pl-5">
-                <Search className="h-5 w-5 text-gray-400" />
-              </div>
-
-              <Input
+            <Input
                 type="text"
                 placeholder="URL 또는 키워드 입력"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="flex-1 h-14 pl-4 pr-20 text-base border-none focus-visible:ring-0 focus-visible:ring-offset-0 rounded-l-full rounded-r-none placeholder:text-gray-400"
+                className="flex-1 h-14 pl-5 pr-20 text-base border-none focus-visible:ring-0 focus-visible:ring-offset-0 rounded-l-full rounded-r-none placeholder:text-gray-400"
                 disabled={isSearching || isProcessing}
               />
 
