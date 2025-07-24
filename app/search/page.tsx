@@ -490,83 +490,111 @@ export default function SearchPage() {
         hideCloseButton={true}
         className="p-6 rounded-2xl bg-white shadow-xl border border-gray-100"
         overlayClassName="bg-black/60"
-      >
+        >
         <div className="space-y-3 mb-4">
           {[
             { id: 1, text: "유튜브 영상 확인 중..." },
             { id: 2, text: "자막 및 음성 분석 중..." },
-            { id: 3, text: "AI 레시피 변환 중..." },
-            { id: 4, text: "레시피 저장 중..." },
-          ].map((step) => (
-            <div key={step.id} className="flex items-center space-x-2">
-              <div
-                className={`w-4 h-4 rounded-full border-2 ${
-                  currentLoadingStep >= step.id
-                    ? "border-gray-900 bg-gray-900"
-                    : "border-gray-300 bg-white"
-                }`}
-              />
-              <span
-                className={`text-sm ${
-                  currentLoadingStep >= step.id ? "text-gray-900" : "text-gray-400"
-                }`}
-              >
-                {step.text}
-              </span>
-            </div>
-          ))}
+            { id: 3, text: "레시피 정보 추출 중..." },
+            { id: 4, text: "레시피 구성 중..." }
+          ].map((step) => {
+            const isCompleted = step.id < currentLoadingStep;
+            const isCurrent = step.id === currentLoadingStep;
+
+            return (
+              <div key={step.id} className="flex items-center gap-3">
+                <div className={`relative w-5 h-5 rounded-full transition-all duration-300 ease-out ${
+                  isCompleted ? 'bg-gray-600' : isCurrent ? 'bg-gray-100 border-2 border-gray-600' : 'bg-gray-100 border-2 border-gray-200'
+                }`}>
+                  {isCompleted ? (
+                    <div className="w-3 h-3 bg-white rounded-full absolute inset-0 m-auto" />
+                  ) : isCurrent ? (
+                    <div className="w-2 h-2 bg-gray-600 rounded-full absolute inset-0 m-auto animate-pulse" />
+                  ) : null}
+                </div>
+                <span className={`text-sm font-medium transition-all duration-300 ${
+                  isCompleted ? 'text-gray-400' : isCurrent ? 'text-gray-900 animate-pulse' : 'text-gray-400'
+                }`}>
+                  {step.text}
+                </span>
+              </div>
+            );
+          })}
         </div>
       </CustomDialog>
 
-      {/* 오류 모달 */}
-      <CustomDialog
-        isOpen={showErrorModal}
-        onClose={() => setShowErrorModal(false)}
-        title="오류 발생"
-        description={errorMessage}
-        confirmText="닫기"
-        onConfirm={() => setShowErrorModal(false)}
-      />
-
-      {/* 사용 제한 모달 */}
+      {/* 사용량 제한 모달 */}
       <CustomDialog
         isOpen={showUsageLimitModal}
         onClose={() => setShowUsageLimitModal(false)}
-        title="일일 사용량 초과"
-        description="하루 사용 가능 횟수를 모두 소진했습니다. 내일 다시 시도해주세요."
-        confirmText="확인"
-        onConfirm={() => setShowUsageLimitModal(false)}
+        title="일일 사용량 제한"
+        description="하루에 최대 2회만 레시피 조회가 가능해요 🙏 서비스 개선이 될 때까지 잠시만 기다려주세요!"
+        hideCloseButton={true}
+        className="p-6 rounded-2xl bg-white shadow-xl border border-gray-100"
+        footer={
+          <Button
+            onClick={() => setShowUsageLimitModal(false)}
+            className="w-full py-3 px-4 text-sm font-medium text-gray-600 bg-gray-50 hover:bg-gray-100 border border-gray-200 rounded-xl transition-colors duration-200"
+          >
+            확인
+          </Button>
+        }
+      />
+
+      {/* 에러 모달 */}
+      <CustomDialog
+        isOpen={showErrorModal}
+        onClose={() => setShowErrorModal(false)}
+        title="레시피 추출 실패"
+        description={errorMessage}
+        footer={
+          <Button onClick={() => setShowErrorModal(false)} className="w-full">
+            확인
+          </Button>
+        }
       />
 
       {/* 중복 레시피 모달 */}
       <CustomDialog
         isOpen={showDuplicateModal}
         onClose={() => setShowDuplicateModal(false)}
-        title="이미 저장된 레시피"
-        description="이 영상은 이미 레시피로 저장되어 있습니다."
-        confirmText="레시피 보기"
-        onConfirm={() => {
-          if (duplicateRecipeId) {
-            router.push(`/recipe/${duplicateRecipeId}`)
-          }
-        }}
+        title="이전에 레시피를 조회했던 영상이에요."
+        description="레시피 정보 화면으로 바로 이동할까요?"
+        footer={
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={() => setShowDuplicateModal(false)}>
+              아니요, 다른 영상 입력할게요
+            </Button>
+            <Button onClick={() => {
+              if (duplicateRecipeId) {
+                router.push(`/recipe/${duplicateRecipeId}`)
+                setShowDuplicateModal(false)
+              }
+            }}>
+              예, 기존 레시피 보기
+            </Button>
+          </div>
+        }
       />
 
-      {/* 추출 불가 모달 */}
+      {/* 레시피 없음 모달 */}
       <CustomDialog
         isOpen={showRecipeUnavailableModal}
         onClose={() => setShowRecipeUnavailableModal(false)}
-        title="레시피 추출 불가"
+        title="레시피 조회 불가능"
         description={recipeUnavailableMessage}
-        confirmText="확인"
-        onConfirm={() => setShowRecipeUnavailableModal(false)}
+        footer={
+          <Button onClick={() => setShowRecipeUnavailableModal(false)} className="w-full">
+            확인
+          </Button>
+        }
       />
 
+      {/* 클립보드 토스트 */}
       <ClipboardToast
-        isOpen={showClipboardToast}
+        isVisible={showClipboardToast}
         onClose={() => setShowClipboardToast(false)}
-        onConfirm={() => handleRecipeExtraction(searchQuery)}
-        clipboardText={searchQuery}
+        message="유튜브 링크를 자동으로 불러왔어요!"
       />
     </div>
   )
