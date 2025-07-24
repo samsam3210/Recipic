@@ -541,7 +541,7 @@ export function HeroSection({ user, isDashboard = false }: HeroSectionProps) {
               <div className="relative w-full">
                 <Input
                   type="text"
-                  placeholder="레시픽에서 찾아보세요!"
+                  placeholder="레시피 검색하기"
                   value={youtubeUrl}
                   onChange={(e) => setYoutubeUrl(e.target.value)}
                   onClick={handleInputClick}
@@ -551,10 +551,8 @@ export function HeroSection({ user, isDashboard = false }: HeroSectionProps) {
                 <Search className="absolute right-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
               </div>
               <p className="text-sm text-gray-600 leading-relaxed">
-                YouTube 요리 영상에서 AI가 자동으로 레시피를 추출해드립니다.
-                <br />
-                지금 바로 당신의 요리 경험을 업그레이드하세요!
-              </p>
+              Recipick AI가 레시피 추출을 도와드려요.
+            </p>
               
               {/* 사용량 표시 복구 */}
               {user && !isLoadingUsage && (

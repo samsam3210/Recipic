@@ -27,7 +27,7 @@ export default function SearchPage() {
   const [searchQuery, setSearchQuery] = useState("")
   const [searchResults, setSearchResults] = useState<SearchResult[]>([])
   const [isSearching, setIsSearching] = useState(false)
-  const [user, setUser] = useState<any>(null)
+  const [user, setUser] = useState<any>(undefined)  // null → undefined로 변경
   const [showClipboardToast, setShowClipboardToast] = useState(false)
   const [showUsageLimitModal, setShowUsageLimitModal] = useState(false)
   const [isProcessing, setIsProcessing] = useState(false)
@@ -352,37 +352,45 @@ const handleRecipeExtraction = async (url: string) => {
           </form>
 
           {/* 검색 결과 */}
-          {searchResults.length > 0 && (
+            {searchResults.length > 0 && (
             <div className="space-y-4">
-              <h2 className="text-lg font-semibold text-gray-900">검색 결과</h2>
-              <div className="grid gap-4">
+            <h2 className="text-lg font-semibold text-gray-900">검색 결과</h2>
+            <div className="grid gap-4">
                 {searchResults.map((video) => (
-                  <div
+                <div
                     key={video.videoId}
                     className="flex gap-4 p-4 border rounded-lg hover:bg-gray-50 cursor-pointer transition-colors"
                     onClick={() => handleVideoSelect(video)}
-                  >
+                >
                     <img
-                      src={video.thumbnail}
-                      alt={video.title}
-                      className="w-32 h-24 object-cover rounded"
+                    src={video.thumbnail}
+                    alt={video.title}
+                    className="w-32 h-24 object-cover rounded"
                     />
                     <div className="flex-1">
-                      <h3 className="font-medium text-gray-900 line-clamp-2">{video.title}</h3>
-                      <p className="text-sm text-gray-600 mt-1">{video.channelName}</p>
+                    <h3 className="font-medium text-gray-900 line-clamp-2">{video.title}</h3>
+                    <p className="text-sm text-gray-600 mt-1">{video.channelName}</p>
+                    <div className="flex items-center space-x-2 text-xs text-gray-500 mt-1">
+                        {video.publishedAt && (
+                        <span>{new Date(video.publishedAt).toLocaleDateString('ko-KR')}</span>
+                        )}
+                        {video.viewCount && (
+                        <span>조회수 {parseInt(video.viewCount).toLocaleString()}회</span>
+                        )}
                     </div>
-                  </div>
+                    </div>
+                </div>
                 ))}
-              </div>
             </div>
-          )}
+            </div>
+            )}
         </div>
       </main>
 
       <BottomNavigation />
 
       {/* 로딩 오버레이 */}
-      <CustomDialog
+        <CustomDialog
         isOpen={showLoadingOverlay}
         onClose={() => {}}
         title="레시피 분석 중입니다"
@@ -390,7 +398,8 @@ const handleRecipeExtraction = async (url: string) => {
         disableClose={true}
         hideCloseButton={true}
         className="p-6 rounded-2xl bg-white shadow-xl border border-gray-100"
-      >
+        overlayClassName="bg-black/60"  // ← 이 줄 추가
+        >
         <div className="space-y-3 mb-4">
           {[
             { id: 1, text: "유튜브 영상 확인 중..." },

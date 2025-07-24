@@ -37,7 +37,8 @@ export default async function SettingsPage() {
         </aside>
 
         <section className="flex-1 lg:w-4/5 space-y-10">
-          <ProfileSettingsForm user={user} userProfile={userProfile} />
+          // 기존 Suspense 감싸진 부분을 직접 컴포넌트로 변경
+          <ProfileSettingsForm userProfile={userProfile} />
         </section>
       </main>
       
