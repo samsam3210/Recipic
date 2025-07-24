@@ -43,12 +43,6 @@ export function RecipeDetailClient({ recipe, videoId }: RecipeDetailClientProps)
     playerRef: youtubePlayerRef,
     onReady: (player) => {
       console.log("[RecipeDetailClient] YouTube Player is READY.") // 추가
-      toast({
-        title: "알림",
-        description: "유튜브 플레이어가 준비되었습니다.",
-        variant: "info",
-        duration: 1500,
-      })
     },
     onError: (error) => {
       console.error("[RecipeDetailClient] YouTube Player Error:", error) // 기존 로그 유지 또는 수정
@@ -89,6 +83,7 @@ export function RecipeDetailClient({ recipe, videoId }: RecipeDetailClientProps)
         toast({
           title: "메모 저장 완료",
           description: result.message,
+          duration: 1500,
         })
       } else {
         throw new Error(result.message)

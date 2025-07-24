@@ -68,11 +68,14 @@ export function useYoutubePlayer({ videoId, playerRef, onReady, onError }: UseYo
   const [isPlayerReady, setIsPlayerReady] = useState(false)
 
   useEffect(() => {
-    console.log("[useYoutubePlayer] useEffect triggered. videoId:", videoId, "playerRef.current:", playerRef.current) // 추가
+    console.log("[useYoutubePlayer] useEffect triggered. videoId:", videoId)
+    
     if (!videoId || !playerRef.current) {
-      console.log("[useYoutubePlayer] Skipping player initialization: videoId or playerRef.current is missing.") // 추가
+      console.log("[useYoutubePlayer] Skipping: missing videoId or playerRef")
       return
     }
+  
+    let isMounted = true // 이 줄 추가
 
     const loadYoutubeIframeAPI = () => {
       console.log("[useYoutubePlayer] Attempting to load YouTube IFrame API.") // 추가
@@ -145,7 +148,7 @@ export function useYoutubePlayer({ videoId, playerRef, onReady, onError }: UseYo
         console.log("[useYoutubePlayer] Cleared window.onYouTubeIframeAPIReady.") // 추가
       }
     }
-  }, [videoId, playerRef, onReady, onError, player]) // player를 의존성 배열에 추가하여 cleanup 시점 정확히 제어
+  }, [videoId]) // player를 의존성에서 제거
 
   return { player, isPlayerReady }
 }

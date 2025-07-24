@@ -276,9 +276,10 @@ const handleRecipeExtraction = async (url: string) => {
         setSearchResults(data.results)
         setLastSearchQuery(query)  // 이 줄 추가
         toast({
-          title: "검색 완료",
-          description: `${data.results.length}개의 영상을 찾았습니다.`,
-        })
+            title: "검색 완료",
+            description: `${data.results.length}개의 영상을 찾았습니다.`,
+            duration: 1500,
+          })
       } else {
         setSearchResults([])
         toast({
