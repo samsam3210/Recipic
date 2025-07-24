@@ -18,11 +18,13 @@ export default async function SettingsPage() {
     redirect("/")
   }
 
+  // userProfile 변수 정의 및 초기화
+  const userProfile = await getOrCreateUserProfile(user)
 
   return (
     <div className="flex flex-col min-h-screen">
-      {/* 헤더 - 네비게이션 메뉴 없음 */}
-      <Header />
+      {/* 헤더 */}
+      <Header user={user} userProfile={userProfile} />
       
       <main className="flex-1 flex flex-col lg:flex-row py-8 px-4 md:px-6 lg:px-8 max-w-7xl mx-auto w-full gap-8 pb-20 lg:pb-8">
         {/* 왼쪽 사이드바 (데스크톱만) */}
@@ -37,8 +39,8 @@ export default async function SettingsPage() {
         </aside>
 
         <section className="flex-1 lg:w-4/5 space-y-10">
-        <Suspense fallback={<div>로딩 중...</div>}>
-        <ProfileSettingsForm user={user} userProfile={userProfile} />
+          <Suspense fallback={<div>로딩 중...</div>}>
+            <ProfileSettingsForm user={user} userProfile={userProfile} />
           </Suspense>
         </section>
       </main>
