@@ -41,52 +41,36 @@ export async function POST(req: Request) {
       throw new Error("YOUTUBE_API_KEY is not set in environment variables.")
     }
 
-    // --- 1. 두 카테고리(26, 24) 각각 검색 ---
-    async function fetchSearchResults(videoCategoryId: string) {
-      const res = await fetch(
-        `https://www.googleapis.com/youtube/v3/search?` +
-          new URLSearchParams({
-            part: "snippet",
-            q: `${query} 요리 레시피`,
-            type: "video",
-            maxResults: "50",
-            order: "relevance",
-            videoCategoryId,
-            key: youtubeApiKey,
-          }).toString()
-      )
-      if (!res.ok) {
-        const err = await res.json()
-        throw new Error(`YouTube 검색 API 오류 (categoryId=${videoCategoryId}): ${JSON.stringify(err)}`)
-      }
-      const data = await res.json()
-      return data.items || []
+    // --- 1. 카테고리 필터 없이 단일 검색 요청 ---
+    const searchResponse = await fetch(
+      `https://www.googleapis.com/youtube/v3/search?` +
+        new URLSearchParams({
+          part: "snippet",
+          q: `${query} 요리 레시피`,
+          type: "video",
+          maxResults: "50",
+          order: "relevance",
+          // videoCategoryId: "26",  // 카테고리 필터 제거
+          key: youtubeApiKey,
+        }).toString()
+    )
+
+    if (!searchResponse.ok) {
+      const errorData = await searchResponse.json()
+      console.error("[youtube/search] Search API Error:", errorData)
+      return NextResponse.json({ error: "YouTube 검색 API 오류" }, { status: 500 })
     }
 
-    const [items26, items24] = await Promise.all([
-      fetchSearchResults("26"),
-      fetchSearchResults("24"),
-    ])
-
-    // --- 2. 두 결과 합치고 중복 videoId 제거 ---
-    const allItemsMap = new Map<string, any>()
-    for (const item of [...items26, ...items24]) {
-      const videoId = item.id.videoId
-      if (videoId && !allItemsMap.has(videoId)) {
-        allItemsMap.set(videoId, item)
-      }
-    }
-    const uniqueItems = Array.from(allItemsMap.values())
-
-    if (uniqueItems.length === 0) {
+    const searchData = await searchResponse.json()
+    if (!searchData.items || searchData.items.length === 0) {
       return NextResponse.json({
         results: [],
         message: "검색 결과가 없습니다. 다른 키워드로 시도해보세요.",
       })
     }
 
-    // --- 3. 영상 상세정보 요청 ---
-    const videoIds = uniqueItems.map(item => item.id.videoId).join(",")
+    // --- 2. videoId 추출 후 상세 정보 요청 ---
+    const videoIds = searchData.items.map((item: any) => item.id.videoId).join(",")
 
     const videosResponse = await fetch(
       `https://www.googleapis.com/youtube/v3/videos?` +
@@ -96,14 +80,16 @@ export async function POST(req: Request) {
           key: youtubeApiKey,
         }).toString()
     )
+
     if (!videosResponse.ok) {
       const errorData = await videosResponse.json()
       console.error("[youtube/search] Videos API Error:", errorData)
       return NextResponse.json({ error: "YouTube Videos API 오류" }, { status: 500 })
     }
+
     const videosData = await videosResponse.json()
 
-    // --- 4. 필터링 + 포맷팅 ---
+    // --- 3. 조회수 필터링 + 포맷팅 ---
     const results = videosData.items
       .filter((video: any) => parseInt(video.statistics.viewCount, 10) >= 1000)
       .map((video: any) => {
