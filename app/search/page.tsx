@@ -67,6 +67,24 @@ function parseISO8601Duration(duration: string): string {
   return `${totalMinutes}:${pad(seconds)}`
 }
 
+// === 영상 길이 포맷 함수 (검색 결과 표시용) ===
+function formatDuration(duration: string): string {
+    const match = duration.match(/PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/);
+    if (!match) return "00:00";
+  
+    const hours = parseInt(match[1] || "0");
+    const minutes = parseInt(match[2] || "0");
+    const seconds = parseInt(match[3] || "0");
+  
+    if (hours > 0) {
+      // 시:분:초
+      return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+    } else {
+      // 분:초
+      return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+    }
+  }
+
 export default function SearchPage() {
   const [searchQuery, setSearchQuery] = useState("")
   const [searchResults, setSearchResults] = useState<SearchResult[]>([])
@@ -407,41 +425,54 @@ export default function SearchPage() {
 
           {searchResults.length > 0 && (
             <div className="space-y-4">
-              <h2 className="text-lg font-semibold text-gray-900">검색 결과</h2>
-              <div className="grid gap-4">
-                {searchResults.map((video) => {
-                  const viewCount = video.viewCount ? formatViewCount(Number(video.viewCount)) : null
-                  const publishedDate = video.publishedAt ? formatPublishedDate(video.publishedAt) : null
-                  const duration = video.duration ? parseISO8601Duration(video.duration) : null
-
-                  return (
+                <h2 className="text-lg font-semibold text-gray-900">
+                검색 결과 <span className="text-gray-500 text-sm">({searchResults.length}개)</span>
+                </h2>
+                <div className="grid gap-4">
+                {searchResults.map((video) => (
                     <div
-                      key={video.videoId}
-                      className="flex gap-4 p-4 border rounded-lg hover:bg-gray-50 cursor-pointer transition-colors"
-                      onClick={() => handleVideoSelect(video)}
+                    key={video.videoId}
+                    className="flex gap-4 p-4 border rounded-lg hover:bg-gray-50 cursor-pointer transition-colors"
+                    onClick={() => handleVideoSelect(video)}
                     >
-                      <img
+                    <img
                         src={video.thumbnail}
                         alt={video.title}
                         className="w-32 h-24 object-cover rounded"
                         loading="lazy"
                         decoding="async"
-                      />
-                      <div className="flex-1">
+                    />
+                    <div className="flex-1">
                         <h3 className="font-medium text-gray-900 line-clamp-2">{video.title}</h3>
                         <p className="text-sm text-gray-600 mt-1">{video.channelName}</p>
+
+                        {/* 카테고리 표시 */}
+                        {video.category && (
+                        <p className="text-xs text-gray-500 mt-1">카테고리: {video.category}</p>
+                        )}
+
                         <div className="flex items-center space-x-2 text-xs text-gray-500 mt-1">
-                          {publishedDate && <span>{publishedDate}</span>}
-                          {viewCount && <span>조회수 {viewCount}</span>}
-                          {duration && <span>{duration}</span>}
+                        {/* 업로드일 */}
+                        {video.publishedAt && (
+                            <span>{new Date(video.publishedAt).toLocaleDateString("ko-KR").replace(/^(\d{4})\./, (match, p1) => `${p1.slice(2)}.`)}</span>
+                        )}
+
+                        {/* 조회수 */}
+                        {video.viewCountFormatted && <span>조회수 {video.viewCountFormatted}</span>}
+
+                        {/* 영상 길이 */}
+                        {video.duration && (
+                            <span>
+                            {formatDuration(video.duration)}
+                            </span>
+                        )}
                         </div>
-                      </div>
                     </div>
-                  )
-                })}
-              </div>
+                    </div>
+                ))}
+                </div>
             </div>
-          )}
+            )}
         </section>
       </main>
 
