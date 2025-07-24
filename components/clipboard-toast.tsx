@@ -60,10 +60,10 @@ export function ClipboardToast({ isVisible, onClose, message }: ClipboardToastPr
         </div>
       </div>
   
-      {/* 모바일/태블릿 토스트 */}
-      <div
+            {/* 모바일/태블릿 토스트 */}
+            <div
         className={cn(
-          "fixed bottom-6 left-1/2 transform -translate-x-1/2 z-50 transition-all duration-300 ease-in-out md:hidden px-4",
+          "fixed bottom-24 left-1/2 transform -translate-x-1/2 z-50 transition-all duration-300 ease-in-out md:hidden px-4",
           isVisible 
             ? "opacity-100 translate-y-0" 
             : "opacity-0 translate-y-2"
