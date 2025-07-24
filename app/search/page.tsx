@@ -22,6 +22,9 @@ interface SearchResult {
   title: string
   channelName: string
   thumbnail: string
+  duration?: string
+  publishedAt: string
+  viewCount?: string
   youtubeUrl: string
 }
 
@@ -412,6 +415,9 @@ useEffect(() => {
                         )}
                         {video.viewCount && (
                         <span>조회수 {parseInt(video.viewCount).toLocaleString()}회</span>
+                        )}
+                        {video.duration && (
+                        <span>{video.duration}</span>
                         )}
                     </div>
                     </div>
