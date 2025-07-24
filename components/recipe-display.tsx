@@ -160,6 +160,15 @@ export function RecipeDisplay({
 
       <hr className="border-gray-200 mb-8" />
 
+            {/* 🐛 임시 디버깅 코드 */}
+            <div className="mb-4 p-4 bg-yellow-100 border rounded">
+        <h3 className="font-bold text-red-600">🐛 디버깅 정보 (임시)</h3>
+        <p><strong>재료 타입:</strong> {typeof recipe.ingredients}</p>
+        <p><strong>재료 길이:</strong> {Array.isArray(recipe.ingredients) ? recipe.ingredients.length : 'Array 아님'}</p>
+        <p><strong>첫 번째 재료:</strong> {JSON.stringify(recipe.ingredients[0], null, 2)}</p>
+        <p><strong>전체 재료:</strong> {JSON.stringify(recipe.ingredients, null, 2)}</p>
+      </div>
+
       {/* 재료 섹션 */}
       <div className="mb-8">
         <h2 className="text-xl font-bold mb-4">재료</h2>
