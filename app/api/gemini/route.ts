@@ -79,7 +79,7 @@ ${transcriptForPrompt}
     }
 
     const { text } = await generateText({
-      model: google("gemini-1.5-flash"),
+      model: google("gemini-2.0-flash-lite"),
       system:
         "You are an expert AI for extracting cooking recipes from YouTube video transcripts and descriptions into a precise JSON format. Focus solely on recipe details. If information is missing, use `null` or empty arrays, and provide a `noRecipeFoundMessage`. Crucially, accurately extract `youtubeTimestampSecond` for each step based on subtitle timings.",
       prompt: prompt,
