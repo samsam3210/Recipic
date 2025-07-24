@@ -213,10 +213,21 @@ export function RecipeDisplay({
                   <div className="space-y-1 text-gray-700">
                     <p className="whitespace-pre-line">{step.description.split("\n").slice(1).join("\n")}</p>
                     {step.ingredientsUsed && step.ingredientsUsed.length > 0 && (
-                      <p className="text-sm">
-                        <span className="font-medium">재료:</span> {step.ingredientsUsed.join(", ")}
-                      </p>
-                    )}
+                        <p className="text-sm">
+                          <span className="font-medium">재료:</span> {step.ingredientsUsed.map(ingredient => {
+                            if (typeof ingredient === 'string') {
+                              return ingredient;
+                            } else if (typeof ingredient === 'object' && ingredient.name) {
+                              // 객체인 경우 name, quantity, unit을 조합해서 문자열로 만들기
+                              const name = ingredient.name;
+                              const quantity = ingredient.quantity || '';
+                              const unit = ingredient.unit || '';
+                              return `${name} ${quantity}${unit}`.trim();
+                            }
+                            return JSON.stringify(ingredient);
+                          }).join(", ")}
+                        </p>
+                      )}
                     {step.notes && (
                       <p className="text-sm">
                         <span className="font-medium">팁:</span> {step.notes}
