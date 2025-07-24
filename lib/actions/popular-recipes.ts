@@ -140,4 +140,4 @@ export const getPopularRecipes = unstable_cache(
     revalidate: 3600, // 1시간마다 캐시 갱신
     tags: ['popular-recipes'],
   }
-)
+) // 11
