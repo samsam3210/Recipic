@@ -39,21 +39,7 @@ export function PopularKeywords({ onKeywordClick, isSearching = false }: Popular
   }, [])
 
   if (loading) {
-    return (
-      <div className="max-w-2xl mx-auto mb-8">
-        <div className="flex items-center gap-2 mb-4">
-          <h3 className="text-lg font-semibold text-gray-900">인기레시피</h3>
-        </div>
-        <div className="flex flex-wrap gap-2">
-          {Array.from({ length: 6 }).map((_, index) => (
-            <div
-              key={index}
-              className="h-9 w-20 bg-gray-200 rounded-full animate-pulse"
-            />
-          ))}
-        </div>
-      </div>
-    )
+    return null // 로딩 중에는 아무것도 표시하지 않음
   }
 
   if (keywords.length === 0) {

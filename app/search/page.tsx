@@ -114,9 +114,9 @@ export default function SearchPage() {
   const [lastSearchQuery, setLastSearchQuery] = useState("")
 
   const handleKeywordClick = (keyword: string) => {
-    setSearchQuery(`${keyword} 레시피`)
+    setSearchQuery(keyword)
     // 바로 검색 실행
-    handleYouTubeSearch(`${keyword} 레시피`)
+    handleYouTubeSearch(keyword)
   }
 
   // 사용자 정보 가져오기
@@ -438,9 +438,6 @@ export default function SearchPage() {
             onKeywordClick={handleKeywordClick} 
             isSearching={isSearching || isProcessing} 
           />
-
-          {/* ✨ 새로 추가: 가이드 */}
-          <SearchGuide />
 
           {searchResults.length > 0 && (
             <div className="space-y-4">
