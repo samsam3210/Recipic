@@ -160,15 +160,6 @@ export function RecipeDisplay({
 
       <hr className="border-gray-200 mb-8" />
 
-            {/* 🐛 임시 디버깅 코드 */}
-            <div className="mb-4 p-4 bg-yellow-100 border rounded">
-        <h3 className="font-bold text-red-600">🐛 디버깅 정보 (임시)</h3>
-        <p><strong>재료 타입:</strong> {typeof recipe.ingredients}</p>
-        <p><strong>재료 길이:</strong> {Array.isArray(recipe.ingredients) ? recipe.ingredients.length : 'Array 아님'}</p>
-        <p><strong>첫 번째 재료:</strong> {JSON.stringify(recipe.ingredients[0], null, 2)}</p>
-        <p><strong>전체 재료:</strong> {JSON.stringify(recipe.ingredients, null, 2)}</p>
-      </div>
-
       {/* 재료 섹션 */}
       <div className="mb-8">
         <h2 className="text-xl font-bold mb-4">재료</h2>
@@ -213,21 +204,24 @@ export function RecipeDisplay({
                   <div className="space-y-1 text-gray-700">
                     <p className="whitespace-pre-line">{step.description.split("\n").slice(1).join("\n")}</p>
                     {step.ingredientsUsed && step.ingredientsUsed.length > 0 && (
-                        <p className="text-sm">
-                          <span className="font-medium">재료:</span> {step.ingredientsUsed.map(ingredient => {
-                            if (typeof ingredient === 'string') {
-                              return ingredient;
-                            } else if (typeof ingredient === 'object' && ingredient.name) {
-                              // 객체인 경우 name, quantity, unit을 조합해서 문자열로 만들기
-                              const name = ingredient.name;
-                              const quantity = ingredient.quantity || '';
-                              const unit = ingredient.unit || '';
-                              return `${name} ${quantity}${unit}`.trim();
-                            }
-                            return JSON.stringify(ingredient);
-                          }).join(", ")}
-                        </p>
-                      )}
+                      <p className="text-sm">
+                        <span className="font-medium">재료:</span> {step.ingredientsUsed.map(ingredient => {
+                          // 문자열인 경우 그대로 반환
+                          if (typeof ingredient === 'string') {
+                            return ingredient;
+                          }
+                          // 객체인 경우 name, quantity, unit 조합
+                          if (typeof ingredient === 'object' && ingredient && ingredient.name) {
+                            const name = ingredient.name;
+                            const quantity = ingredient.quantity || '';
+                            const unit = ingredient.unit || '';
+                            return `${name} ${quantity}${unit}`.trim();
+                          }
+                          // 기타 예상치 못한 경우
+                          return String(ingredient);
+                        }).join(", ")}
+                      </p>
+                    )}
                     {step.notes && (
                       <p className="text-sm">
                         <span className="font-medium">팁:</span> {step.notes}
