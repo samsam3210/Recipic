@@ -420,7 +420,7 @@ export default function SearchPage() {
         footer={
           <Button
             onClick={() => setShowUsageLimitModal(false)}
-            className="w-full py-3 px-4 text-sm font-semibold bg-blue-500 hover:bg-blue-600 text-white rounded-xl transition-all duration-300 shadow-lg"
+            className="w-full py-3 px-4 text-sm font-semibold bg-orange-500 hover:bg-orange-600 text-white rounded-xl transition-all duration-300 shadow-lg"
           >
             확인
           </Button>
@@ -434,7 +434,7 @@ export default function SearchPage() {
         title="레시피 추출 실패"
         description={errorMessage}
         footer={
-          <Button onClick={() => setShowErrorModal(false)} className="w-full py-3 px-4 text-sm font-semibold bg-blue-500 hover:bg-blue-600 text-white rounded-xl transition-all duration-300 shadow-lg">
+          <Button onClick={() => setShowErrorModal(false)} className="w-full py-3 px-4 text-sm font-semibold bg-orange-500 hover:bg-orange-600 text-white rounded-xl transition-all duration-300 shadow-lg">
             확인
           </Button>
         }
@@ -462,7 +462,7 @@ export default function SearchPage() {
                   setShowDuplicateModal(false)
                 }
               }}
-              className="flex-1 py-3 px-4 text-sm font-semibold bg-blue-500 hover:bg-blue-600 text-white rounded-xl transition-all duration-300 shadow-lg"
+              className="flex-1 py-3 px-4 text-sm font-semibold bg-orange-500 hover:bg-orange-600 text-white rounded-xl transition-all duration-300 shadow-lg"
             >
               예, 기존 레시피 보기
             </Button>
@@ -477,7 +477,7 @@ export default function SearchPage() {
         title="레시피 조회 불가능"
         description={recipeUnavailableMessage}
         footer={
-          <Button onClick={() => setShowRecipeUnavailableModal(false)} className="w-full py-3 px-4 text-sm font-semibold bg-blue-500 hover:bg-blue-600 text-white rounded-xl transition-all duration-300 shadow-lg">
+          <Button onClick={() => setShowRecipeUnavailableModal(false)} className="w-full py-3 px-4 text-sm font-semibold bg-orange-500 hover:bg-orange-600 text-white rounded-xl transition-all duration-300 shadow-lg">
             확인
           </Button>
         }
