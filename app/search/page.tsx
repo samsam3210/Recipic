@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
-import { Search, Loader2, ArrowUpDown } from "lucide-react"
+import { Search, Loader2, ArrowUpDown, ChevronDown, Clock, Eye } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Header } from "@/components/header"
@@ -121,9 +121,25 @@ export default function SearchPage() {
         // 업로드순 (최신순)
         return new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime()
       } else if (sortBy === 'viewCount') {
-        // 조회순 (높은 순)
-        const aViewCount = parseInt(a.viewCount?.replace(/,/g, '') || '0')
-        const bViewCount = parseInt(b.viewCount?.replace(/,/g, '') || '0')
+        // 조회순 (높은 순) - viewCountFormatted에서 숫자 추출
+        const extractViewCount = (formatted?: string): number => {
+          if (!formatted) return 0
+          
+          // "조회수 1.2만회" 형식에서 숫자 추출
+          const match = formatted.match(/(\d+(?:\.\d+)?)(만|천|억)?/)
+          if (!match) return 0
+          
+          const num = parseFloat(match[1])
+          const unit = match[2]
+          
+          if (unit === '억') return num * 100000000
+          if (unit === '만') return num * 10000
+          if (unit === '천') return num * 1000
+          return num
+        }
+        
+        const aViewCount = extractViewCount(a.viewCountFormatted)
+        const bViewCount = extractViewCount(b.viewCountFormatted)
         return bViewCount - aViewCount
       }
       return 0
@@ -379,18 +395,41 @@ export default function SearchPage() {
                   검색 결과 <span className="text-gray-500 text-sm">({searchResults.length}개)</span>
                 </h2>
                 
-                {/* 정렬 버튼 */}
-                <div className="flex items-center gap-2">
-                  <ArrowUpDown className="w-4 h-4 text-gray-500" />
+                {/* 정렬 드롭다운 */}
+                <div className="relative">
+                  <div className="flex items-center gap-2 px-3 py-2 border border-gray-200 rounded-lg bg-white hover:bg-gray-50 transition-colors cursor-pointer group">
+                    <div className="flex items-center gap-2 text-sm text-gray-700">
+                      {sortType === 'uploadDate' ? (
+                        <>
+                          <Clock className="w-4 h-4 text-gray-500" />
+                          <span className="hidden sm:inline">업로드순</span>
+                          <span className="sm:hidden">최신순</span>
+                        </>
+                      ) : (
+                        <>
+                          <Eye className="w-4 h-4 text-gray-500" />
+                          <span className="hidden sm:inline">조회순</span>
+                          <span className="sm:hidden">인기순</span>
+                        </>
+                      )}
+                    </div>
+                    <ChevronDown className="w-4 h-4 text-gray-400 group-hover:text-gray-600 transition-colors" />
+                  </div>
+                  
                   <select
                     value={sortType}
                     onChange={(e) => {
                       const newSortType = e.target.value as SortType
+                      console.log('정렬 변경:', newSortType) // 디버깅용
                       setSortType(newSortType)
+                      
+                      // 즉시 정렬 적용
                       const sortedResults = sortSearchResults(searchResults, newSortType)
+                      console.log('정렬 전:', searchResults.slice(0, 3).map(r => ({title: r.title, views: r.viewCountFormatted})))
+                      console.log('정렬 후:', sortedResults.slice(0, 3).map(r => ({title: r.title, views: r.viewCountFormatted})))
                       setSearchResults(sortedResults)
                     }}
-                    className="text-sm border border-gray-200 rounded-lg px-3 py-1.5 bg-white focus:outline-none focus:ring-2 focus:ring-gray-200 focus:border-gray-300"
+                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                   >
                     <option value="uploadDate">업로드순</option>
                     <option value="viewCount">조회순</option>
