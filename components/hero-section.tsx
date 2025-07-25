@@ -99,10 +99,6 @@ export function HeroSection({ user, isDashboard = false }: HeroSectionProps) {
   const animationIntervalRef = useRef<NodeJS.Timeout | null>(null)
   const abortControllerRef = useRef<AbortController | null>(null)
 
-  const [showErrorModal, setShowErrorModal] = useState(false)
-  const [errorModalTitle, setErrorModalTitle] = useState("")
-  const [errorModalDescription, setErrorModalDescription] = useState("")
-
   // Updated step messages
   const stepMessages = {
     1: "1단계: 유튜브 영상을 불러오는 중입니다.",
