@@ -34,12 +34,17 @@ export async function getRecentlyViewedRecipes(): Promise<{
   message?: string
 }> {
   try {
+    console.log("[getRecentlyViewedRecipes] 함수 호출됨")
+    
     const supabase = createClient()
     const { data: { user }, error: authError } = await supabase.auth.getUser()
 
     if (authError || !user) {
+      console.log("[getRecentlyViewedRecipes] 인증 실패:", { authError, user: !!user })
       return { success: false, message: "로그인이 필요합니다." }
     }
+
+    console.log("[getRecentlyViewedRecipes] 인증 성공, 사용자 ID:", user.id)
 
     const recipes = await db
       .select({
@@ -55,6 +60,9 @@ export async function getRecentlyViewedRecipes(): Promise<{
       .where(eq(recentlyViewedRecipes.userId, user.id))
       .orderBy(desc(recentlyViewedRecipes.viewedAt))
       .limit(3) // 대시보드에서는 3개만
+
+    console.log("[getRecentlyViewedRecipes] 조회 결과:", recipes.length, "개의 레시피")
+    console.log("[getRecentlyViewedRecipes] 레시피 목록:", recipes)
 
     return {
       success: true,
@@ -77,14 +85,20 @@ export async function addRecentlyViewedRecipe(params: AddRecentlyViewedParams): 
   message?: string
 }> {
   try {
+    console.log("[addRecentlyViewedRecipe] 함수 호출됨, params:", params)
+    
     const supabase = createClient()
     const { data: { user }, error: authError } = await supabase.auth.getUser()
 
     if (authError || !user) {
+      console.log("[addRecentlyViewedRecipe] 인증 실패:", { authError, user: !!user })
       return { success: false, message: "로그인이 필요합니다." }
     }
 
+    console.log("[addRecentlyViewedRecipe] 인증 성공, 사용자 ID:", user.id)
+
     // 중복 확인 (video_title + channel_name 기준)
+    console.log("[addRecentlyViewedRecipe] 중복 확인 시작")
     const existingRecipe = await db
       .select({ id: recentlyViewedRecipes.id })
       .from(recentlyViewedRecipes)
@@ -97,15 +111,20 @@ export async function addRecentlyViewedRecipe(params: AddRecentlyViewedParams): 
       )
       .limit(1)
 
+    console.log("[addRecentlyViewedRecipe] 중복 확인 결과:", existingRecipe.length > 0 ? "기존 레시피 존재" : "새 레시피")
+
     if (existingRecipe.length > 0) {
       // 기존 레시피가 있으면 viewed_at만 업데이트
+      console.log("[addRecentlyViewedRecipe] 기존 레시피 업데이트, ID:", existingRecipe[0].id)
       await db
         .update(recentlyViewedRecipes)
         .set({ viewedAt: new Date() })
         .where(eq(recentlyViewedRecipes.id, existingRecipe[0].id))
+      console.log("[addRecentlyViewedRecipe] 기존 레시피 업데이트 완료")
     } else {
       // 새 레시피 추가
-      await db.insert(recentlyViewedRecipes).values({
+      console.log("[addRecentlyViewedRecipe] 새 레시피 추가 시작")
+      const insertResult = await db.insert(recentlyViewedRecipes).values({
         userId: user.id,
         recipeName: params.recipeName,
         youtubeUrl: params.youtubeUrl,
@@ -114,24 +133,31 @@ export async function addRecentlyViewedRecipe(params: AddRecentlyViewedParams): 
         summary: params.summary,
         viewedAt: new Date(),
       })
+      console.log("[addRecentlyViewedRecipe] 새 레시피 추가 완료:", insertResult)
 
       // 최대 개수 초과 시 가장 오래된 기록 삭제
+      console.log("[addRecentlyViewedRecipe] 최대 개수 확인 시작")
       const allRecipes = await db
         .select({ id: recentlyViewedRecipes.id })
         .from(recentlyViewedRecipes)
         .where(eq(recentlyViewedRecipes.userId, user.id))
         .orderBy(desc(recentlyViewedRecipes.viewedAt))
 
+      console.log("[addRecentlyViewedRecipe] 현재 레시피 개수:", allRecipes.length, "최대:", MAX_RECENTLY_VIEWED)
+
       if (allRecipes.length > MAX_RECENTLY_VIEWED) {
         const recipesToDelete = allRecipes.slice(MAX_RECENTLY_VIEWED)
+        console.log("[addRecentlyViewedRecipe] 삭제할 레시피 개수:", recipesToDelete.length)
         for (const recipe of recipesToDelete) {
           await db
             .delete(recentlyViewedRecipes)
             .where(eq(recentlyViewedRecipes.id, recipe.id))
         }
+        console.log("[addRecentlyViewedRecipe] 오래된 레시피 삭제 완료")
       }
     }
 
+    console.log("[addRecentlyViewedRecipe] 성공적으로 완료")
     return { success: true }
   } catch (error) {
     console.error("[addRecentlyViewedRecipe] Error:", error)
