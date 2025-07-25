@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
-import { Search, Loader2 } from "lucide-react"
+import { Search, Loader2, ArrowUpDown } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Header } from "@/components/header"
@@ -89,6 +89,8 @@ function formatDuration(duration: string): string {
     }
   }
 
+type SortType = 'uploadDate' | 'viewCount'
+
 export default function SearchPage() {
   const [searchQuery, setSearchQuery] = useState("")
   const [searchResults, setSearchResults] = useState<SearchResult[]>([])
@@ -97,6 +99,7 @@ export default function SearchPage() {
   const [isUserLoading, setIsUserLoading] = useState(true)
   const [showClipboardToast, setShowClipboardToast] = useState(false)
   const [showUsageLimitModal, setShowUsageLimitModal] = useState(false)
+  const [sortType, setSortType] = useState<SortType>('uploadDate')
   const { startExtraction, isExtracting } = useExtraction()
   const { toast } = useToast()
   const router = useRouter()
@@ -110,6 +113,22 @@ export default function SearchPage() {
   const [recipeUnavailableMessage, setRecipeUnavailableMessage] = useState("")
 
   const [lastSearchQuery, setLastSearchQuery] = useState("")
+
+  // 정렬 함수
+  const sortSearchResults = (results: SearchResult[], sortBy: SortType): SearchResult[] => {
+    return [...results].sort((a, b) => {
+      if (sortBy === 'uploadDate') {
+        // 업로드순 (최신순)
+        return new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime()
+      } else if (sortBy === 'viewCount') {
+        // 조회순 (높은 순)
+        const aViewCount = parseInt(a.viewCount?.replace(/,/g, '') || '0')
+        const bViewCount = parseInt(b.viewCount?.replace(/,/g, '') || '0')
+        return bViewCount - aViewCount
+      }
+      return 0
+    })
+  }
 
   const handleKeywordClick = (keyword: string) => {
     setSearchQuery(keyword)
@@ -237,7 +256,8 @@ export default function SearchPage() {
       }
 
       if (data.results && data.results.length > 0) {
-        setSearchResults(data.results)
+        const sortedResults = sortSearchResults(data.results, sortType)
+        setSearchResults(sortedResults)
         setLastSearchQuery(query)
         toast({
           title: "검색 완료",
@@ -354,9 +374,29 @@ export default function SearchPage() {
 
           {searchResults.length > 0 && (
             <div className="space-y-4">
+              <div className="flex items-center justify-between">
                 <h2 className="text-lg font-semibold text-gray-900">
-                검색 결과 <span className="text-gray-500 text-sm">({searchResults.length}개)</span>
+                  검색 결과 <span className="text-gray-500 text-sm">({searchResults.length}개)</span>
                 </h2>
+                
+                {/* 정렬 버튼 */}
+                <div className="flex items-center gap-2">
+                  <ArrowUpDown className="w-4 h-4 text-gray-500" />
+                  <select
+                    value={sortType}
+                    onChange={(e) => {
+                      const newSortType = e.target.value as SortType
+                      setSortType(newSortType)
+                      const sortedResults = sortSearchResults(searchResults, newSortType)
+                      setSearchResults(sortedResults)
+                    }}
+                    className="text-sm border border-gray-200 rounded-lg px-3 py-1.5 bg-white focus:outline-none focus:ring-2 focus:ring-gray-200 focus:border-gray-300"
+                  >
+                    <option value="uploadDate">업로드순</option>
+                    <option value="viewCount">조회순</option>
+                  </select>
+                </div>
+              </div>
                 <div className="grid gap-4">
                 {searchResults.map((video) => (
                     <div
