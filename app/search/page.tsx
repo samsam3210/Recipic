@@ -420,7 +420,7 @@ export default function SearchPage() {
         footer={
           <Button
             onClick={() => setShowUsageLimitModal(false)}
-            className="w-full py-3 px-4 text-sm font-medium text-gray-600 bg-gray-50 hover:bg-gray-100 border border-gray-200 rounded-xl transition-colors duration-200"
+            className="w-full py-3 px-4 text-sm font-semibold bg-blue-500 hover:bg-blue-600 text-white rounded-xl transition-all duration-300 shadow-lg"
           >
             확인
           </Button>
@@ -434,7 +434,7 @@ export default function SearchPage() {
         title="레시피 추출 실패"
         description={errorMessage}
         footer={
-          <Button onClick={() => setShowErrorModal(false)} className="w-full">
+          <Button onClick={() => setShowErrorModal(false)} className="w-full py-3 px-4 text-sm font-semibold bg-blue-500 hover:bg-blue-600 text-white rounded-xl transition-all duration-300 shadow-lg">
             확인
           </Button>
         }
@@ -448,15 +448,22 @@ export default function SearchPage() {
         description="레시피 정보 화면으로 바로 이동할까요?"
         footer={
           <div className="flex gap-2">
-            <Button variant="outline" onClick={() => setShowDuplicateModal(false)}>
+            <Button 
+              variant="outline" 
+              onClick={() => setShowDuplicateModal(false)}
+              className="flex-1 py-3 px-4 text-sm font-medium text-gray-600 bg-white hover:bg-gray-50 border border-gray-300 rounded-xl transition-all duration-300"
+            >
               아니요, 다른 영상 입력할게요
             </Button>
-            <Button onClick={() => {
-              if (duplicateRecipeId) {
-                router.push(`/recipe/${duplicateRecipeId}`)
-                setShowDuplicateModal(false)
-              }
-            }}>
+            <Button 
+              onClick={() => {
+                if (duplicateRecipeId) {
+                  router.push(`/recipe/${duplicateRecipeId}`)
+                  setShowDuplicateModal(false)
+                }
+              }}
+              className="flex-1 py-3 px-4 text-sm font-semibold bg-blue-500 hover:bg-blue-600 text-white rounded-xl transition-all duration-300 shadow-lg"
+            >
               예, 기존 레시피 보기
             </Button>
           </div>
@@ -470,7 +477,7 @@ export default function SearchPage() {
         title="레시피 조회 불가능"
         description={recipeUnavailableMessage}
         footer={
-          <Button onClick={() => setShowRecipeUnavailableModal(false)} className="w-full">
+          <Button onClick={() => setShowRecipeUnavailableModal(false)} className="w-full py-3 px-4 text-sm font-semibold bg-blue-500 hover:bg-blue-600 text-white rounded-xl transition-all duration-300 shadow-lg">
             확인
           </Button>
         }

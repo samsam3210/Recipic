@@ -580,7 +580,7 @@ export function HeroSection({ user, isDashboard = false }: HeroSectionProps) {
         "relative w-full flex flex-col items-center justify-center text-center",
         isDashboard
           ? "py-6 px-4 md:px-6 space-y-6" // 박스 상자 관련 클래스 제거
-          : "py-20 md:py-32 lg:py-48 bg-background",
+          : "py-20 md:py-32 lg:py-48 bg-black",
       )}
     >
       {!isDashboard && (
@@ -604,17 +604,17 @@ export function HeroSection({ user, isDashboard = false }: HeroSectionProps) {
               {/* 메인 헤드라인 */}
               <div className="space-y-6 animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
                 <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold tracking-tight leading-[1.1]">
-                  <span className="bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 bg-clip-text text-transparent">
+                  <span className="text-white">
                     YouTube 요리영상,
                   </span>
                   <br />
-                  <span className="bg-gradient-to-r from-blue-600 via-purple-600 to-blue-800 bg-clip-text text-transparent">
+                  <span className="text-white">
                     5초만에 내 레시피북이 됩니다
                   </span>
                 </h1>
                 
                 {/* 서브텍스트 */}
-                <p className="text-lg md:text-xl text-gray-600 max-w-2xl mx-auto leading-relaxed">
+                <p className="text-lg md:text-xl text-white/80 max-w-2xl mx-auto leading-relaxed">
                   수많은 요리사들이 Recipick과 함께합니다.
                   <br />
                   지금 바로 당신의 요리 경험을 업그레이드하세요!
@@ -624,7 +624,7 @@ export function HeroSection({ user, isDashboard = false }: HeroSectionProps) {
               {/* 검색 입력 필드 */}
               <div className="max-w-2xl mx-auto animate-fade-in-up" style={{ animationDelay: '0.4s' }}>
                 <div className="relative group">
-                  <div className="absolute -inset-0.5 bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl blur opacity-25 group-hover:opacity-50 transition duration-300"></div>
+                  <div className="absolute -inset-0.5 bg-blue-500 rounded-2xl blur opacity-25 group-hover:opacity-50 transition duration-300"></div>
                   <div className="relative flex items-center bg-white rounded-2xl border border-gray-200 shadow-xl hover:shadow-2xl transition-all duration-300">
                     <div className="flex items-center pl-6">
                       <Search className="w-5 h-5 text-gray-400" />
@@ -634,13 +634,13 @@ export function HeroSection({ user, isDashboard = false }: HeroSectionProps) {
                       placeholder="레시피 검색하기"
                       value={youtubeUrl}
                       onChange={(e) => setYoutubeUrl(e.target.value)}
-                      className="h-16 flex-grow px-4 border-none focus:outline-none focus:ring-0 text-lg placeholder:text-gray-400 bg-transparent rounded-2xl"
+                      className="h-16 flex-grow px-4 border-none focus:outline-none focus:ring-0 focus-visible:ring-0 focus-visible:ring-offset-0 text-lg placeholder:text-gray-400 bg-transparent rounded-2xl"
                       disabled={isExtracting}
                     />
                     <Button
                       onClick={handleDiscoverClick}
                       disabled={!youtubeUrl || isExtracting}
-                      className="m-2 h-12 px-8 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-xl font-semibold transition-all duration-300 hover:scale-105 shadow-lg hover:shadow-xl"
+                      className="m-2 h-12 px-8 bg-blue-500 hover:bg-blue-600 text-white rounded-xl font-semibold transition-all duration-300 hover:scale-105 shadow-lg hover:shadow-xl"
                     >
                       {isExtracting ? (
                         <Loader2 className="w-5 h-5 animate-spin" />
@@ -706,7 +706,7 @@ export function HeroSection({ user, isDashboard = false }: HeroSectionProps) {
                   onChange={(e) => setYoutubeUrl(e.target.value)}
                   onClick={handleInputClick}
                   readOnly
-                  className="w-full h-14 pl-12 pr-4 text-base rounded-xl border-2 border-gray-200 focus:border-gray-400 focus:ring-0 transition-colors cursor-pointer"
+                  className="w-full h-14 pl-12 pr-4 text-base rounded-xl border-2 border-gray-200 focus:border-gray-400 focus:ring-0 focus-visible:ring-0 focus-visible:ring-offset-0 focus:outline-none transition-colors cursor-pointer"
                 />
               </div>
               <p className="text-sm text-gray-600 leading-relaxed">
@@ -766,7 +766,7 @@ export function HeroSection({ user, isDashboard = false }: HeroSectionProps) {
           <Button
             variant="outline"
             onClick={handleCancelProcessing}
-            className="w-full rounded-md border-gray-300 text-gray-700 hover:bg-gray-50 bg-transparent" // Adjusted button style
+            className="w-full py-3 px-4 text-sm font-medium text-gray-600 bg-white hover:bg-gray-50 border border-gray-300 rounded-xl transition-all duration-300"
           >
             <X className="mr-2 h-4 w-4" />
             괜찮아요, 그만둘래요
@@ -794,7 +794,7 @@ export function HeroSection({ user, isDashboard = false }: HeroSectionProps) {
         descriptionClassName="text-base text-gray-600 mt-2"
         footerClassName="w-full mt-4"
         footer={
-          <Button onClick={() => setShowRecipeUnavailableModal(false)} className="w-full">
+          <Button onClick={() => setShowRecipeUnavailableModal(false)} className="w-full py-3 px-4 text-sm font-semibold bg-blue-500 hover:bg-blue-600 text-white rounded-xl transition-all duration-300 shadow-lg">
             확인
           </Button>
         }
@@ -809,10 +809,19 @@ export function HeroSection({ user, isDashboard = false }: HeroSectionProps) {
         footerClassName="flex flex-col sm:flex-row sm:justify-end gap-2 mt-4"
         footer={
           <>
-            <Button variant="outline" onClick={() => setShowDuplicateModal(false)}>
+            <Button 
+              variant="outline" 
+              onClick={() => setShowDuplicateModal(false)}
+              className="flex-1 py-3 px-4 text-sm font-medium text-gray-600 bg-white hover:bg-gray-50 border border-gray-300 rounded-xl transition-all duration-300"
+            >
               아니요, 다른 영상 입력할게요
             </Button>
-            <Button onClick={handleViewExistingRecipe}>예, 기존 레시피 보기</Button>
+            <Button 
+              onClick={handleViewExistingRecipe}
+              className="flex-1 py-3 px-4 text-sm font-semibold bg-blue-500 hover:bg-blue-600 text-white rounded-xl transition-all duration-300 shadow-lg"
+            >
+              예, 기존 레시피 보기
+            </Button>
           </>
         }
       >
@@ -841,7 +850,7 @@ export function HeroSection({ user, isDashboard = false }: HeroSectionProps) {
         descriptionClassName="text-base text-gray-600 mt-2"
         footerClassName="w-full mt-4"
         footer={
-          <Button onClick={() => setShowUsageLimitModal(false)} className="w-full">
+          <Button onClick={() => setShowUsageLimitModal(false)} className="w-full py-3 px-4 text-sm font-semibold bg-blue-500 hover:bg-blue-600 text-white rounded-xl transition-all duration-300 shadow-lg">
             확인
           </Button>
         }
@@ -859,7 +868,7 @@ export function HeroSection({ user, isDashboard = false }: HeroSectionProps) {
         descriptionClassName="text-base text-gray-600 mt-2"
         footerClassName="w-full mt-4"
         footer={
-          <Button onClick={() => setShowErrorModal(false)} className="w-full">
+          <Button onClick={() => setShowErrorModal(false)} className="w-full py-3 px-4 text-sm font-semibold bg-blue-500 hover:bg-blue-600 text-white rounded-xl transition-all duration-300 shadow-lg">
             확인
           </Button>
         }

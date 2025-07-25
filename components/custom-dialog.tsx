@@ -57,7 +57,9 @@ export function CustomDialog({
         />
         <DialogContent
           className={cn(
-            "max-w-[calc(100%-2rem)] mx-auto", // Added for consistent horizontal margin on all screen sizes
+            "max-w-[calc(100%-2rem)] mx-auto sm:max-w-md", // Responsive max width
+            "bg-white rounded-2xl border border-gray-200 shadow-xl backdrop-blur-sm", // Floating bar style
+            "p-6 overflow-hidden", // Consistent padding
             className,
           )}
           onPointerDownOutside={disableClose ? (e) => e.preventDefault() : undefined}
@@ -65,8 +67,8 @@ export function CustomDialog({
         >
           {/* Conditionally render the close button */}
           {!hideCloseButton && (
-            <DialogPrimitive.Close className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground">
-              <X className="h-4 w-4" />
+            <DialogPrimitive.Close className="absolute right-4 top-4 p-1 rounded-full hover:bg-gray-100 transition-colors">
+              <X className="h-4 w-4 text-gray-500" />
               <span className="sr-only">Close</span>
             </DialogPrimitive.Close>
           )}

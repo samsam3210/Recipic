@@ -60,11 +60,9 @@ export function ConsentModal({ isOpen, onClose }: ConsentModalProps) {
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-[calc(100vw-2rem)] w-full sm:max-w-[425px] mx-auto p-4 sm:p-6 flex flex-col items-center">
+      <DialogContent className="max-w-[calc(100vw-2rem)] w-full sm:max-w-md mx-auto bg-white rounded-2xl border border-gray-200 shadow-xl backdrop-blur-sm p-6 overflow-hidden flex flex-col items-center">
         {/* DialogContent는 전체 콘텐츠를 중앙 정렬합니다. */}
         <DialogHeader className="mb-6 text-center w-full">
-          {" "}
-          {/* text-center와 w-full 추가 */}
           <DialogTitle className="text-2xl sm:text-3xl font-bold text-gray-900">Recipick</DialogTitle>
           <DialogDescription className="text-base sm:text-lg text-gray-600 mt-2 text-center">
             <span className="block sm:inline">5초 만에 로그인하고</span>
@@ -80,7 +78,7 @@ export function ConsentModal({ isOpen, onClose }: ConsentModalProps) {
           <Button
             onClick={handleGoogleSignIn}
             disabled={isSigningIn}
-            className="w-full max-w-xs py-3 text-base sm:text-lg bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg"
+            className="w-full max-w-xs py-3 text-base sm:text-lg bg-blue-500 hover:bg-blue-600 text-white rounded-xl font-semibold transition-all duration-300 shadow-lg"
           >
             {isSigningIn ? (
               <>

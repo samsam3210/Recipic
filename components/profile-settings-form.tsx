@@ -176,7 +176,7 @@ export function ProfileSettingsForm({ user, userProfile: initialProfile }: Profi
             title: "로그아웃 완료",
             description: serverSignOutResult.message,
           })
-          router.push("/")
+          window.location.href = "/"
         }
       } else {
         console.error("[ProfileSettingsForm] Server signOut failed:", serverSignOutResult.message)
