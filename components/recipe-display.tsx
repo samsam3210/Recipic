@@ -33,7 +33,9 @@ interface RecipeDisplayProps {
   handleSeekVideo: (timestamp: number) => void
   handlePauseVideo: () => void  // 🆕 이 줄 추가
   isPlayerReady: boolean
-  onSavePersonalNotes: (notes: string | null) => Promise<void>
+  onSavePersonalNotes?: (notes: string | null) => Promise<void>
+  onSaveRecipe?: () => void
+  isSaving?: boolean
 }
 
 export function RecipeDisplay({
@@ -43,6 +45,8 @@ export function RecipeDisplay({
   handlePauseVideo,  // 🆕 이 줄 추가
   isPlayerReady,
   onSavePersonalNotes,
+  onSaveRecipe,
+  isSaving = false,
 }: RecipeDisplayProps) {
   const [personalNotes, setPersonalNotes] = useState(recipe.personalNotes || "")
   const [isSavingMemo, setIsSavingMemo] = useState(false) // 메모 저장 중 상태 추가
@@ -155,7 +159,25 @@ export function RecipeDisplay({
         </div>
 
         {/* 레시피 제목 */}
-        <h1 className="text-3xl font-bold mb-3 flex items-center gap-2">{recipe.recipeName || "제목 없음"}</h1>
+        <div className="flex items-center gap-4 mb-3">
+          <h1 className="text-3xl font-bold">{recipe.recipeName || "제목 없음"}</h1>
+          {onSaveRecipe && (
+            <Button
+              onClick={onSaveRecipe}
+              disabled={isSaving}
+              variant="outline"
+              size="sm"
+              className="flex items-center gap-2"
+            >
+              {isSaving ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Save className="h-4 w-4" />
+              )}
+              {isSaving ? "저장 중..." : "저장"}
+            </Button>
+          )}
+        </div>
 
         {/* 레시피 설명 */}
         <p className="text-gray-600 mb-4">{recipe.summary || "요약 정보가 없습니다."}</p>

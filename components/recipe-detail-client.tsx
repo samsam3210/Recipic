@@ -43,7 +43,7 @@ export function RecipeDetailClient({ recipe, videoId }: RecipeDetailClientProps)
   const { toast } = useToast()
   const { youtubePlayer, isPlayerReady } = useYoutubePlayer({
     videoId,
-    container: youtubePlayerRef.current,
+    playerRef: youtubePlayerRef,
     onReady: (player) => {
       console.log("[RecipeDetailClient] YouTube Player is READY.") // 추가
     },

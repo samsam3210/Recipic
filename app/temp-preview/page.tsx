@@ -241,7 +241,7 @@ export default function RecipePreviewPage() {
   const playerContainerRef = useRef<HTMLDivElement>(null)
   const { youtubePlayer, isPlayerReady } = useYoutubePlayer({
     videoId: videoId || '',
-    container: playerContainerRef.current,
+    playerRef: playerContainerRef,
     onReady: () => {
       console.log("[TempPreview] YouTube Player is ready.")
     },
@@ -265,6 +265,12 @@ export default function RecipePreviewPage() {
     [youtubePlayer, isPlayerReady],
   )
 
+  const handlePauseVideo = useCallback(() => {
+    if (youtubePlayer && isPlayerReady) {
+      youtubePlayer.pauseVideo()
+    }
+  }, [youtubePlayer, isPlayerReady])
+
   if (!previewData) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-b from-white to-gray-50 p-4 text-center">
@@ -277,47 +283,28 @@ export default function RecipePreviewPage() {
   return (
     <div className="flex flex-col min-h-screen">
       <Header user={user} />
-      <main className="flex-1 py-12">
-        <div className="container mx-auto px-4 max-w-3xl">
-          <div className="flex items-center justify-center gap-4 mb-8">
-            <h2 className="text-3xl font-bold">추출된 레시피 미리보기</h2>
-            {user && (
-              <Button
-                onClick={() => handleSaveRecipe(false)}
-                disabled={isSaving}
-                variant="outline"
-                size="sm"
-                className="flex items-center gap-2"
-              >
-                {isSaving ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <Bookmark className="h-4 w-4" />
-                )}
-                {isSaving ? "저장 중..." : "저장"}
-              </Button>
-            )}
-          </div>
-          
-          {/* YouTube 플레이어 - 레시피 상세와 동일한 UI */}
-          {videoId && (
-            <div className="mb-8">
-              <Card className="mb-0 rounded-lg border shadow-sm">
-                <CardContent className="p-0">
-                  <div className="aspect-video w-full">
-                    <div ref={playerContainerRef} className="w-full h-full overflow-hidden youtube-player-iframe-container" />
-                  </div>
-                  {!isPlayerReady && (
-                    <div className="absolute inset-0 flex items-center justify-center bg-gray-100 rounded-lg">
-                      <Loader2 className="h-12 w-12 animate-spin text-primary" />
-                      <p className="ml-4 text-lg text-muted-foreground">유튜브 영상 로드 중...</p>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            </div>
-          )}
+      
+      {/* 상단 고정 YouTube 플레이어 */}
+      {videoId && (
+        <div className="sticky top-0 z-30 w-full bg-background shadow-md max-w-3xl mx-auto">
+          <Card className="mb-0 rounded-none border-none shadow-none">
+            <CardContent className="p-0">
+              <div className="aspect-video w-full">
+                <div ref={playerContainerRef} className="w-full h-full overflow-hidden youtube-player-iframe-container" />
+              </div>
+              {!isPlayerReady && (
+                <div className="absolute inset-0 flex items-center justify-center bg-gray-100">
+                  <Loader2 className="h-12 w-12 animate-spin text-primary" />
+                  <p className="ml-4 text-lg text-muted-foreground">유튜브 영상 로드 중...</p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+      )}
 
+      <main className="flex-1">
+        <div className="container mx-auto px-4 max-w-3xl mt-6">
           {previewData.extractedRecipe.noRecipeFoundMessage ? (
             <div className="border-dashed border-2 p-6 text-center text-muted-foreground">
               <p>{previewData.extractedRecipe.noRecipeFoundMessage}</p>
@@ -326,7 +313,11 @@ export default function RecipePreviewPage() {
             <RecipeDisplay 
               recipe={previewData.extractedRecipe} 
               isSavedRecipe={false}
-              onSeekVideo={handleSeekVideo}
+              handleSeekVideo={handleSeekVideo}
+              handlePauseVideo={handlePauseVideo}
+              isPlayerReady={isPlayerReady}
+              onSaveRecipe={user ? () => handleSaveRecipe(false) : undefined}
+              isSaving={isSaving}
             />
           )}
 

@@ -58,20 +58,20 @@ namespace YT {
 
 interface UseYoutubePlayerOptions {
   videoId: string | null
-  container: HTMLDivElement | null
+  playerRef: React.RefObject<HTMLDivElement>
   onReady?: (player: YT.Player) => void
   onError?: (error: number) => void
 }
 
-export function useYoutubePlayer({ videoId, container, onReady, onError }: UseYoutubePlayerOptions) {
+export function useYoutubePlayer({ videoId, playerRef, onReady, onError }: UseYoutubePlayerOptions) {
   const [player, setPlayer] = useState<YT.Player | null>(null)
   const [isPlayerReady, setIsPlayerReady] = useState(false)
 
   useEffect(() => {
     console.log("[useYoutubePlayer] useEffect triggered. videoId:", videoId)
     
-    if (!videoId || !container) {
-      console.log("[useYoutubePlayer] Skipping: missing videoId or container")
+    if (!videoId || !playerRef.current) {
+      console.log("[useYoutubePlayer] Skipping: missing videoId or playerRef")
       return
     }
   
@@ -92,9 +92,9 @@ export function useYoutubePlayer({ videoId, container, onReady, onError }: UseYo
 
     const onYouTubeIframeAPIReady = () => {
       console.log("[useYoutubePlayer] onYouTubeIframeAPIReady callback fired.") // 추가
-      if (container && window.YT) {
+      if (playerRef.current && window.YT) {
         console.log("[useYoutubePlayer] Creating new YouTube Player instance for videoId:", videoId) // 추가
-        const newPlayer = new window.YT.Player(container, {
+        const newPlayer = new window.YT.Player(playerRef.current, {
           videoId: videoId,
           playerVars: {
             autoplay: 0,
@@ -119,7 +119,7 @@ export function useYoutubePlayer({ videoId, container, onReady, onError }: UseYo
         })
       } else {
         console.warn(
-          "[useYoutubePlayer] Cannot create player: container or window.YT is missing in onYouTubeIframeAPIReady.",
+          "[useYoutubePlayer] Cannot create player: playerRef.current or window.YT is missing in onYouTubeIframeAPIReady.",
         ) // 추가
       }
     }
@@ -148,7 +148,7 @@ export function useYoutubePlayer({ videoId, container, onReady, onError }: UseYo
         console.log("[useYoutubePlayer] Cleared window.onYouTubeIframeAPIReady.") // 추가
       }
     }
-  }, [videoId, container]) // container 의존성 추가
+  }, [videoId]) // player를 의존성에서 제거
 
   return { youtubePlayer: player, isPlayerReady }
 }
