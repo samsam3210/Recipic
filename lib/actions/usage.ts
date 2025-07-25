@@ -5,7 +5,7 @@ import { dailyUsage } from "@/lib/db/schema"
 import { eq, and, sql } from "drizzle-orm"
 import { createClient } from "@/lib/supabase/server"
 
-const DAILY_LIMIT = 5
+export const DAILY_LIMIT = 5
 const ADMIN_EMAIL = "helpme2183@gmail.com" // 관리자 계정 이메일
 
 // 한국 시간(KST) 기준으로 오늘 날짜를 'YYYY-MM-DD' 형식의 문자열로 반환합니다.

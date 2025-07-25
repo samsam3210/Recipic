@@ -9,7 +9,7 @@ import type { User } from "@supabase/supabase-js"
 import { useToast } from "@/hooks/use-toast"
 import { ConsentModal } from "./consent-modal"
 import { cn } from "@/lib/utils"
-import { checkDailyUsage, incrementDailyUsage } from "@/lib/actions/usage"
+import { checkDailyUsage, incrementDailyUsage, DAILY_LIMIT } from "@/lib/actions/usage"
 import { Badge } from "@/components/ui/badge"
 import { CustomDialog } from "./custom-dialog"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -727,7 +727,7 @@ export function HeroSection({ user, isDashboard = false }: HeroSectionProps) {
                     <p className="text-sm text-gray-500 animate-in fade-in duration-200">
                       {isAdmin ? (
                         <>
-                          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800 mr-2">
+                          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800 mr-2">
                             ADMIN
                           </span>
                           무제한 사용 가능
@@ -737,7 +737,7 @@ export function HeroSection({ user, isDashboard = false }: HeroSectionProps) {
                           <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 mr-2">
                             FREE
                           </span>
-                          총 2회 중 {currentUsageCount}회 사용
+                          총 {DAILY_LIMIT}회 중 {currentUsageCount}회 사용
                         </>
                       )}
                     </p>
@@ -839,7 +839,7 @@ export function HeroSection({ user, isDashboard = false }: HeroSectionProps) {
         title="일일 사용량 제한"
         description={
           <>
-            하루에 최대 5회만 레시피 조회가 가능해요 🙏
+            하루에 최대 {DAILY_LIMIT}회만 레시피 조회가 가능해요 🙏
             <br />
             서비스 개선이 될 때까지 잠시만 기다려주세요!
           </>
