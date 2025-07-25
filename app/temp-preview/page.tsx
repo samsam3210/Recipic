@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useState, useRef, useCallback } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { useToast } from "@/hooks/use-toast"
 import { RecipeDisplay } from "@/components/recipe-display"
@@ -9,7 +9,9 @@ import { createClient } from "@/lib/supabase/client"
 import { checkAndSaveRecipe } from "@/lib/actions/recipe" // 수정된 서버 액션 임포트
 import { addRecentlyViewedRecipe } from "@/lib/actions/recently-viewed"
 import { incrementDailyUsage } from "@/lib/actions/usage"
-import { Loader2 } from "lucide-react"
+import { useYoutubePlayer } from "@/hooks/use-youtube-player"
+import { Card, CardContent } from "@/components/ui/card"
+import { Loader2, Bookmark } from "lucide-react"
 import { Header } from "@/components/header"
 import type { User } from "@supabase/supabase-js"
 import { CustomDialog } from "@/components/custom-dialog"
@@ -190,12 +192,12 @@ export default function RecipePreviewPage() {
           await incrementDailyUsage()
           
           toast({
-            title: "저장 완료",
-            description: result.message,
+            title: "레시피 저장 완료!",
+            description: "나의 레시피에서 확인 가능합니다.",
           })
           localStorage.removeItem(PENDING_RECIPE_STORAGE_KEY) // 저장 완료 후 로컬 스토리지 제거
-          router.replace(`/recipe/${result.recipeId}`)
-          console.log("[RecipePreviewPage] Recipe saved successfully. Redirecting to recipe detail.")
+          // router.replace 제거 - 페이지 이동하지 않음
+          console.log("[RecipePreviewPage] Recipe saved successfully.")
         } else {
           // 성공했지만 recipeId가 없는 경우 (예외 상황)
           throw new Error(result.message || "레시피 처리 후 ID를 찾을 수 없습니다.")
@@ -226,6 +228,43 @@ export default function RecipePreviewPage() {
     handleSaveRecipe(true) // 강제 저장 실행 (새로운 레시피로)
   }
 
+  // YouTube URL에서 videoId 추출
+  const getVideoIdFromUrl = (url: string): string | null => {
+    const regex = /(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/(?:watch\?v=|embed\/|v\/|shorts\/)|youtu\.be\/)([\w-]{11})/
+    const match = url.match(regex)
+    return match ? match[1] : null
+  }
+
+  const videoId = previewData ? getVideoIdFromUrl(previewData.youtubeUrl) : null
+
+  // YouTube 플레이어 설정
+  const playerContainerRef = useRef<HTMLDivElement>(null)
+  const { youtubePlayer, isPlayerReady } = useYoutubePlayer({
+    videoId: videoId || '',
+    container: playerContainerRef.current,
+    onReady: () => {
+      console.log("[TempPreview] YouTube Player is ready.")
+    },
+    onError: (error) => {
+      console.error("[TempPreview] YouTube Player error:", error)
+      toast({
+        title: "유튜브 영상 로드 오류",
+        description: "영상을 불러오는 데 문제가 발생했습니다.",
+        variant: "destructive",
+      })
+    },
+  })
+
+  const handleSeekVideo = useCallback(
+    (timestamp: number) => {
+      if (youtubePlayer && isPlayerReady) {
+        youtubePlayer.seekTo(timestamp, true)
+        youtubePlayer.playVideo()
+      }
+    },
+    [youtubePlayer, isPlayerReady],
+  )
+
   if (!previewData) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-b from-white to-gray-50 p-4 text-center">
@@ -240,27 +279,71 @@ export default function RecipePreviewPage() {
       <Header user={user} />
       <main className="flex-1 py-12">
         <div className="container mx-auto px-4 max-w-3xl">
-          <h2 className="text-3xl font-bold text-center mb-8">추출된 레시피 미리보기</h2>
+          <div className="flex items-center justify-center gap-4 mb-8">
+            <h2 className="text-3xl font-bold">추출된 레시피 미리보기</h2>
+            {user && (
+              <Button
+                onClick={() => handleSaveRecipe(false)}
+                disabled={isSaving}
+                variant="outline"
+                size="sm"
+                className="flex items-center gap-2"
+              >
+                {isSaving ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Bookmark className="h-4 w-4" />
+                )}
+                {isSaving ? "저장 중..." : "저장"}
+              </Button>
+            )}
+          </div>
+          
+          {/* YouTube 플레이어 - 레시피 상세와 동일한 UI */}
+          {videoId && (
+            <div className="mb-8">
+              <Card className="mb-0 rounded-lg border shadow-sm">
+                <CardContent className="p-0">
+                  <div className="aspect-video w-full">
+                    <div ref={playerContainerRef} className="w-full h-full overflow-hidden youtube-player-iframe-container" />
+                  </div>
+                  {!isPlayerReady && (
+                    <div className="absolute inset-0 flex items-center justify-center bg-gray-100 rounded-lg">
+                      <Loader2 className="h-12 w-12 animate-spin text-primary" />
+                      <p className="ml-4 text-lg text-muted-foreground">유튜브 영상 로드 중...</p>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+          )}
+
           {previewData.extractedRecipe.noRecipeFoundMessage ? (
             <div className="border-dashed border-2 p-6 text-center text-muted-foreground">
               <p>{previewData.extractedRecipe.noRecipeFoundMessage}</p>
             </div>
           ) : (
-            <RecipeDisplay recipe={previewData.extractedRecipe} isSavedRecipe={false} />
+            <RecipeDisplay 
+              recipe={previewData.extractedRecipe} 
+              isSavedRecipe={false}
+              onSeekVideo={handleSeekVideo}
+            />
           )}
 
-          <div className="flex justify-center mt-8">
-            <Button onClick={() => handleSaveRecipe(false)} disabled={isSaving} size="lg">
-              {isSaving ? (
-                <>
-                  <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                  저장 중...
-                </>
-              ) : (
-                "내 레시피 북에 저장"
-              )}
-            </Button>
-          </div>
+          {!user && (
+            <div className="flex justify-center mt-8">
+              <Button onClick={() => handleSaveRecipe(false)} disabled={isSaving} size="lg">
+                {isSaving ? (
+                  <>
+                    <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                    저장 중...
+                  </>
+                ) : (
+                  "내 레시피 북에 저장"
+                )}
+              </Button>
+            </div>
+          )}
         </div>
       </main>
       <footer className="border-t bg-background py-4 text-center text-sm text-muted-foreground">
