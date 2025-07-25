@@ -580,7 +580,7 @@ export function HeroSection({ user, isDashboard = false }: HeroSectionProps) {
         "relative w-full flex flex-col items-center justify-center text-center",
         isDashboard
           ? "py-6 px-4 md:px-6 space-y-6" // 박스 상자 관련 클래스 제거
-          : "py-20 md:py-32 lg:py-48 bg-black",
+          : "py-20 md:py-32 lg:py-48 bg-white",
       )}
     >
       {!isDashboard && (
@@ -604,17 +604,17 @@ export function HeroSection({ user, isDashboard = false }: HeroSectionProps) {
               {/* 메인 헤드라인 */}
               <div className="space-y-6 animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
                 <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold tracking-tight leading-[1.1]">
-                  <span className="text-white">
+                  <span className="text-gray-900">
                     YouTube 요리영상,
                   </span>
                   <br />
-                  <span className="text-white">
+                  <span className="text-gray-900">
                     5초만에 내 레시피북이 됩니다
                   </span>
                 </h1>
                 
                 {/* 서브텍스트 */}
-                <p className="text-lg md:text-xl text-white/80 max-w-2xl mx-auto leading-relaxed">
+                <p className="text-lg md:text-xl text-gray-600 max-w-2xl mx-auto leading-relaxed">
                   수많은 요리사들이 Recipick과 함께합니다.
                   <br />
                   지금 바로 당신의 요리 경험을 업그레이드하세요!
