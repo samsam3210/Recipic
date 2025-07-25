@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server"
+import { searchYouTubeVideos, getMultipleVideoDetails } from "@/lib/utils/youtube-api-wrapper"
 
 function formatViewCount(count: number): string {
     if (count >= 100_000_000) {
@@ -38,32 +39,12 @@ export async function POST(req: Request) {
   }
 
   try {
-    const youtubeApiKey = process.env.YOUTUBE_API_KEY
-    if (!youtubeApiKey) {
-      throw new Error("YOUTUBE_API_KEY is not set in environment variables.")
-    }
-
     // --- 1. 카테고리 필터 없이 단일 검색 요청 ---
-    const searchResponse = await fetch(
-      `https://www.googleapis.com/youtube/v3/search?` +
-        new URLSearchParams({
-          part: "snippet",
-          q: `${query} 요리 레시피`,
-          type: "video",
-          maxResults: "50",
-          order: "relevance",
-          // videoCategoryId: "26",  // 카테고리 필터 제거
-          key: youtubeApiKey,
-        }).toString()
-    )
+    const searchData = await searchYouTubeVideos(`${query} 요리 레시피`, 50, {
+      type: "video",
+      order: "relevance"
+    })
 
-    if (!searchResponse.ok) {
-      const errorData = await searchResponse.json()
-      console.error("[youtube/search] Search API Error:", errorData)
-      return NextResponse.json({ error: "YouTube 검색 API 오류" }, { status: 500 })
-    }
-
-    const searchData = await searchResponse.json()
     if (!searchData.items || searchData.items.length === 0) {
       return NextResponse.json({
         results: [],
@@ -72,24 +53,8 @@ export async function POST(req: Request) {
     }
 
     // --- 2. videoId 추출 후 상세 정보 요청 ---
-    const videoIds = searchData.items.map((item: any) => item.id.videoId).join(",")
-
-    const videosResponse = await fetch(
-      `https://www.googleapis.com/youtube/v3/videos?` +
-        new URLSearchParams({
-          part: "contentDetails,statistics,snippet",
-          id: videoIds,
-          key: youtubeApiKey,
-        }).toString()
-    )
-
-    if (!videosResponse.ok) {
-      const errorData = await videosResponse.json()
-      console.error("[youtube/search] Videos API Error:", errorData)
-      return NextResponse.json({ error: "YouTube Videos API 오류" }, { status: 500 })
-    }
-
-    const videosData = await videosResponse.json()
+    const videoIds = searchData.items.map((item: any) => item.id.videoId)
+    const videosData = await getMultipleVideoDetails(videoIds)
 
     // --- 3. 조회수 필터링 + 포맷팅 ---
     const results = videosData.items
