@@ -4,7 +4,7 @@ import React, { createContext, useContext, useState, useCallback, useRef } from 
 import { useRouter } from 'next/navigation'
 import { useToast } from '@/hooks/use-toast'
 import { checkDailyUsage, incrementDailyUsage } from '@/lib/actions/usage'
-import { checkDuplicateRecipe, checkAndSaveRecipe } from '@/lib/actions/recipe'
+import { checkAllDuplicates, checkAndSaveRecipe } from '@/lib/actions/recipe'
 
 export interface ExtractionStep {
   id: number
@@ -114,13 +114,51 @@ export function ExtractionProvider({ children }: { children: React.ReactNode }) 
 
       const videoMetadata = await metadataResponse.json()
 
-      // 중복 체크
-      const duplicateCheckResult = await checkDuplicateRecipe(videoMetadata.videoTitle, videoMetadata.channelName)
-      if (duplicateCheckResult.isDuplicate && duplicateCheckResult.recipeId) {
-        updateStepStatus(1, 'completed', "기존 레시피를 찾았습니다.")
-        setIsCompleted(true)
-        setCompletedRecipeId(duplicateCheckResult.recipeId)
-        return
+      // 통합 중복 체크 (저장된 레시피 -> 최근 본 레시피 순서)
+      const duplicateCheckResult = await checkAllDuplicates(videoMetadata.videoTitle, videoMetadata.channelName)
+      if (duplicateCheckResult.isDuplicate) {
+        if (duplicateCheckResult.type === 'saved' && duplicateCheckResult.recipeId) {
+          // 저장된 레시피 발견 시 해당 레시피 페이지로 이동
+          updateStepStatus(1, 'completed', "기존 저장된 레시피를 찾았습니다.")
+          setIsCompleted(true)
+          setCompletedRecipeId(duplicateCheckResult.recipeId)
+          return
+        } else if (duplicateCheckResult.type === 'recently_viewed' && duplicateCheckResult.recentlyViewedData) {
+          // 최근 본 레시피 발견 시 temp-preview로 이동하도록 데이터 설정
+          const previewData = {
+            youtubeUrl: url,
+            videoInfo: {
+              videoId: videoMetadata.videoId || '',
+              videoTitle: duplicateCheckResult.recentlyViewedData.recipeName,
+              videoThumbnail: duplicateCheckResult.recentlyViewedData.videoThumbnail || '',
+              channelName: duplicateCheckResult.recentlyViewedData.channelName || '',
+              videoDurationSeconds: 0,
+              videoViews: 0,
+              videoDescription: '',
+              transcriptText: '',
+              structuredTranscript: [],
+              hasSubtitles: true
+            },
+            extractedRecipe: {
+              recipeName: duplicateCheckResult.recentlyViewedData.recipeName,
+              summary: duplicateCheckResult.recentlyViewedData.summary || '',
+              // 기본값들
+              difficulty: '',
+              cookingTimeMinutes: 0,
+              ingredients: [],
+              steps: [],
+              tips: [],
+              personalNotes: null,
+              noRecipeFoundMessage: null
+            }
+          }
+          localStorage.setItem('recipick_pending_recipe', JSON.stringify(previewData))
+          
+          updateStepStatus(1, 'completed', "최근 본 레시피를 찾았습니다.")
+          setIsCompleted(true)
+          setCompletedRecipeId('temp-preview')
+          return
+        }
       }
 
       updateStepStatus(1, 'completed', "영상 정보 확인 완료")
@@ -196,27 +234,22 @@ export function ExtractionProvider({ children }: { children: React.ReactNode }) 
 
       updateStepStatus(3, 'completed', "레시피 추출 완료")
 
-      // Step 4: 레시피 저장
+      // Step 4: 미리보기 준비
       setCurrentStep(4)
-      updateStepStatus(4, 'in_progress', "레시피를 저장하는 중...")
+      updateStepStatus(4, 'in_progress', "미리보기를 준비하는 중...")
 
-      const result = await checkAndSaveRecipe(url, videoInfo, extractedRecipe, false)
-
-      if (result.success && result.recipeId) {
-        updateStepStatus(4, 'completed', "레시피 저장 완료")
-        setIsCompleted(true)
-        setCompletedRecipeId(result.recipeId)
-        
-        // 레시피 추출이 성공적으로 완료된 후에만 사용량 증가
-        await incrementDailyUsage()
-        
-        toast({
-          title: "레시피 추출 완료!",
-          description: "레시피가 성공적으로 저장되었습니다.",
-        })
-      } else {
-        throw new Error(result.message || "레시피 저장에 실패했습니다.")
+      // temp-preview를 위해 localStorage에 데이터 저장
+      const previewData = {
+        youtubeUrl: url,
+        videoInfo,
+        extractedRecipe,
       }
+      localStorage.setItem('recipick_pending_recipe', JSON.stringify(previewData))
+
+      updateStepStatus(4, 'completed', "미리보기 준비 완료")
+      setIsCompleted(true)
+      // temp-preview로 이동하기 위해 특별한 상태 설정
+      setCompletedRecipeId('temp-preview')
 
     } catch (error: any) {
       if (error.name === 'AbortError') {
@@ -247,7 +280,11 @@ export function ExtractionProvider({ children }: { children: React.ReactNode }) 
 
   const navigateToRecipe = useCallback(() => {
     if (completedRecipeId) {
-      router.push(`/recipe/${completedRecipeId}`)
+      if (completedRecipeId === 'temp-preview') {
+        router.push('/temp-preview')
+      } else {
+        router.push(`/recipe/${completedRecipeId}`)
+      }
       resetExtraction()
     }
   }, [completedRecipeId, router, resetExtraction])

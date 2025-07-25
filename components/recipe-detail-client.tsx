@@ -1,12 +1,13 @@
 "use client"
 
-import { useRef, useCallback } from "react"
+import { useRef, useCallback, useEffect } from "react"
 import { RecipeDisplay } from "@/components/recipe-display"
 import { useYoutubePlayer } from "@/hooks/use-youtube-player"
 import { Card, CardContent } from "@/components/ui/card"
 import { Loader2 } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import { savePersonalNotes } from "@/lib/actions/recipe" // savePersonalNotes 액션 임포트
+import { addRecentlyViewedRecipe } from "@/lib/actions/recently-viewed"
 
 interface RecipeData {
   id?: string
@@ -72,6 +73,21 @@ export function RecipeDetailClient({ recipe, videoId }: RecipeDetailClientProps)
       youtubePlayer.pauseVideo()
     }
   }, [youtubePlayer, isPlayerReady])
+
+  // 최근 본 레시피에 기록
+  useEffect(() => {
+    if (recipe.recipeName) {
+      addRecentlyViewedRecipe({
+        recipeName: recipe.recipeName,
+        youtubeUrl: recipe.youtubeUrl || '',
+        videoThumbnail: recipe.videoThumbnail || '',
+        channelName: recipe.channelName || '',
+        summary: recipe.summary || ''
+      }).catch(error => {
+        console.warn("[RecipeDetailClient] Failed to add to recently viewed:", error)
+      })
+    }
+  }, [recipe.recipeName, recipe.youtubeUrl, recipe.videoThumbnail, recipe.channelName, recipe.summary])
 
   // 개인 메모 저장 핸들러
   const handleSavePersonalNotes = async (notes: string | null) => {

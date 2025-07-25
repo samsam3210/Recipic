@@ -93,4 +93,16 @@ export const popularRecipesSummary = pgTable(
   })
 )
 
+export const recentlyViewedRecipes = pgTable("recently_viewed_recipes", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: uuid("user_id").notNull(),
+  recipeName: text("recipe_name").notNull(),
+  youtubeUrl: text("youtube_url").notNull(),
+  videoThumbnail: text("video_thumbnail"),
+  channelName: text("channel_name"),
+  summary: text("summary"),
+  viewedAt: timestamp("viewed_at", { withTimezone: true }).defaultNow(),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
+})
+
 

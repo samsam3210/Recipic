@@ -7,6 +7,7 @@ import { revalidatePath } from "next/cache"
 import { createClient } from "@/lib/supabase/server"
 import { getUserId } from "@/lib/actions/user" // getUserId 임포트 추가
 import { updatePopularityScore } from "@/lib/actions/popular-recipes"
+import { checkRecentlyViewedDuplicate } from "@/lib/actions/recently-viewed"
 
 interface UpdateRecipeData {
   recipeName?: string | null
@@ -224,6 +225,59 @@ export async function checkDuplicateRecipe(videoTitle: string, channelName: stri
   } catch (error) {
     console.error("[checkDuplicateRecipe] Error checking duplicate recipe:", error)
     return { success: false, message: `중복 확인 실패: ${(error as Error).message}`, isDuplicate: false }
+  }
+}
+
+// NEW: 통합 중복 확인 함수 (저장된 레시피 -> 최근 본 레시피 순서)
+export async function checkAllDuplicates(videoTitle: string, channelName: string): Promise<{
+  type: 'saved' | 'recently_viewed' | 'none'
+  isDuplicate: boolean
+  recipeId?: string
+  recentlyViewedData?: {
+    recipeName: string
+    youtubeUrl: string
+    videoThumbnail?: string
+    channelName?: string
+    summary?: string
+  }
+  message?: string
+}> {
+  try {
+    // 1. 먼저 저장된 레시피 확인
+    const savedResult = await checkDuplicateRecipe(videoTitle, channelName)
+    if (savedResult.isDuplicate && savedResult.recipeId) {
+      return {
+        type: 'saved',
+        isDuplicate: true,
+        recipeId: savedResult.recipeId,
+        message: '이미 저장된 레시피입니다.'
+      }
+    }
+
+    // 2. 저장된 레시피가 없으면 최근 본 레시피 확인
+    const recentlyViewedResult = await checkRecentlyViewedDuplicate(videoTitle, channelName)
+    if (recentlyViewedResult.isDuplicate && recentlyViewedResult.recentlyViewedData) {
+      return {
+        type: 'recently_viewed',
+        isDuplicate: true,
+        recentlyViewedData: recentlyViewedResult.recentlyViewedData,
+        message: '최근에 본 레시피입니다.'
+      }
+    }
+
+    // 3. 중복 없음
+    return {
+      type: 'none',
+      isDuplicate: false,
+      message: '새로운 레시피입니다.'
+    }
+  } catch (error) {
+    console.error("[checkAllDuplicates] Error:", error)
+    return {
+      type: 'none',
+      isDuplicate: false,
+      message: '중복 확인 중 오류가 발생했습니다.'
+    }
   }
 }
 

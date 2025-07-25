@@ -6,6 +6,7 @@ import { HeroSection } from "@/components/hero-section"
 import { DashboardRecentRecipesServer } from "@/components/dashboard-recent-recipes-server"
 import { BottomNavigation } from "@/components/bottom-navigation"
 import { fetchRecentRecipes } from "@/lib/actions/recipe-fetch"
+import { getRecentlyViewedRecipes } from "@/lib/actions/recently-viewed"
 import { getOrCreateUserProfile } from "@/lib/actions/user"
 import { SidebarNav } from "@/components/sidebar-nav"
 import { dashboardSidebarNavItems } from "@/lib/navigation"
@@ -20,14 +21,14 @@ export default async function DashboardPage() {
     redirect("/")
   }
 
-  // 병렬로 사용자 프로필과 최근 레시피 조회
-  const [userProfile, recentRecipesResult] = await Promise.all([
+  // 병렬로 사용자 프로필과 최근 본 레시피 조회
+  const [userProfile, recentlyViewedResult] = await Promise.all([
     getOrCreateUserProfile(user),
-    fetchRecentRecipes(user.id, 3)
+    getRecentlyViewedRecipes()
   ])
 
   const userName = userProfile.nickname
-  const recentRecipes = recentRecipesResult.recipes
+  const recentRecipes = recentlyViewedResult.success ? recentlyViewedResult.recipes || [] : []
 
   return (
     <div className="flex flex-col min-h-screen">

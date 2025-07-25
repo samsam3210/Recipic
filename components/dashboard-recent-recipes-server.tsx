@@ -1,26 +1,30 @@
+"use client"
+
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { AspectRatio } from "@/components/ui/aspect-ratio"
 import Image from "next/image"
 
-interface RecipeListItemProps {
+interface RecentlyViewedRecipeProps {
   id: string
-  recipeName: string | null
-  videoThumbnail: string | null
-  channelName: string | null
-  summary: string | null
+  recipeName: string
+  youtubeUrl: string
+  videoThumbnail?: string
+  channelName?: string
+  summary?: string
+  viewedAt: Date
 }
 
 interface DashboardRecentRecipesServerProps {
-  recipes: RecipeListItemProps[]
+  recipes: RecentlyViewedRecipeProps[]
 }
 
 export function DashboardRecentRecipesServer({ recipes }: DashboardRecentRecipesServerProps) {
   return (
     <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-bold text-gray-800">최근 조회한 레시피</h2>
+        <h2 className="text-2xl font-bold text-gray-800">최근 본 레시피</h2>
         {recipes.length > 0 && (
           <Button variant="link" asChild className="underline">
             <Link href="/recipes">모두 보기</Link>
@@ -30,13 +34,46 @@ export function DashboardRecentRecipesServer({ recipes }: DashboardRecentRecipes
       
       {recipes.length === 0 ? (
         <div className="border-dashed border-2 p-8 text-center text-muted-foreground rounded-lg">
-          <p className="text-lg mb-4">최근 조회한 레시피가 없습니다.</p>
+          <p className="text-lg mb-4">최근 본 레시피가 없습니다.</p>
         </div>
       ) : (
         <div className="space-y-4">
           {recipes.map((recipe) => (
             <Card key={recipe.id} className="hover:shadow-md transition-shadow duration-200">
-              <Link href={`/recipe/${recipe.id}`}>
+              <div 
+                className="cursor-pointer"
+                onClick={() => {
+                  // 최근 본 레시피 데이터를 localStorage에 저장하고 temp-preview로 이동
+                  const previewData = {
+                    youtubeUrl: recipe.youtubeUrl,
+                    videoInfo: {
+                      videoId: '',
+                      videoTitle: recipe.recipeName,
+                      videoThumbnail: recipe.videoThumbnail || '',
+                      channelName: recipe.channelName || '',
+                      videoDurationSeconds: 0,
+                      videoViews: 0,
+                      videoDescription: '',
+                      transcriptText: '',
+                      structuredTranscript: [],
+                      hasSubtitles: true
+                    },
+                    extractedRecipe: {
+                      recipeName: recipe.recipeName,
+                      summary: recipe.summary || '',
+                      difficulty: '',
+                      cookingTimeMinutes: 0,
+                      ingredients: [],
+                      steps: [],
+                      tips: [],
+                      personalNotes: null,
+                      noRecipeFoundMessage: null
+                    }
+                  }
+                  localStorage.setItem('recipick_pending_recipe', JSON.stringify(previewData))
+                  window.location.href = '/temp-preview'
+                }}
+              >
                 <div className="flex flex-col md:flex-row p-4">
                   <div className="w-full md:w-48 md:h-32 flex-shrink-0 md:mr-4 mb-4 md:mb-0">
                     <AspectRatio ratio={16 / 9}>
@@ -63,7 +100,7 @@ export function DashboardRecentRecipesServer({ recipes }: DashboardRecentRecipes
                     <p className="text-sm text-gray-500 line-clamp-2">{recipe.summary}</p>
                   </div>
                 </div>
-              </Link>
+              </div>
             </Card>
           ))}
         </div>

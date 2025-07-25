@@ -7,6 +7,8 @@ import { RecipeDisplay } from "@/components/recipe-display"
 import { Button } from "@/components/ui/button"
 import { createClient } from "@/lib/supabase/client"
 import { checkAndSaveRecipe } from "@/lib/actions/recipe" // 수정된 서버 액션 임포트
+import { addRecentlyViewedRecipe } from "@/lib/actions/recently-viewed"
+import { incrementDailyUsage } from "@/lib/actions/usage"
 import { Loader2 } from "lucide-react"
 import { Header } from "@/components/header"
 import type { User } from "@supabase/supabase-js"
@@ -89,6 +91,19 @@ export default function RecipePreviewPage() {
           const parsedStoredData = JSON.parse(storedData)
           setPreviewData(parsedStoredData)
           console.log("[RecipePreviewPage] Preview data loaded from localStorage:", parsedStoredData)
+          
+          // 최근 본 레시피에 기록 (비동기로 처리, 에러 발생해도 메인 플로우에 영향 없음)
+          if (parsedStoredData?.extractedRecipe?.recipeName) {
+            addRecentlyViewedRecipe({
+              recipeName: parsedStoredData.extractedRecipe.recipeName,
+              youtubeUrl: parsedStoredData.youtubeUrl || '',
+              videoThumbnail: parsedStoredData.videoInfo?.videoThumbnail,
+              channelName: parsedStoredData.videoInfo?.channelName,
+              summary: parsedStoredData.extractedRecipe?.summary
+            }).catch(error => {
+              console.warn("[RecipePreviewPage] Failed to add to recently viewed:", error)
+            })
+          }
         } catch (error) {
           console.error("[RecipePreviewPage] Failed to parse stored recipe data from localStorage:", error)
           toast({
@@ -171,6 +186,9 @@ export default function RecipePreviewPage() {
           })
         } else if (result.recipeId) {
           // 새 레시피 저장 또는 강제 재추출 성공
+          // 사용량 증가 (관리자는 incrementDailyUsage 내부에서 제외됨)
+          await incrementDailyUsage()
+          
           toast({
             title: "저장 완료",
             description: result.message,
