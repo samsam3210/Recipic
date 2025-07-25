@@ -9,7 +9,7 @@ import type { User } from "@supabase/supabase-js"
 import { useToast } from "@/hooks/use-toast"
 import { ConsentModal } from "./consent-modal"
 import { cn } from "@/lib/utils"
-import { checkDailyUsage } from "@/lib/actions/usage"
+import { checkDailyUsage, incrementDailyUsage } from "@/lib/actions/usage"
 import { Badge } from "@/components/ui/badge"
 import { CustomDialog } from "./custom-dialog"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -75,6 +75,8 @@ export function HeroSection({ user, isDashboard = false }: HeroSectionProps) {
   const [showDuplicateModal, setShowDuplicateModal] = useState(false)
   const [duplicateRecipeId, setDuplicateRecipeId] = useState<string | null>(null)
   const [showConsentModal, setShowConsentModal] = useState(false)
+  const [showRecipeUnavailableModal, setShowRecipeUnavailableModal] = useState(false)
+  const [recipeUnavailableMessage, setRecipeUnavailableMessage] = useState("")
   const [showUsageLimitModal, setShowUsageLimitModal] = useState(false)
   const [currentUsageCount, setCurrentUsageCount] = useState<number | null>(null)
   const [isAdmin, setIsAdmin] = useState(false)
@@ -89,6 +91,9 @@ export function HeroSection({ user, isDashboard = false }: HeroSectionProps) {
   const { toast } = useToast()
 
   const [showLoadingOverlay, setShowLoadingOverlay] = useState(false)
+  const [showErrorModal, setShowErrorModal] = useState(false)
+  const [errorModalTitle, setErrorModalTitle] = useState("")
+  const [errorModalDescription, setErrorModalDescription] = useState("")
   const [currentLoadingStep, setCurrentLoadingStep] = useState(1)
   const [displayedAiMessage, setDisplayedAiMessage] = useState<string>("") // Renamed state
   const animationIntervalRef = useRef<NodeJS.Timeout | null>(null)
@@ -130,7 +135,6 @@ export function HeroSection({ user, isDashboard = false }: HeroSectionProps) {
   }, [])
 
   const resetLoadingState = useCallback(() => {
-    setIsProcessing(false)
     setShowLoadingOverlay(false)
     setCurrentLoadingStep(1)
     if (animationIntervalRef.current) {
