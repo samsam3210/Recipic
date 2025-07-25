@@ -100,6 +100,7 @@ export default function SearchPage() {
   const [showClipboardToast, setShowClipboardToast] = useState(false)
   const [showUsageLimitModal, setShowUsageLimitModal] = useState(false)
   const [sortType, setSortType] = useState<SortType>('uploadDate')
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false)
   const { startExtraction, isExtracting } = useExtraction()
   const { toast } = useToast()
   const router = useRouter()
@@ -113,6 +114,56 @@ export default function SearchPage() {
   const [recipeUnavailableMessage, setRecipeUnavailableMessage] = useState("")
 
   const [lastSearchQuery, setLastSearchQuery] = useState("")
+
+  // 드롭다운 옵션 정의
+  const sortOptions = [
+    {
+      value: 'uploadDate' as SortType,
+      label: '업로드순',
+      mobileLabel: '최신순',
+      icon: Clock
+    },
+    {
+      value: 'viewCount' as SortType,
+      label: '조회순', 
+      mobileLabel: '인기순',
+      icon: Eye
+    }
+  ]
+
+  // 현재 선택된 옵션 찾기
+  const currentOption = sortOptions.find(option => option.value === sortType)
+
+  // 드롭다운 외부 클릭 시 닫기
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as Element
+      if (!target.closest('[data-dropdown="sort"]')) {
+        setIsDropdownOpen(false)
+      }
+    }
+
+    if (isDropdownOpen) {
+      document.addEventListener('mousedown', handleClickOutside)
+    }
+    
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [isDropdownOpen])
+
+  // 정렬 옵션 변경 핸들러
+  const handleSortChange = (newSortType: SortType) => {
+    console.log('정렬 변경:', newSortType) // 디버깅용
+    setSortType(newSortType)
+    setIsDropdownOpen(false)
+    
+    // 즉시 정렬 적용
+    const sortedResults = sortSearchResults(searchResults, newSortType)
+    console.log('정렬 전:', searchResults.slice(0, 3).map(r => ({title: r.title, views: r.viewCountFormatted})))
+    console.log('정렬 후:', sortedResults.slice(0, 3).map(r => ({title: r.title, views: r.viewCountFormatted})))
+    setSearchResults(sortedResults)
+  }
 
   // 정렬 함수
   const sortSearchResults = (results: SearchResult[], sortBy: SortType): SearchResult[] => {
@@ -395,45 +446,48 @@ export default function SearchPage() {
                   검색 결과 <span className="text-gray-500 text-sm">({searchResults.length}개)</span>
                 </h2>
                 
-                {/* 정렬 드롭다운 */}
-                <div className="relative">
-                  <div className="flex items-center gap-2 px-3 py-2 border border-gray-200 rounded-lg bg-white hover:bg-gray-50 transition-colors cursor-pointer group">
+                {/* 커스텀 정렬 드롭다운 */}
+                <div className="relative" data-dropdown="sort">
+                  {/* 드롭다운 트리거 */}
+                  <button
+                    onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                    className="flex items-center gap-2 px-3 py-2 border border-gray-200 rounded-lg bg-white hover:bg-gray-50 transition-colors cursor-pointer group min-w-[100px] sm:min-w-[120px]"
+                  >
                     <div className="flex items-center gap-2 text-sm text-gray-700">
-                      {sortType === 'uploadDate' ? (
+                      {currentOption && (
                         <>
-                          <Clock className="w-4 h-4 text-gray-500" />
-                          <span className="hidden sm:inline">업로드순</span>
-                          <span className="sm:hidden">최신순</span>
-                        </>
-                      ) : (
-                        <>
-                          <Eye className="w-4 h-4 text-gray-500" />
-                          <span className="hidden sm:inline">조회순</span>
-                          <span className="sm:hidden">인기순</span>
+                          <currentOption.icon className="w-4 h-4 text-gray-500" />
+                          <span className="hidden sm:inline">{currentOption.label}</span>
+                          <span className="sm:hidden">{currentOption.mobileLabel}</span>
                         </>
                       )}
                     </div>
-                    <ChevronDown className="w-4 h-4 text-gray-400 group-hover:text-gray-600 transition-colors" />
-                  </div>
+                    <ChevronDown className={`w-4 h-4 text-gray-400 group-hover:text-gray-600 transition-all duration-200 ${isDropdownOpen ? 'rotate-180' : ''}`} />
+                  </button>
                   
-                  <select
-                    value={sortType}
-                    onChange={(e) => {
-                      const newSortType = e.target.value as SortType
-                      console.log('정렬 변경:', newSortType) // 디버깅용
-                      setSortType(newSortType)
-                      
-                      // 즉시 정렬 적용
-                      const sortedResults = sortSearchResults(searchResults, newSortType)
-                      console.log('정렬 전:', searchResults.slice(0, 3).map(r => ({title: r.title, views: r.viewCountFormatted})))
-                      console.log('정렬 후:', sortedResults.slice(0, 3).map(r => ({title: r.title, views: r.viewCountFormatted})))
-                      setSearchResults(sortedResults)
-                    }}
-                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                  >
-                    <option value="uploadDate">업로드순</option>
-                    <option value="viewCount">조회순</option>
-                  </select>
+                  {/* 드롭다운 메뉴 */}
+                  {isDropdownOpen && (
+                    <div className="absolute top-full mt-1 left-0 right-0 bg-white border border-gray-200 rounded-lg shadow-lg z-50 overflow-hidden">
+                      {sortOptions.map((option) => (
+                        <button
+                          key={option.value}
+                          onClick={() => handleSortChange(option.value)}
+                          className={`w-full flex items-center gap-2 px-3 py-2.5 text-sm hover:bg-gray-50 transition-colors ${
+                            sortType === option.value ? 'bg-gray-50 text-gray-900' : 'text-gray-700'
+                          }`}
+                        >
+                          <option.icon className={`w-4 h-4 ${
+                            sortType === option.value ? 'text-gray-600' : 'text-gray-400'
+                          }`} />
+                          <span className="hidden sm:inline">{option.label}</span>
+                          <span className="sm:hidden">{option.mobileLabel}</span>
+                          {sortType === option.value && (
+                            <div className="ml-auto w-2 h-2 bg-gray-600 rounded-full"></div>
+                          )}
+                        </button>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
                 <div className="grid gap-4">
