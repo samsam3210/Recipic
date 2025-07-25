@@ -277,13 +277,31 @@ export default function SearchPage() {
     }
 
     if (isYouTubeUrl(searchQuery)) {
+      // YouTube URL인 경우에만 추출 중인지 확인
+      if (isExtracting) {
+        toast({
+          title: "알림",
+          description: "이전 레시피 추출이 완료된 후 시작 가능합니다.",
+          variant: "default",
+        })
+        return
+      }
       await handleRecipeExtraction(searchQuery)
     } else {
+      // 키워드 검색은 추출 중이어도 가능
       await handleYouTubeSearch(searchQuery)
     }
   }
 
   const handleVideoSelect = async (video: SearchResult) => {
+    if (isExtracting) {
+      toast({
+        title: "알림",
+        description: "이전 레시피 추출이 완료된 후 시작 가능합니다.",
+        variant: "default",
+      })
+      return
+    }
     await handleRecipeExtraction(video.youtubeUrl)
   }
 
@@ -306,15 +324,15 @@ export default function SearchPage() {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="flex-1 h-14 pl-8 pr-20 text-base border-none focus-visible:ring-0 focus-visible:ring-offset-0 rounded-l-full rounded-r-none placeholder:text-gray-400"
-                disabled={isSearching || isExtracting}
+                disabled={isSearching}
               />
 
               <Button
                 type="submit"
-                disabled={!searchQuery.trim() || isSearching || isExtracting}
+                disabled={!searchQuery.trim() || isSearching}
                 size="icon"
                 className={`absolute right-0 h-full w-14 ${
-                  !searchQuery.trim() || isSearching || isExtracting
+                  !searchQuery.trim() || isSearching
                     ? "bg-gray-400"
                     : "bg-black hover:bg-gray-800"
                 } text-white rounded-r-full rounded-l-none transition-colors duration-200`}
@@ -331,7 +349,7 @@ export default function SearchPage() {
           {/* ✨ 새로 추가: 인기 키워드 */}
           <PopularKeywords 
             onKeywordClick={handleKeywordClick} 
-            isSearching={isSearching || isExtracting} 
+            isSearching={isSearching} 
           />
 
           {searchResults.length > 0 && (

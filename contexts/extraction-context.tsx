@@ -21,9 +21,12 @@ interface ExtractionContextType {
   error: string | null
   isCompleted: boolean
   completedRecipeId: string | null
+  isCollapsed: boolean
   startExtraction: (url: string) => Promise<void>
   dismissExtraction: () => void
   navigateToRecipe: () => void
+  toggleCollapse: () => void
+  stopExtraction: () => void
 }
 
 const ExtractionContext = createContext<ExtractionContextType | undefined>(undefined)
@@ -42,6 +45,7 @@ export function ExtractionProvider({ children }: { children: React.ReactNode }) 
   const [error, setError] = useState<string | null>(null)
   const [isCompleted, setIsCompleted] = useState(false)
   const [completedRecipeId, setCompletedRecipeId] = useState<string | null>(null)
+  const [isCollapsed, setIsCollapsed] = useState(false)
   const abortControllerRef = useRef<AbortController | null>(null)
   
   const router = useRouter()
@@ -64,6 +68,7 @@ export function ExtractionProvider({ children }: { children: React.ReactNode }) 
     setError(null)
     setIsCompleted(false)
     setCompletedRecipeId(null)
+    setIsCollapsed(false)
     abortControllerRef.current = null
   }, [])
 
@@ -247,6 +252,24 @@ export function ExtractionProvider({ children }: { children: React.ReactNode }) 
     }
   }, [completedRecipeId, router, resetExtraction])
 
+  const toggleCollapse = useCallback(() => {
+    setIsCollapsed(prev => !prev)
+  }, [])
+
+  const stopExtraction = useCallback(() => {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort()
+    }
+    
+    toast({
+      title: "레시피 추출 중지",
+      description: "레시피 추출이 중지되었습니다.",
+      variant: "default",
+    })
+    
+    resetExtraction()
+  }, [resetExtraction, toast])
+
   return (
     <ExtractionContext.Provider value={{
       isExtracting,
@@ -256,9 +279,12 @@ export function ExtractionProvider({ children }: { children: React.ReactNode }) 
       error,
       isCompleted,
       completedRecipeId,
+      isCollapsed,
       startExtraction,
       dismissExtraction,
-      navigateToRecipe
+      navigateToRecipe,
+      toggleCollapse,
+      stopExtraction
     }}>
       {children}
     </ExtractionContext.Provider>
