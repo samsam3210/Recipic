@@ -364,13 +364,21 @@ export default function SearchPage() {
                     className="flex gap-4 p-4 border rounded-lg hover:bg-gray-50 cursor-pointer transition-colors"
                     onClick={() => handleVideoSelect(video)}
                     >
-                    <img
-                        src={video.thumbnail}
-                        alt={video.title}
-                        className="w-32 h-24 object-cover rounded"
-                        loading="lazy"
-                        decoding="async"
-                    />
+                    <div className="relative w-32 h-24">
+                      <img
+                          src={video.thumbnail}
+                          alt={video.title}
+                          className="w-full h-full object-cover rounded"
+                          loading="lazy"
+                          decoding="async"
+                      />
+                      {/* 재생시간 오버레이 */}
+                      {video.duration && (
+                        <div className="absolute bottom-1 right-1 bg-black bg-opacity-80 text-white text-xs px-1.5 py-0.5 rounded font-medium">
+                          {formatDuration(video.duration)}
+                        </div>
+                      )}
+                    </div>
                     <div className="flex-1">
                         <h3 className="font-medium text-gray-900 line-clamp-2">{video.title}</h3>
                         <p className="text-sm text-gray-600 mt-1">{video.channelName}</p>
@@ -388,13 +396,6 @@ export default function SearchPage() {
 
                         {/* 조회수 */}
                         {video.viewCountFormatted && <span>조회수 {video.viewCountFormatted}</span>}
-
-                        {/* 영상 길이 */}
-                        {video.duration && (
-                            <span>
-                            {formatDuration(video.duration)}
-                            </span>
-                        )}
                         </div>
                     </div>
                     </div>

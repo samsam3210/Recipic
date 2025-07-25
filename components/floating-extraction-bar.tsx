@@ -97,15 +97,36 @@ export function FloatingExtractionBar() {
           </button>
         </div>
 
-        {/* Collapsed State - 접힌 상태에서는 헤더만 표시 */}
-        {isCollapsed && !error && !isCompleted && (
+        {/* Collapsed State - 접힌 상태에서 표시할 내용 */}
+        {isCollapsed && (
           <div className="px-4 pb-4">
-            <div className="w-full bg-gray-200 rounded-full h-2">
-              <div 
-                className="bg-blue-500 h-2 rounded-full transition-all duration-500 ease-out"
-                style={{ width: `${progress}%` }}
-              />
-            </div>
+            {/* 진행 중일 때: 진행바만 표시 */}
+            {!error && !isCompleted && (
+              <div className="w-full bg-gray-200 rounded-full h-2">
+                <div 
+                  className="bg-blue-500 h-2 rounded-full transition-all duration-500 ease-out"
+                  style={{ width: `${progress}%` }}
+                />
+              </div>
+            )}
+            
+            {/* 완료 상태일 때: 레시피 보기 버튼 표시 */}
+            {isCompleted && completedRecipeId && (
+              <Button 
+                onClick={handleNavigateToRecipe}
+                className="w-full"
+                size="sm"
+              >
+                레시피 보기
+              </Button>
+            )}
+            
+            {/* 에러 상태일 때: 에러 메시지 표시 */}
+            {error && (
+              <div className="text-sm text-red-600">
+                {error}
+              </div>
+            )}
           </div>
         )}
 
