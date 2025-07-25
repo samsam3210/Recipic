@@ -114,7 +114,7 @@ export function FloatingExtractionBar() {
             {isCompleted && completedRecipeId && (
               <Button 
                 onClick={handleNavigateToRecipe}
-                className="w-full bg-orange-500 hover:bg-orange-600 text-white rounded-xl font-semibold transition-all duration-300 shadow-lg"
+                className="w-full bg-gray-900 hover:bg-black text-white rounded-xl font-semibold transition-all duration-300 shadow-lg"
                 size="sm"
               >
                 레시피 보기
@@ -148,7 +148,7 @@ export function FloatingExtractionBar() {
                 </p>
                 <Button 
                   onClick={handleNavigateToRecipe}
-                  className="w-full bg-orange-500 hover:bg-orange-600 text-white rounded-xl font-semibold transition-all duration-300 shadow-lg"
+                  className="w-full bg-gray-900 hover:bg-black text-white rounded-xl font-semibold transition-all duration-300 shadow-lg"
                 >
                   레시피 보기
                 </Button>

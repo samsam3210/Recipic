@@ -78,7 +78,7 @@ export function ConsentModal({ isOpen, onClose }: ConsentModalProps) {
           <Button
             onClick={handleGoogleSignIn}
             disabled={isSigningIn}
-            className="w-full max-w-xs py-3 text-base sm:text-lg bg-orange-500 hover:bg-orange-600 text-white rounded-xl font-semibold transition-all duration-300 shadow-lg"
+            className="w-full max-w-xs py-3 text-base sm:text-lg bg-gray-900 hover:bg-black text-white rounded-xl font-semibold transition-all duration-300 shadow-lg"
           >
             {isSigningIn ? (
               <>

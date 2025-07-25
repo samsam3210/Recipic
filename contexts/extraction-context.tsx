@@ -125,9 +125,6 @@ export function ExtractionProvider({ children }: { children: React.ReactNode }) 
 
       updateStepStatus(1, 'completed', "영상 정보 확인 완료")
 
-      // 사용량 증가
-      await incrementDailyUsage()
-
       // Step 2: 자막 분석
       setCurrentStep(2)
       updateStepStatus(2, 'in_progress', "자막과 음성을 분석하는 중...")
@@ -209,6 +206,9 @@ export function ExtractionProvider({ children }: { children: React.ReactNode }) 
         updateStepStatus(4, 'completed', "레시피 저장 완료")
         setIsCompleted(true)
         setCompletedRecipeId(result.recipeId)
+        
+        // 레시피 추출이 성공적으로 완료된 후에만 사용량 증가
+        await incrementDailyUsage()
         
         toast({
           title: "레시피 추출 완료!",

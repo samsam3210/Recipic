@@ -414,13 +414,13 @@ export default function SearchPage() {
         isOpen={showUsageLimitModal}
         onClose={() => setShowUsageLimitModal(false)}
         title="일일 사용량 제한"
-        description="하루에 최대 2회만 레시피 조회가 가능해요 🙏 서비스 개선이 될 때까지 잠시만 기다려주세요!"
+        description="하루에 최대 5회만 레시피 조회가 가능해요 🙏 서비스 개선이 될 때까지 잠시만 기다려주세요!"
         hideCloseButton={true}
         className="p-6 rounded-2xl bg-white shadow-xl border border-gray-100"
         footer={
           <Button
             onClick={() => setShowUsageLimitModal(false)}
-            className="w-full py-3 px-4 text-sm font-semibold bg-orange-500 hover:bg-orange-600 text-white rounded-xl transition-all duration-300 shadow-lg"
+            className="w-full py-3 px-4 text-sm font-semibold bg-gray-900 hover:bg-black text-white rounded-xl transition-all duration-300 shadow-lg"
           >
             확인
           </Button>
@@ -434,7 +434,7 @@ export default function SearchPage() {
         title="레시피 추출 실패"
         description={errorMessage}
         footer={
-          <Button onClick={() => setShowErrorModal(false)} className="w-full py-3 px-4 text-sm font-semibold bg-orange-500 hover:bg-orange-600 text-white rounded-xl transition-all duration-300 shadow-lg">
+          <Button onClick={() => setShowErrorModal(false)} className="w-full py-3 px-4 text-sm font-semibold bg-gray-900 hover:bg-black text-white rounded-xl transition-all duration-300 shadow-lg">
             확인
           </Button>
         }
@@ -462,7 +462,7 @@ export default function SearchPage() {
                   setShowDuplicateModal(false)
                 }
               }}
-              className="flex-1 py-3 px-4 text-sm font-semibold bg-orange-500 hover:bg-orange-600 text-white rounded-xl transition-all duration-300 shadow-lg"
+              className="flex-1 py-3 px-4 text-sm font-semibold bg-gray-900 hover:bg-black text-white rounded-xl transition-all duration-300 shadow-lg"
             >
               예, 기존 레시피 보기
             </Button>
@@ -477,7 +477,7 @@ export default function SearchPage() {
         title="레시피 조회 불가능"
         description={recipeUnavailableMessage}
         footer={
-          <Button onClick={() => setShowRecipeUnavailableModal(false)} className="w-full py-3 px-4 text-sm font-semibold bg-orange-500 hover:bg-orange-600 text-white rounded-xl transition-all duration-300 shadow-lg">
+          <Button onClick={() => setShowRecipeUnavailableModal(false)} className="w-full py-3 px-4 text-sm font-semibold bg-gray-900 hover:bg-black text-white rounded-xl transition-all duration-300 shadow-lg">
             확인
           </Button>
         }
