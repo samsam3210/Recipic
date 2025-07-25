@@ -6,14 +6,14 @@ import { Input } from "@/components/ui/input"
 import { Loader2, X, ArrowRight, Search, ChefHat, Clock, Target, Sparkles } from "lucide-react"
 import { useRouter } from "next/navigation"
 import type { User } from "@supabase/supabase-js"
-import { checkAndSaveRecipe, checkDuplicateRecipe } from "@/lib/actions/recipe"
 import { useToast } from "@/hooks/use-toast"
 import { ConsentModal } from "./consent-modal"
 import { cn } from "@/lib/utils"
-import { checkDailyUsage, incrementDailyUsage } from "@/lib/actions/usage"
+import { checkDailyUsage } from "@/lib/actions/usage"
 import { Badge } from "@/components/ui/badge"
 import { CustomDialog } from "./custom-dialog"
 import { Skeleton } from "@/components/ui/skeleton"
+import { useExtraction } from "@/contexts/extraction-context"
 
 interface RecipeData {
   id?: string
@@ -72,16 +72,14 @@ interface HeroSectionProps {
 
 export function HeroSection({ user, isDashboard = false }: HeroSectionProps) {
   const [youtubeUrl, setYoutubeUrl] = useState("")
-  const [isProcessing, setIsProcessing] = useState(false)
   const [showDuplicateModal, setShowDuplicateModal] = useState(false)
   const [duplicateRecipeId, setDuplicateRecipeId] = useState<string | null>(null)
   const [showConsentModal, setShowConsentModal] = useState(false)
-  const [showRecipeUnavailableModal, setShowRecipeUnavailableModal] = useState(false)
-  const [recipeUnavailableMessage, setRecipeUnavailableMessage] = useState("")
   const [showUsageLimitModal, setShowUsageLimitModal] = useState(false)
   const [currentUsageCount, setCurrentUsageCount] = useState<number | null>(null)
   const [isAdmin, setIsAdmin] = useState(false)
   const [isLoadingUsage, setIsLoadingUsage] = useState(true)
+  const { startExtraction, isExtracting } = useExtraction()
   const router = useRouter()
   const handleInputClick = () => {
     if (isDashboard) {
@@ -463,37 +461,37 @@ export function HeroSection({ user, isDashboard = false }: HeroSectionProps) {
   }
 
   const handleDiscoverClick = async () => {
-    // Make it async
-    if (isProcessing) {
-      console.warn("[HeroSection] Already processing, ignoring duplicate click from handleDiscoverClick.")
+    if (isExtracting) {
+      console.warn("[HeroSection] Already extracting, ignoring duplicate click.")
       return
     }
 
-    setIsProcessing(true)
-    setShowLoadingOverlay(true)
-    setCurrentLoadingStep(1)
-
     if (!user) {
       setShowConsentModal(true)
-      setIsProcessing(false)
-      setShowLoadingOverlay(false)
       return
     }
 
     // 로그인된 사용자의 경우, 사용량 제한을 먼저 체크
     const usageCheckResult = await checkDailyUsage()
-    // CRITICAL FIX: Update usage count and admin status immediately
     setCurrentUsageCount(usageCheckResult.currentCount || 0)
     setIsAdmin(usageCheckResult.isAdmin || false)
 
     if (!usageCheckResult.isAllowed) {
       setShowUsageLimitModal(true)
-      resetLoadingState()
-      return // IMPORTANT: 사용량 제한 초과 시 여기서 실행 중단
+      return
     }
 
-    // 사용이 허용되면 레시피 추출 진행
-    handleDiscoverRecipe(false)
+    try {
+      // Use floating extraction bar
+      await startExtraction(youtubeUrl)
+    } catch (error: any) {
+      console.error("Recipe extraction error:", error)
+      toast({
+        title: "레시피 추출 실패",
+        description: error.message || "레시피 추출 중 오류가 발생했습니다.",
+        variant: "destructive",
+      })
+    }
   }
 
   // 카운트업 애니메이션 훅
@@ -637,14 +635,14 @@ export function HeroSection({ user, isDashboard = false }: HeroSectionProps) {
                       value={youtubeUrl}
                       onChange={(e) => setYoutubeUrl(e.target.value)}
                       className="h-16 flex-grow px-4 border-none focus:outline-none focus:ring-0 text-lg placeholder:text-gray-400 bg-transparent rounded-2xl"
-                      disabled={isProcessing || showLoadingOverlay}
+                      disabled={isExtracting}
                     />
                     <Button
                       onClick={handleDiscoverClick}
-                      disabled={!youtubeUrl || isProcessing || showLoadingOverlay}
+                      disabled={!youtubeUrl || isExtracting}
                       className="m-2 h-12 px-8 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-xl font-semibold transition-all duration-300 hover:scale-105 shadow-lg hover:shadow-xl"
                     >
-                      {isProcessing && showLoadingOverlay ? (
+                      {isExtracting ? (
                         <Loader2 className="w-5 h-5 animate-spin" />
                       ) : (
                         <>

@@ -11,12 +11,12 @@ import { useToast } from "@/hooks/use-toast"
 import { createClient } from "@/lib/supabase/client"
 import { CustomDialog } from "@/components/custom-dialog"
 import { ClipboardToast } from "@/components/clipboard-toast"
-import { checkDailyUsage, incrementDailyUsage } from "@/lib/actions/usage"
-import { checkDuplicateRecipe, checkAndSaveRecipe } from "@/lib/actions/recipe"
+import { checkDailyUsage } from "@/lib/actions/usage"
 import { SidebarNav } from "@/components/sidebar-nav"
 import { dashboardSidebarNavItems } from "@/lib/navigation"
 import { PopularKeywords } from '@/components/popular-keywords'
 import { SearchGuide } from '@/components/search-guide'
+import { useExtraction } from '@/contexts/extraction-context'
 
 interface SearchResult {
   videoId: string
@@ -97,9 +97,7 @@ export default function SearchPage() {
   const [isUserLoading, setIsUserLoading] = useState(true)
   const [showClipboardToast, setShowClipboardToast] = useState(false)
   const [showUsageLimitModal, setShowUsageLimitModal] = useState(false)
-  const [isProcessing, setIsProcessing] = useState(false)
-  const [showLoadingOverlay, setShowLoadingOverlay] = useState(false)
-  const [currentLoadingStep, setCurrentLoadingStep] = useState(1)
+  const { startExtraction, isExtracting } = useExtraction()
   const { toast } = useToast()
   const router = useRouter()
 
@@ -176,7 +174,7 @@ export default function SearchPage() {
       toast({
         title: "잠시만 기다려주세요",
         description: "사용자 정보를 확인 중입니다.",
-        variant: "info",
+        variant: "default",
         duration: 1000,
       })
       return
@@ -191,9 +189,14 @@ export default function SearchPage() {
       return
     }
 
-    setIsProcessing(true)
-    setShowLoadingOverlay(true)
-    setCurrentLoadingStep(1)
+    if (isExtracting) {
+      toast({
+        title: "알림",
+        description: "이전 레시피 추출이 완료된 후 시작 가능합니다.",
+        variant: "default",
+      })
+      return
+    }
 
     try {
       const usageCheckResult = await checkDailyUsage()
@@ -201,120 +204,16 @@ export default function SearchPage() {
         setShowUsageLimitModal(true)
         return
       }
-      await incrementDailyUsage()
 
-      const metadataResponse = await fetch("/api/youtube/metadata", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ youtubeUrl: url }),
-      })
-
-      if (!metadataResponse.ok) {
-        const errorData = await metadataResponse.json()
-        throw new Error(errorData.error || "유튜브 영상 정보를 불러오는 데 실패했습니다.")
-      }
-
-      const videoMetadata = await metadataResponse.json()
-
-      const duplicateCheckResult = await checkDuplicateRecipe(videoMetadata.videoTitle, videoMetadata.channelName)
-      if (duplicateCheckResult.isDuplicate && duplicateCheckResult.recipeId) {
-        setDuplicateRecipeId(duplicateCheckResult.recipeId)
-        setShowDuplicateModal(true)
-        return
-      }
-
-      setCurrentLoadingStep(2)
-
-      const videoResponse = await fetch("/api/youtube", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ youtubeUrl: url }),
-      })
-
-      if (!videoResponse.ok) {
-        const errorData = await videoResponse.json()
-        throw new Error(errorData.error || "유튜브 자막을 불러오는 데 실패했습니다.")
-      }
-
-      const videoInfo = await videoResponse.json()
-
-      if (!videoInfo.hasSubtitles || !videoInfo.transcriptText) {
-        setRecipeUnavailableMessage("이 영상에는 추출 가능한 자막이 없습니다. 다른 영상을 시도해 주세요.")
-        setShowRecipeUnavailableModal(true)
-        return
-      }
-
-      setCurrentLoadingStep(3)
-
-      const geminiResponse = await fetch("/api/gemini", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          structuredTranscript: videoInfo.structuredTranscript,
-          videoDescription: videoInfo.videoDescription,
-        }),
-      })
-
-      if (!geminiResponse.ok) {
-        const errorText = await geminiResponse.text()
-        if (errorText.includes("The model is overloaded")) {
-          setErrorMessage("현재 AI 모델에 요청이 많아 레시피 추출이 어렵습니다. 잠시 후 다시 시도해 주세요.")
-          setShowErrorModal(true)
-          return
-        } else {
-          setErrorMessage(`AI 레시피 추출 중 오류가 발생했습니다: ${errorText}`)
-          setShowErrorModal(true)
-          return
-        }
-      }
-
-      const geminiResponseText = await geminiResponse.text()
-      let extractedRecipe
-      try {
-        let cleanedResponse = geminiResponseText
-        if (cleanedResponse.startsWith("```json")) {
-          cleanedResponse = cleanedResponse.substring("```json".length, cleanedResponse.lastIndexOf("```")).trim()
-        }
-        extractedRecipe = JSON.parse(cleanedResponse)
-      } catch {
-        setErrorMessage(`AI 응답이 올바른 JSON 형식이 아닙니다. 원시 응답: ${geminiResponseText.substring(0, 200)}...`)
-        setShowErrorModal(true)
-        return
-      }
-
-      if (
-        !extractedRecipe ||
-        !extractedRecipe.ingredients ||
-        extractedRecipe.ingredients.length === 0 ||
-        !extractedRecipe.steps ||
-        extractedRecipe.steps.length === 0
-      ) {
-        setRecipeUnavailableMessage("제공된 영상에서 레시피 정보를 충분히 추출할 수 없습니다. 영상에 정확한 재료나 조리 단계가 명시되어 있지 않을 수 있습니다. 다른 영상을 시도해 주세요.")
-        setShowRecipeUnavailableModal(true)
-        return
-      }
-
-      setCurrentLoadingStep(4)
-
-      const result = await checkAndSaveRecipe(url, videoInfo, extractedRecipe, false)
-
-      if (result.success && result.recipeId) {
-        toast({
-          title: "저장 완료",
-          description: "레시피가 성공적으로 저장되었습니다.",
-        })
-        router.push(`/recipe/${result.recipeId}`)
-      } else {
-        throw new Error(result.message || "레시피 저장에 실패했습니다.")
-      }
+      // Use floating extraction bar
+      await startExtraction(url)
     } catch (error: any) {
       console.error("Recipe extraction error:", error)
-      setErrorMessage(error.message || "레시피 추출 중 오류가 발생했습니다.")
-      setShowErrorModal(true)
-    } finally {
-      setIsProcessing(false)
-      setShowLoadingOverlay(false)
-      setCurrentLoadingStep(1)
+      toast({
+        title: "레시피 추출 실패",
+        description: error.message || "레시피 추출 중 오류가 발생했습니다.",
+        variant: "destructive",
+      })
     }
   }
 
@@ -407,15 +306,15 @@ export default function SearchPage() {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="flex-1 h-14 pl-8 pr-20 text-base border-none focus-visible:ring-0 focus-visible:ring-offset-0 rounded-l-full rounded-r-none placeholder:text-gray-400"
-                disabled={isSearching || isProcessing}
+                disabled={isSearching || isExtracting}
               />
 
               <Button
                 type="submit"
-                disabled={!searchQuery.trim() || isSearching || isProcessing}
+                disabled={!searchQuery.trim() || isSearching || isExtracting}
                 size="icon"
                 className={`absolute right-0 h-full w-14 ${
-                  !searchQuery.trim() || isSearching || isProcessing
+                  !searchQuery.trim() || isSearching || isExtracting
                     ? "bg-gray-400"
                     : "bg-black hover:bg-gray-800"
                 } text-white rounded-r-full rounded-l-none transition-colors duration-200`}
@@ -432,7 +331,7 @@ export default function SearchPage() {
           {/* ✨ 새로 추가: 인기 키워드 */}
           <PopularKeywords 
             onKeywordClick={handleKeywordClick} 
-            isSearching={isSearching || isProcessing} 
+            isSearching={isSearching || isExtracting} 
           />
 
           {searchResults.length > 0 && (
@@ -490,48 +389,6 @@ export default function SearchPage() {
 
       <BottomNavigation />
 
-      {/* 로딩 오버레이 */}
-      <CustomDialog
-        isOpen={showLoadingOverlay}
-        onClose={() => {}}
-        title="레시피 분석 중입니다"
-        description=""
-        disableClose={true}
-        hideCloseButton={true}
-        className="p-6 rounded-2xl bg-white shadow-xl border border-gray-100"
-        overlayClassName="bg-black/60"
-        >
-        <div className="space-y-3 mb-4">
-          {[
-            { id: 1, text: "유튜브 영상 확인 중..." },
-            { id: 2, text: "자막 및 음성 분석 중..." },
-            { id: 3, text: "레시피 정보 추출 중..." },
-            { id: 4, text: "레시피 구성 중..." }
-          ].map((step) => {
-            const isCompleted = step.id < currentLoadingStep;
-            const isCurrent = step.id === currentLoadingStep;
-
-            return (
-              <div key={step.id} className="flex items-center gap-3">
-                <div className={`relative w-5 h-5 rounded-full transition-all duration-300 ease-out ${
-                  isCompleted ? 'bg-gray-600' : isCurrent ? 'bg-gray-100 border-2 border-gray-600' : 'bg-gray-100 border-2 border-gray-200'
-                }`}>
-                  {isCompleted ? (
-                    <div className="w-3 h-3 bg-white rounded-full absolute inset-0 m-auto" />
-                  ) : isCurrent ? (
-                    <div className="w-2 h-2 bg-gray-600 rounded-full absolute inset-0 m-auto animate-pulse" />
-                  ) : null}
-                </div>
-                <span className={`text-sm font-medium transition-all duration-300 ${
-                  isCompleted ? 'text-gray-400' : isCurrent ? 'text-gray-900 animate-pulse' : 'text-gray-400'
-                }`}>
-                  {step.text}
-                </span>
-              </div>
-            );
-          })}
-        </div>
-      </CustomDialog>
 
       {/* 사용량 제한 모달 */}
       <CustomDialog

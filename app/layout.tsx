@@ -1,6 +1,8 @@
 import type { Metadata } from 'next'
 import './globals.css'
 import { UserProvider } from "@/contexts/user-context"
+import { ExtractionProvider } from "@/contexts/extraction-context"
+import { FloatingExtractionBar } from "@/components/floating-extraction-bar"
 import { Toaster } from "@/components/ui/toaster"
 
 export const metadata: Metadata = {
@@ -17,8 +19,11 @@ export default function RootLayout({
     <html lang="ko">
       <body>
         <UserProvider>
-          <Toaster />
-          {children}
+          <ExtractionProvider>
+            <Toaster />
+            {children}
+            <FloatingExtractionBar />
+          </ExtractionProvider>
         </UserProvider>
       </body>
     </html>
