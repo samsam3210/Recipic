@@ -3,7 +3,7 @@
 import { useState, useRef, useCallback, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Loader2, X, ArrowRight, Search } from "lucide-react"
+import { Loader2, X, ArrowRight, Search, ChefHat, Clock, Target, Sparkles } from "lucide-react"
 import { useRouter } from "next/navigation"
 import type { User } from "@supabase/supabase-js"
 import { checkAndSaveRecipe, checkDuplicateRecipe } from "@/lib/actions/recipe"
@@ -496,6 +496,86 @@ export function HeroSection({ user, isDashboard = false }: HeroSectionProps) {
     handleDiscoverRecipe(false)
   }
 
+  // 카운트업 애니메이션 훅
+  const useCountUp = (end: number, duration: number = 2000) => {
+    const [count, setCount] = useState(0)
+    const [isVisible, setIsVisible] = useState(false)
+
+    useEffect(() => {
+      const observer = new IntersectionObserver(
+        ([entry]) => {
+          if (entry.isIntersecting && !isVisible) {
+            setIsVisible(true)
+          }
+        },
+        { threshold: 0.1 }
+      )
+
+      const element = document.getElementById(`counter-${end}`)
+      if (element) {
+        observer.observe(element)
+      }
+
+      return () => {
+        if (element) {
+          observer.unobserve(element)
+        }
+      }
+    }, [end, isVisible])
+
+    useEffect(() => {
+      if (isVisible) {
+        let startTime: number | null = null
+        const animate = (currentTime: number) => {
+          if (startTime === null) startTime = currentTime
+          const progress = Math.min((currentTime - startTime) / duration, 1)
+          
+          const easeOutCubic = 1 - Math.pow(1 - progress, 3)
+          setCount(Math.floor(easeOutCubic * end))
+          
+          if (progress < 1) {
+            requestAnimationFrame(animate)
+          }
+        }
+        requestAnimationFrame(animate)
+      }
+    }, [isVisible, end, duration])
+
+    return count
+  }
+
+  // 통계 컴포넌트
+  const StatCard = ({ icon: Icon, end, suffix, title, description }: {
+    icon: any
+    end: number
+    suffix: string
+    title: string
+    description: string
+  }) => {
+    const count = useCountUp(end)
+    
+    return (
+      <div className="group relative">
+        <div className="relative p-8 rounded-2xl bg-white border border-gray-100 shadow-sm hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
+          <div className="flex flex-col items-center text-center space-y-4">
+            <div className="flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-br from-blue-50 to-indigo-50 group-hover:from-blue-100 group-hover:to-indigo-100 transition-colors">
+              <Icon className="w-8 h-8 text-blue-600" />
+            </div>
+            <div className="space-y-2">
+              <div id={`counter-${end}`} className="text-4xl font-bold text-gray-900">
+                {count.toLocaleString()}{suffix}
+              </div>
+              <h3 className="text-xl font-semibold text-gray-800">{title}</h3>
+              <p className="text-sm text-gray-600 leading-relaxed">{description}</p>
+            </div>
+          </div>
+          {/* 배경 장식 */}
+          <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-blue-500/5 to-indigo-500/10 rounded-full -translate-y-10 translate-x-10"></div>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <section
       className={cn(
@@ -506,35 +586,113 @@ export function HeroSection({ user, isDashboard = false }: HeroSectionProps) {
       )}
     >
       {!isDashboard && (
-        <div className="container px-4 md:px-6 max-w-4xl space-y-8">
-          <div className="space-y-8">
-            <h1 className="text-3xl md:text-5xl lg:text-6xl font-extrabold tracking-tight leading-tight text-gray-900 mb-8">
-              YouTube 요리영상,
-              <br />
-              5초만에 내 레시피북이 됩니다.
-            </h1>
+        <div className="relative">
+          {/* 배경 장식 요소 */}
+          <div className="absolute inset-0 -z-10">
+            <div className="absolute top-10 left-10 w-72 h-72 bg-gradient-to-r from-blue-400/10 to-purple-400/10 rounded-full blur-3xl"></div>
+            <div className="absolute bottom-10 right-10 w-96 h-96 bg-gradient-to-r from-purple-400/10 to-pink-400/10 rounded-full blur-3xl"></div>
+            <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-80 h-80 bg-gradient-to-r from-indigo-400/5 to-cyan-400/5 rounded-full blur-3xl"></div>
           </div>
-          <div className="relative flex items-center w-full max-w-xl mx-auto rounded-full border border-gray-100 shadow-input-unit-shadow overflow-hidden focus-within:border-primary">
-            <Input
-              id="youtube-url"
-              placeholder="레시피 검색하기"
-              value={youtubeUrl}
-              onChange={(e) => setYoutubeUrl(e.target.value)}
-              className="h-12 flex-grow pl-5 pr-12 border-none focus:outline-none focus:ring-0 focus:ring-offset-0 text-base rounded-l-full rounded-r-none placeholder:text-gray-400"
-              disabled={isProcessing || showLoadingOverlay}
-            />
-            <Button
-              onClick={handleDiscoverClick}
-              disabled={!youtubeUrl || isProcessing || showLoadingOverlay}
-              size="icon"
-              className="absolute right-0 h-full w-12 bg-soft-blue hover:bg-soft-blue/90 text-white rounded-r-full rounded-l-none"
-            >
-              {isProcessing && showLoadingOverlay ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                <ArrowRight className="h-5 w-5" />
-              )}
-            </Button>
+
+          <div className="container px-4 md:px-6 max-w-6xl mx-auto">
+            {/* 메인 히어로 섹션 */}
+            <div className="text-center space-y-12 pb-20">
+              {/* 서브헤딩 */}
+              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-100/50 animate-fade-in-up">
+                <Sparkles className="w-4 h-4 text-blue-600" />
+                <span className="text-sm font-medium text-blue-700">AI 기반 레시피 추출 서비스</span>
+              </div>
+
+              {/* 메인 헤드라인 */}
+              <div className="space-y-6 animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
+                <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold tracking-tight leading-[1.1]">
+                  <span className="bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 bg-clip-text text-transparent">
+                    YouTube 요리영상,
+                  </span>
+                  <br />
+                  <span className="bg-gradient-to-r from-blue-600 via-purple-600 to-blue-800 bg-clip-text text-transparent">
+                    5초만에 내 레시피북이 됩니다
+                  </span>
+                </h1>
+                
+                {/* 서브텍스트 */}
+                <p className="text-lg md:text-xl text-gray-600 max-w-2xl mx-auto leading-relaxed">
+                  수많은 요리사들이 Recipick과 함께합니다.
+                  <br />
+                  지금 바로 당신의 요리 경험을 업그레이드하세요!
+                </p>
+              </div>
+
+              {/* 검색 입력 필드 */}
+              <div className="max-w-2xl mx-auto animate-fade-in-up" style={{ animationDelay: '0.4s' }}>
+                <div className="relative group">
+                  <div className="absolute -inset-0.5 bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl blur opacity-25 group-hover:opacity-50 transition duration-300"></div>
+                  <div className="relative flex items-center bg-white rounded-2xl border border-gray-200 shadow-xl hover:shadow-2xl transition-all duration-300">
+                    <div className="flex items-center pl-6">
+                      <Search className="w-5 h-5 text-gray-400" />
+                    </div>
+                    <Input
+                      id="youtube-url"
+                      placeholder="레시피 검색하기"
+                      value={youtubeUrl}
+                      onChange={(e) => setYoutubeUrl(e.target.value)}
+                      className="h-16 flex-grow px-4 border-none focus:outline-none focus:ring-0 text-lg placeholder:text-gray-400 bg-transparent rounded-2xl"
+                      disabled={isProcessing || showLoadingOverlay}
+                    />
+                    <Button
+                      onClick={handleDiscoverClick}
+                      disabled={!youtubeUrl || isProcessing || showLoadingOverlay}
+                      className="m-2 h-12 px-8 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-xl font-semibold transition-all duration-300 hover:scale-105 shadow-lg hover:shadow-xl"
+                    >
+                      {isProcessing && showLoadingOverlay ? (
+                        <Loader2 className="w-5 h-5 animate-spin" />
+                      ) : (
+                        <>
+                          <span>추출하기</span>
+                          <ArrowRight className="w-5 h-5 ml-2" />
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* 통계 섹션 */}
+            <div className="animate-fade-in-up" style={{ animationDelay: '0.6s' }}>
+              <div className="text-center mb-12">
+                <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+                  신뢰할 수 있는 <span className="text-blue-600">성능</span>
+                </h2>
+                <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+                  수천 명의 사용자가 검증한 정확하고 빠른 레시피 추출 서비스
+                </p>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+                <StatCard
+                  icon={ChefHat}
+                  end={12847}
+                  suffix="+"
+                  title="추출된 레시피"
+                  description="다양한 요리 장르의 레시피를 정확하게 추출했습니다"
+                />
+                <StatCard
+                  icon={Clock}
+                  end={5}
+                  suffix="초"
+                  title="평균 추출 시간"
+                  description="빠르고 효율적인 AI 기술로 즉시 결과를 제공합니다"
+                />
+                <StatCard
+                  icon={Target}
+                  end={97}
+                  suffix="%"
+                  title="정확도"
+                  description="검증된 AI 모델로 높은 품질의 레시피를 보장합니다"
+                />
+              </div>
+            </div>
           </div>
         </div>
       )}
@@ -591,13 +749,6 @@ export function HeroSection({ user, isDashboard = false }: HeroSectionProps) {
                    </div>
                  )}
 
-      {!isDashboard && (
-        <p className="text-sm text-gray-500 mt-8">
-          수많은 요리사들이 Recipick과 함께합니다.
-          <br />
-          지금 바로 당신의 요리 경험을 업그레이드하세요!
-        </p>
-      )}
 
       {/* 로딩 다이얼로그 (모달 스타일) */}
       <CustomDialog
