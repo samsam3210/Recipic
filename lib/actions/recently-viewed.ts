@@ -97,8 +97,24 @@ export async function addRecentlyViewedRecipe(params: AddRecentlyViewedParams): 
 
     console.log("[addRecentlyViewedRecipe] 인증 성공, 사용자 ID:", user.id)
 
-    // 중복 확인 (video_title + channel_name 기준)
+    // 중복 확인 (video_title + channel_name 기준) - 임시로 스키마 확인
     console.log("[addRecentlyViewedRecipe] 중복 확인 시작")
+    console.log("[addRecentlyViewedRecipe] 스키마 정보:", {
+      tableName: "recently_viewed_recipes",
+      columns: Object.keys(recentlyViewedRecipes),
+      recipeName: recentlyViewedRecipes.recipeName,
+      channelName: recentlyViewedRecipes.channelName
+    })
+    
+    // 임시로 테이블 존재 여부부터 확인
+    try {
+      const testQuery = await db.select().from(recentlyViewedRecipes).limit(1)
+      console.log("[addRecentlyViewedRecipe] 테이블 접근 가능, 샘플 데이터:", testQuery)
+    } catch (testError) {
+      console.error("[addRecentlyViewedRecipe] 테이블 접근 오류:", testError)
+      throw new Error("recently_viewed_recipes 테이블에 접근할 수 없습니다.")
+    }
+    
     const existingRecipe = await db
       .select({ id: recentlyViewedRecipes.id })
       .from(recentlyViewedRecipes)

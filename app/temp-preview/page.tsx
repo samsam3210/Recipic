@@ -57,7 +57,14 @@ const PENDING_RECIPE_STORAGE_KEY = "recipick_pending_recipe"
 export default function RecipePreviewPage() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const { toast } = useToast()
+  const { toast, dismiss } = useToast()
+  
+  // 기존 토스트를 dismiss하고 새 토스트를 표시하는 헬퍼 함수
+  const showToast = (toastProps: Parameters<typeof toast>[0]) => {
+    dismiss() // 기존 토스트 제거
+    setTimeout(() => toast(toastProps), 50) // 약간의 지연 후 새 토스트 표시
+  }
+  
   const [previewData, setPreviewData] = useState<PreviewData | null>(null)
   const [user, setUser] = useState<User | null>(null)
   const [isSaving, setIsSaving] = useState(false)
@@ -76,7 +83,7 @@ export default function RecipePreviewPage() {
         console.log("[RecipePreviewPage] Preview data loaded from URL param:", decodedData)
       } catch (error) {
         console.error("[RecipePreviewPage] Failed to parse preview data from URL:", error)
-        toast({
+        showToast({
           title: "오류",
           description: "레시피 데이터를 불러오는 데 실패했습니다.",
           variant: "destructive",
@@ -108,7 +115,7 @@ export default function RecipePreviewPage() {
           }
         } catch (error) {
           console.error("[RecipePreviewPage] Failed to parse stored recipe data from localStorage:", error)
-          toast({
+          showToast({
             title: "오류",
             description: "임시 저장된 레시피 데이터를 불러오는 데 실패했습니다.",
             variant: "destructive",
@@ -117,7 +124,7 @@ export default function RecipePreviewPage() {
         }
       } else {
         console.warn("[RecipePreviewPage] No preview data found in URL or localStorage. Redirecting to home.")
-        toast({
+        showToast({
           title: "오류",
           description: "표시할 레시피 데이터가 없습니다.",
           variant: "destructive",
@@ -156,7 +163,7 @@ export default function RecipePreviewPage() {
     if (!user) {
       console.log("[RecipePreviewPage] User not logged in. Saving to localStorage and redirecting for login.")
       localStorage.setItem(PENDING_RECIPE_STORAGE_KEY, JSON.stringify(previewData))
-      toast({
+      showToast({
         title: "로그인 필요",
         description: "레시피를 저장하려면 Google로 로그인해야 합니다.",
         variant: "info",
@@ -191,7 +198,7 @@ export default function RecipePreviewPage() {
           // 사용량 증가 (관리자는 incrementDailyUsage 내부에서 제외됨)
           await incrementDailyUsage()
           
-          toast({
+          showToast({
             title: "레시피 저장 완료!",
             description: "나의 레시피에서 확인 가능합니다.",
           })
@@ -207,7 +214,7 @@ export default function RecipePreviewPage() {
       }
     } catch (error: any) {
       console.error("[RecipePreviewPage] Failed to save recipe:", error)
-      toast({
+      showToast({
         title: "저장 실패",
         description: error.message || "레시피 저장 중 오류가 발생했습니다.",
         variant: "destructive",
@@ -247,7 +254,7 @@ export default function RecipePreviewPage() {
     },
     onError: (error) => {
       console.error("[TempPreview] YouTube Player error:", error)
-      toast({
+      showToast({
         title: "유튜브 영상 로드 오류",
         description: "영상을 불러오는 데 문제가 발생했습니다.",
         variant: "destructive",
@@ -282,8 +289,6 @@ export default function RecipePreviewPage() {
 
   return (
     <div className="flex flex-col min-h-screen">
-      <Header user={user} />
-      
       {/* 상단 고정 YouTube 플레이어 */}
       {videoId && (
         <div className="sticky top-0 z-30 w-full bg-background shadow-md max-w-3xl mx-auto">
