@@ -28,6 +28,8 @@ interface RecipeData {
   personalNotes: string | null
   youtubeUrl: string
   videoDurationSeconds: number
+  videoThumbnail?: string | null
+  channelName?: string | null
 }
 
 interface RecipeDetailClientProps {
@@ -39,9 +41,9 @@ export function RecipeDetailClient({ recipe, videoId }: RecipeDetailClientProps)
   console.log("[RecipeDetailClient] Received videoId:", videoId) // 추가
   const youtubePlayerRef = useRef<HTMLDivElement>(null)
   const { toast } = useToast()
-  const { player: youtubePlayer, isPlayerReady } = useYoutubePlayer({
+  const { youtubePlayer, isPlayerReady } = useYoutubePlayer({
     videoId,
-    playerRef: youtubePlayerRef,
+    container: youtubePlayerRef.current,
     onReady: (player) => {
       console.log("[RecipeDetailClient] YouTube Player is READY.") // 추가
     },

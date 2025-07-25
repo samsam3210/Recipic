@@ -210,11 +210,7 @@ export function HeroSection({ user, isDashboard = false }: HeroSectionProps) {
       if (duplicateCheckResult.isDuplicate && duplicateCheckResult.recipeId) {
         setDuplicateRecipeId(duplicateCheckResult.recipeId)
         setShowDuplicateModal(true)
-        toast({
-          title: "알림",
-          description: "이미 저장된 레시피입니다.",
-          variant: "info",
-        })
+        // 토스트 제거 - 모달로만 표시
         throw new Error("DUPLICATE_RECIPE") // 중복 레시피임을 알리는 특별한 오류
       }
     }
@@ -340,11 +336,7 @@ export function HeroSection({ user, isDashboard = false }: HeroSectionProps) {
           // 중복 레시피 발견 시 모달 표시
           setDuplicateRecipeId(result.recipeId)
           setShowDuplicateModal(true)
-          toast({
-            title: "알림",
-            description: "이미 저장된 레시피입니다.",
-            variant: "info",
-          })
+          // 토스트 제거 - 모달로만 표시
           throw new Error("DUPLICATE_RECIPE_AFTER_SAVE") // 저장 후 중복 알림
         } else if (result.recipeId) {
           // 새 레시피 저장 또는 강제 재추출 성공

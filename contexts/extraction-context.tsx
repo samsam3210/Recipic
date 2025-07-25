@@ -263,11 +263,7 @@ export function ExtractionProvider({ children }: { children: React.ReactNode }) 
         updateStepStatus(currentStep, 'error', error.message)
       }
       
-      toast({
-        title: "레시피 추출 실패",
-        description: error.message || "레시피 추출 중 오류가 발생했습니다.",
-        variant: "destructive",
-      })
+      // 토스트 제거 - 모달로만 오류 표시
     }
   }, [isExtracting, currentStep, toast, updateStepStatus, resetExtraction])
 
