@@ -134,43 +134,12 @@ export function Header({ hideAuthButton = false }: HeaderProps) {
             </Link>
           </div>
 
-          {/* 우측 영역 - 인증 버튼만 */}
+          {/* 우측 영역 - 비로그인 사용자만 로그인 버튼 */}
           <div className="ml-auto flex items-center">
-            {!hideAuthButton && (
-              <>
-                {user ? (
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" className="relative h-8 w-8 rounded-full">
-                        <Avatar className="h-8 w-8">
-                          <AvatarImage src={displayAvatarUrl} alt={displayName} />
-                          <AvatarFallback>
-                            <UserIcon className="h-4 w-4" />
-                          </AvatarFallback>
-                        </Avatar>
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent className="w-56" align="end" forceMount>
-                      <DropdownMenuLabel className="font-normal">
-                        <div className="flex flex-col space-y-1">
-                          <p className="text-sm font-medium leading-none">{displayName}</p>
-                          <p className="text-xs leading-none text-muted-foreground">
-                            {user.email}
-                          </p>
-                        </div>
-                      </DropdownMenuLabel>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem onClick={handleSignOut} disabled={isAuthLoading}>
-                        {isAuthLoading ? "로그아웃 중..." : "로그아웃"}
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                ) : (
-                  <Button onClick={handleSignIn} size="sm">
-                    로그인
-                  </Button>
-                )}
-              </>
+            {!hideAuthButton && !user && (
+              <Button onClick={handleSignIn} size="sm">
+                로그인
+              </Button>
             )}
           </div>
         </div>

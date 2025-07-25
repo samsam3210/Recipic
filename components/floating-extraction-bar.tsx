@@ -58,8 +58,8 @@ export function FloatingExtractionBar() {
   return (
     <div
       className={cn(
-        "fixed bottom-4 left-4 right-4 mx-auto max-w-md z-50 transition-all duration-300 ease-in-out",
-        "md:left-1/2 md:transform md:-translate-x-1/2 md:bottom-6",
+        "fixed bottom-20 left-4 right-4 mx-auto max-w-md z-50 transition-all duration-300 ease-in-out",
+        "lg:bottom-6 lg:left-1/2 lg:transform lg:-translate-x-1/2",
         isVisible 
           ? "opacity-100 translate-y-0" 
           : "opacity-0 translate-y-4 pointer-events-none"

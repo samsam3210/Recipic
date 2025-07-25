@@ -8,6 +8,8 @@ import { Button } from "@/components/ui/button"
 import { useToast } from "@/hooks/use-toast"
 import { Loader2, Edit, Save, X } from "lucide-react"
 import { updateUserName, getUserProfile } from "@/lib/actions/user"
+import { signOut } from "@/lib/actions/auth"
+import { createClient } from "@/lib/supabase/client"
 import { useRouter } from "next/navigation"
 
 interface UserProfile {
@@ -27,8 +29,10 @@ export function ProfileSettingsForm({ user, userProfile: initialProfile }: Profi
   const [isEditing, setIsEditing] = useState(false)
   const [editedName, setEditedName] = useState("")
   const [isSaving, setIsSaving] = useState(false)
+  const [isSigningOut, setIsSigningOut] = useState(false)
   const { toast } = useToast()
   const router = useRouter()
+  const supabase = createClient()
 
   // 클라이언트에서 사용자 프로필 로드
   useEffect(() => {
@@ -146,6 +150,54 @@ export function ProfileSettingsForm({ user, userProfile: initialProfile }: Profi
     setIsEditing(false)
   }
 
+  const handleSignOut = async () => {
+    setIsSigningOut(true)
+    toast({
+      title: "로그아웃 처리 중...",
+      description: "잠시만 기다려 주세요.",
+      duration: 2000,
+    })
+
+    try {
+      const serverSignOutResult = await signOut()
+
+      if (serverSignOutResult.success) {
+        const { error: clientSignOutError } = await supabase.auth.signOut()
+
+        if (clientSignOutError) {
+          console.error("[ProfileSettingsForm] Client-side signOut failed:", clientSignOutError.message)
+          toast({
+            title: "로그아웃 실패",
+            description: clientSignOutError.message || "클라이언트 로그아웃 중 오류가 발생했습니다.",
+            variant: "destructive",
+          })
+        } else {
+          toast({
+            title: "로그아웃 완료",
+            description: serverSignOutResult.message,
+          })
+          router.push("/")
+        }
+      } else {
+        console.error("[ProfileSettingsForm] Server signOut failed:", serverSignOutResult.message)
+        toast({
+          title: "로그아웃 실패",
+          description: serverSignOutResult.message,
+          variant: "destructive",
+        })
+      }
+    } catch (error: any) {
+      console.error("[ProfileSettingsForm] Unexpected error during logout:", error)
+      toast({
+        title: "오류 발생",
+        description: error.message || "로그아웃 중 알 수 없는 오류가 발생했습니다.",
+        variant: "destructive",
+      })
+    } finally {
+      setIsSigningOut(false)
+    }
+  }
+
   return (
     <Card className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
       <CardHeader className="px-0 pt-0 pb-4">
@@ -188,6 +240,25 @@ export function ProfileSettingsForm({ user, userProfile: initialProfile }: Profi
         <div>
           <p className="text-sm font-medium text-gray-700 mb-1">이메일</p>
           <p className="text-lg font-semibold text-gray-900">{user.email}</p>
+        </div>
+
+        {/* 로그아웃 버튼 */}
+        <div className="pt-4 border-t border-gray-200">
+          <Button 
+            onClick={handleSignOut} 
+            disabled={isSigningOut || isEditing}
+            variant="destructive"
+            className="w-full"
+          >
+            {isSigningOut ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                로그아웃 중...
+              </>
+            ) : (
+              "로그아웃"
+            )}
+          </Button>
         </div>
       </CardContent>
     </Card>

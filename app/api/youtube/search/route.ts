@@ -30,6 +30,17 @@ function parseISODuration(isoDuration: string): string {
   return `${minutes}:${secondsPadded}`
 }
 
+function getDurationInSeconds(isoDuration: string): number {
+  const match = isoDuration.match(/PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/)
+  if (!match) return 0
+
+  const hours = parseInt(match[1] || "0", 10)
+  const minutes = parseInt(match[2] || "0", 10)
+  const seconds = parseInt(match[3] || "0", 10)
+
+  return hours * 3600 + minutes * 60 + seconds
+}
+
 export async function POST(req: Request) {
   const { query } = await req.json()
   const maxResults = 20
@@ -56,9 +67,13 @@ export async function POST(req: Request) {
     const videoIds = searchData.items.map((item: any) => item.id.videoId)
     const videosData = await getMultipleVideoDetails(videoIds)
 
-    // --- 3. 조회수 필터링 + 포맷팅 ---
+    // --- 3. 조회수 및 영상 길이 필터링 + 포맷팅 ---
     const results = videosData.items
-      .filter((video: any) => parseInt(video.statistics.viewCount, 10) >= 1000)
+      .filter((video: any) => {
+        const viewCount = parseInt(video.statistics.viewCount, 10)
+        const durationInSeconds = getDurationInSeconds(video.contentDetails.duration)
+        return viewCount >= 1000 && durationInSeconds >= 60 // 1분(60초) 이상
+      })
       .map((video: any) => {
         const viewCountNum = parseInt(video.statistics.viewCount, 10)
         return {
