@@ -507,22 +507,17 @@ export function HeroSection({ user, isDashboard = false }: HeroSectionProps) {
     >
       {!isDashboard && (
         <div className="container px-4 md:px-6 max-w-4xl space-y-8">
-          <div className="space-y-4">
-            <h1 className="text-3xl md:text-5xl lg:text-6xl font-extrabold tracking-tight leading-tight text-gray-900">
-              YouTube 레시피
+          <div className="space-y-8">
+            <h1 className="text-3xl md:text-5xl lg:text-6xl font-extrabold tracking-tight leading-tight text-gray-900 mb-8">
+              YouTube 요리영상,
               <br />
-              이제, 당신의 요리책이 됩니다.
+              5초만에 내 레시피북이 됩니다.
             </h1>
-            <p className="text-lg md:text-xl text-gray-600 max-w-2xl mx-auto mb-16">
-              유튜브 영상 속 레시피를 AI가 자동 추출하고,
-              <br />
-              나만의 노트를 추가해 요리가 더욱 즐거워집니다.
-            </p>
           </div>
           <div className="relative flex items-center w-full max-w-xl mx-auto rounded-full border border-gray-100 shadow-input-unit-shadow overflow-hidden focus-within:border-primary">
             <Input
               id="youtube-url"
-              placeholder="YouTube 주소를 입력해주세요."
+              placeholder="레시피 검색하기"
               value={youtubeUrl}
               onChange={(e) => setYoutubeUrl(e.target.value)}
               className="h-12 flex-grow pl-5 pr-12 border-none focus:outline-none focus:ring-0 focus:ring-offset-0 text-base rounded-l-full rounded-r-none placeholder:text-gray-400"
