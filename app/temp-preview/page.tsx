@@ -205,8 +205,7 @@ export default function RecipePreviewPage() {
           })
         } else if (result.recipeId) {
           // 새 레시피 저장 또는 강제 재추출 성공
-          // 사용량 증가 (관리자는 incrementDailyUsage 내부에서 제외됨)
-          await incrementDailyUsage()
+          // 사용량 증가는 레시피 추출 시에만 하므로 여기서는 제거
           
           showToast({
             title: "레시피 저장 완료!",

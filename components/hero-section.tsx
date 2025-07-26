@@ -386,8 +386,9 @@ export function HeroSection({ user, isDashboard = false }: HeroSectionProps) {
       // Step 3: Process and save the extracted recipe
       const saveResult = await processAndSaveRecipe(youtubeUrl, videoInfo, extractedRecipe, forceReExtract)
       
-      // 레시피 저장이 성공한 경우에만 사용량 증가 (로그인된 사용자이고, 관리자가 아니며, 강제 재추출이 아닌 경우)
-      if (saveResult && user && !isAdmin && !forceReExtract) {
+      // 사용량 증가는 레시피 추출 성공 시에만 (저장 여부와 관계없이)
+      // 로그인된 사용자이고, 관리자가 아니며, 강제 재추출이 아닌 경우
+      if (user && !isAdmin && !forceReExtract) {
         await incrementDailyUsage()
         // 사용량 증가 후 UI 업데이트를 위해 최신 사용량 다시 가져오기
         const updatedUsage = await checkDailyUsage()
