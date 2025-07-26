@@ -84,13 +84,11 @@ export function FloatingExtractionBar() {
             </h3>
           </div>
           <button
-            onClick={error || isCompleted ? dismissExtraction : handleToggleCollapse}
+            onClick={isCollapsed ? dismissExtraction : handleToggleCollapse}
             className="p-1 rounded-full hover:bg-gray-100 transition-colors"
           >
-            {error || isCompleted ? (
+            {isCollapsed ? (
               <X className="w-4 h-4 text-gray-500" />
-            ) : isCollapsed ? (
-              <ChevronUp className="w-4 h-4 text-gray-500" />
             ) : (
               <ChevronDown className="w-4 h-4 text-gray-500" />
             )}
