@@ -101,14 +101,24 @@ export default function RecipePreviewPage() {
           setPreviewData(parsedStoredData)
           console.log("[RecipePreviewPage] Preview data loaded from localStorage:", parsedStoredData)
           
-          // 최근 본 레시피에 기록 (비동기로 처리, 에러 발생해도 메인 플로우에 영향 없음)
+          // 최근 본 레시피에 기록 (완전한 레시피 데이터 포함, 프리뷰는 savedRecipeId null)
           if (parsedStoredData?.extractedRecipe?.recipeName) {
             addRecentlyViewedRecipe({
               recipeName: parsedStoredData.extractedRecipe.recipeName,
               youtubeUrl: parsedStoredData.youtubeUrl || '',
               videoThumbnail: parsedStoredData.videoInfo?.videoThumbnail,
               channelName: parsedStoredData.videoInfo?.channelName,
-              summary: parsedStoredData.extractedRecipe?.summary
+              summary: parsedStoredData.extractedRecipe?.summary,
+              difficulty: parsedStoredData.extractedRecipe?.difficulty,
+              cookingTimeMinutes: parsedStoredData.extractedRecipe?.cookingTimeMinutes,
+              ingredients: parsedStoredData.extractedRecipe?.ingredients,
+              steps: parsedStoredData.extractedRecipe?.steps,
+              tips: parsedStoredData.extractedRecipe?.tips,
+              videoDescription: parsedStoredData.videoInfo?.videoDescription,
+              noRecipeFoundMessage: parsedStoredData.extractedRecipe?.noRecipeFoundMessage,
+              videoDurationSeconds: parsedStoredData.videoInfo?.videoDurationSeconds,
+              videoViews: parsedStoredData.videoInfo?.videoViews,
+              savedRecipeId: null, // 프리뷰는 저장된 레시피가 아니므로 null
             }).catch(error => {
               console.warn("[RecipePreviewPage] Failed to add to recently viewed:", error)
             })

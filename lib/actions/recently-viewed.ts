@@ -13,6 +13,23 @@ interface RecentlyViewedRecipe {
   channelName?: string
   summary?: string
   viewedAt: Date
+  difficulty?: string
+  cookingTimeMinutes?: number
+  ingredients?: Array<{ name: string; quantity: number | string; unit: string; notes: string }>
+  steps?: Array<{
+    stepNumber: number
+    description: string
+    notes: string
+    ingredientsUsed: string[]
+    youtubeTimestampSecond: number
+  }>
+  tips?: Array<{ title: string; description: string }>
+  videoDescription?: string
+  noRecipeFoundMessage?: string
+  videoDurationSeconds?: number
+  videoViews?: number
+  personalNotes?: string
+  savedRecipeId?: string | null
 }
 
 interface AddRecentlyViewedParams {
@@ -21,6 +38,22 @@ interface AddRecentlyViewedParams {
   videoThumbnail?: string
   channelName?: string
   summary?: string
+  difficulty?: string
+  cookingTimeMinutes?: number
+  ingredients?: Array<{ name: string; quantity: number | string; unit: string; notes: string }>
+  steps?: Array<{
+    stepNumber: number
+    description: string
+    notes: string
+    ingredientsUsed: string[]
+    youtubeTimestampSecond: number
+  }>
+  tips?: Array<{ title: string; description: string }>
+  videoDescription?: string
+  noRecipeFoundMessage?: string
+  videoDurationSeconds?: number
+  videoViews?: number
+  savedRecipeId?: string | null
 }
 
 const MAX_RECENTLY_VIEWED = 10
@@ -55,6 +88,17 @@ export async function getRecentlyViewedRecipes(): Promise<{
         channelName: recentlyViewedRecipes.channelName,
         summary: recentlyViewedRecipes.summary,
         viewedAt: recentlyViewedRecipes.viewedAt,
+        difficulty: recentlyViewedRecipes.difficulty,
+        cookingTimeMinutes: recentlyViewedRecipes.cookingTimeMinutes,
+        ingredients: recentlyViewedRecipes.ingredients,
+        steps: recentlyViewedRecipes.steps,
+        tips: recentlyViewedRecipes.tips,
+        videoDescription: recentlyViewedRecipes.videoDescription,
+        noRecipeFoundMessage: recentlyViewedRecipes.noRecipeFoundMessage,
+        videoDurationSeconds: recentlyViewedRecipes.videoDurationSeconds,
+        videoViews: recentlyViewedRecipes.videoViews,
+        personalNotes: recentlyViewedRecipes.personalNotes,
+        savedRecipeId: recentlyViewedRecipes.savedRecipeId,
       })
       .from(recentlyViewedRecipes)
       .where(eq(recentlyViewedRecipes.userId, user.id))
@@ -105,7 +149,7 @@ export async function addRecentlyViewedRecipe(params: AddRecentlyViewedParams): 
       .where(
         and(
           eq(recentlyViewedRecipes.userId, user.id),
-          eq(recentlyViewedRecipes.recipeName, params.recipeName),
+          eq(recentlyViewedRecipes.videoTitle, params.recipeName),
           eq(recentlyViewedRecipes.channelName, params.channelName || "")
         )
       )
@@ -126,11 +170,22 @@ export async function addRecentlyViewedRecipe(params: AddRecentlyViewedParams): 
       console.log("[addRecentlyViewedRecipe] 새 레시피 추가 시작")
       const insertResult = await db.insert(recentlyViewedRecipes).values({
         userId: user.id,
+        videoTitle: params.recipeName,
         recipeName: params.recipeName,
         youtubeUrl: params.youtubeUrl,
         videoThumbnail: params.videoThumbnail,
-        channelName: params.channelName,
+        channelName: params.channelName || "",
         summary: params.summary,
+        difficulty: params.difficulty,
+        cookingTimeMinutes: params.cookingTimeMinutes,
+        ingredients: params.ingredients,
+        steps: params.steps,
+        tips: params.tips,
+        videoDescription: params.videoDescription,
+        noRecipeFoundMessage: params.noRecipeFoundMessage,
+        videoDurationSeconds: params.videoDurationSeconds,
+        videoViews: params.videoViews,
+        savedRecipeId: params.savedRecipeId,
         viewedAt: new Date(),
       })
       console.log("[addRecentlyViewedRecipe] 새 레시피 추가 완료:", insertResult)

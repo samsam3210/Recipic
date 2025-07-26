@@ -76,7 +76,7 @@ export function RecipeDetailClient({ recipe, videoId }: RecipeDetailClientProps)
     }
   }, [youtubePlayer, isPlayerReady])
 
-  // 최근 본 레시피에 기록
+  // 최근 본 레시피에 기록 (완전한 레시피 데이터 포함, 저장된 레시피 ID 포함)
   useEffect(() => {
     if (recipe.recipeName) {
       addRecentlyViewedRecipe({
@@ -84,12 +84,19 @@ export function RecipeDetailClient({ recipe, videoId }: RecipeDetailClientProps)
         youtubeUrl: recipe.youtubeUrl || '',
         videoThumbnail: recipe.videoThumbnail || '',
         channelName: recipe.channelName || '',
-        summary: recipe.summary || ''
+        summary: recipe.summary || '',
+        difficulty: recipe.difficulty,
+        cookingTimeMinutes: recipe.cookingTimeMinutes,
+        ingredients: recipe.ingredients,
+        steps: recipe.steps,
+        tips: recipe.tips,
+        videoDurationSeconds: recipe.videoDurationSeconds,
+        savedRecipeId: recipe.id, // 저장된 레시피 ID 포함
       }).catch(error => {
         console.warn("[RecipeDetailClient] Failed to add to recently viewed:", error)
       })
     }
-  }, [recipe.recipeName, recipe.youtubeUrl, recipe.videoThumbnail, recipe.channelName, recipe.summary])
+  }, [recipe])
 
   // 개인 메모 저장 핸들러
   const handleSavePersonalNotes = async (notes: string | null) => {

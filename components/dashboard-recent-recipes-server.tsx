@@ -14,6 +14,23 @@ interface RecentlyViewedRecipeProps {
   channelName?: string
   summary?: string
   viewedAt: Date
+  difficulty?: string
+  cookingTimeMinutes?: number
+  ingredients?: Array<{ name: string; quantity: number | string; unit: string; notes: string }>
+  steps?: Array<{
+    stepNumber: number
+    description: string
+    notes: string
+    ingredientsUsed: string[]
+    youtubeTimestampSecond: number
+  }>
+  tips?: Array<{ title: string; description: string }>
+  videoDescription?: string
+  noRecipeFoundMessage?: string
+  videoDurationSeconds?: number
+  videoViews?: number
+  personalNotes?: string
+  savedRecipeId?: string | null
 }
 
 interface DashboardRecentRecipesServerProps {
@@ -43,35 +60,41 @@ export function DashboardRecentRecipesServer({ recipes }: DashboardRecentRecipes
               <div 
                 className="cursor-pointer"
                 onClick={() => {
-                  // 최근 본 레시피 데이터를 localStorage에 저장하고 temp-preview로 이동
-                  const previewData = {
-                    youtubeUrl: recipe.youtubeUrl,
-                    videoInfo: {
-                      videoId: '',
-                      videoTitle: recipe.recipeName,
-                      videoThumbnail: recipe.videoThumbnail || '',
-                      channelName: recipe.channelName || '',
-                      videoDurationSeconds: 0,
-                      videoViews: 0,
-                      videoDescription: '',
-                      transcriptText: '',
-                      structuredTranscript: [],
-                      hasSubtitles: true
-                    },
-                    extractedRecipe: {
-                      recipeName: recipe.recipeName,
-                      summary: recipe.summary || '',
-                      difficulty: '',
-                      cookingTimeMinutes: 0,
-                      ingredients: [],
-                      steps: [],
-                      tips: [],
-                      personalNotes: null,
-                      noRecipeFoundMessage: null
+                  // savedRecipeId가 있으면 레시피 상세 페이지로, 없으면 프리뷰 페이지로
+                  if (recipe.savedRecipeId) {
+                    // 저장된 레시피 → 레시피 상세 페이지
+                    window.location.href = `/recipe/${recipe.savedRecipeId}`
+                  } else {
+                    // 프리뷰만 본 레시피 → 프리뷰 페이지 (완전한 레시피 데이터 사용)
+                    const previewData = {
+                      youtubeUrl: recipe.youtubeUrl,
+                      videoInfo: {
+                        videoId: '',
+                        videoTitle: recipe.recipeName,
+                        videoThumbnail: recipe.videoThumbnail || '',
+                        channelName: recipe.channelName || '',
+                        videoDurationSeconds: recipe.videoDurationSeconds || 0,
+                        videoViews: recipe.videoViews || 0,
+                        videoDescription: recipe.videoDescription || '',
+                        transcriptText: '',
+                        structuredTranscript: [],
+                        hasSubtitles: true
+                      },
+                      extractedRecipe: {
+                        recipeName: recipe.recipeName,
+                        summary: recipe.summary || '',
+                        difficulty: recipe.difficulty || '',
+                        cookingTimeMinutes: recipe.cookingTimeMinutes || 0,
+                        ingredients: recipe.ingredients || [],
+                        steps: recipe.steps || [],
+                        tips: recipe.tips || [],
+                        personalNotes: recipe.personalNotes,
+                        noRecipeFoundMessage: recipe.noRecipeFoundMessage
+                      }
                     }
+                    localStorage.setItem('recipick_pending_recipe', JSON.stringify(previewData))
+                    window.location.href = '/temp-preview'
                   }
-                  localStorage.setItem('recipick_pending_recipe', JSON.stringify(previewData))
-                  window.location.href = '/temp-preview'
                 }}
               >
                 <div className="flex flex-col md:flex-row p-4">
