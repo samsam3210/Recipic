@@ -37,6 +37,12 @@ export function RecipeCard({
   folders,
   currentFolderId,
 }: RecipeCardProps) {
+  console.log('[RecipeCard] 렌더링:', { 
+    id, 
+    recipeName, 
+    hasVideoThumbnail: !!videoThumbnail,
+    timestamp: new Date().toISOString()
+  })
   return (
     <Card className="h-full flex flex-col hover:shadow-lg transition-shadow duration-200 relative">
       <Link href={`/recipe/${id}`} className="block h-full">
