@@ -166,7 +166,7 @@ export default function RecipePreviewPage() {
     }
   }, [searchParams, router, toast])
 
-  // 사용자가 로그인된 상태에서 프리뷰 페이지 진입 시 최근 본 레시피 캐시 무효화
+  // 사용자가 로그인된 상태에서 프리뷰 페이지 진입 시 최근 본 레시피 캐시 무효화 후 prefetch
   useEffect(() => {
     if (user && previewData?.extractedRecipe?.recipeName) {
       console.log("[RecipePreviewPage] User logged in with preview data, invalidating recently viewed cache")

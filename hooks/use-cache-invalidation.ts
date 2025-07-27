@@ -2,6 +2,7 @@
 
 import { useQueryClient } from "@tanstack/react-query"
 import { useCallback } from "react"
+import { getRecentlyViewedRecipes } from "@/lib/actions/recently-viewed"
 
 // 복잡한 액션별 캐시 무효화 매핑 (여러 캐시를 동시에 무효화해야 하는 경우)
 const COMPLEX_INVALIDATION_MAP = {
@@ -20,12 +21,26 @@ export function useCacheInvalidation() {
 
   // === 단순 케이스: 직접 무효화 (대부분 케이스) ===
   
-  // 최근 본 레시피 무효화 (레시피 조회, 프리뷰 진입 시)
-  const invalidateRecentlyViewed = useCallback((userId: string) => {
+  // 최근 본 레시피 무효화 후 새 데이터 prefetch (레시피 조회, 프리뷰 진입 시)
+  const invalidateRecentlyViewed = useCallback(async (userId: string) => {
+    // 1. 기존 캐시 무효화
     queryClient.invalidateQueries({
       queryKey: ['recently-viewed-recipes', userId]
     })
     console.log(`[Cache] Invalidated recently-viewed-recipes for user ${userId}`)
+    
+    // 2. 즉시 새 데이터 prefetch하여 캐시에 저장
+    try {
+      await queryClient.prefetchQuery({
+        queryKey: ['recently-viewed-recipes', userId],
+        queryFn: () => getRecentlyViewedRecipes(),
+        staleTime: 10 * 60 * 1000, // 10분
+        gcTime: 20 * 60 * 1000, // 20분
+      })
+      console.log(`[Cache] Prefetched new recently-viewed-recipes for user ${userId}`)
+    } catch (error) {
+      console.warn(`[Cache] Failed to prefetch recently-viewed-recipes for user ${userId}:`, error)
+    }
   }, [queryClient])
 
   // 사용자 프로필 무효화 (프로필 수정 시)

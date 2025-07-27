@@ -97,9 +97,9 @@ export function RecipeDetailClient({ recipe, videoId }: RecipeDetailClientProps)
         tips: recipe.tips,
         videoDurationSeconds: recipe.videoDurationSeconds,
         savedRecipeId: recipe.id, // 저장된 레시피 ID 포함
-      }).then(() => {
-        // 최근 본 레시피 캐시 무효화 (홈 화면에서 즉시 반영)
-        invalidateRecentlyViewed(user.id)
+      }).then(async () => {
+        // 최근 본 레시피 캐시 무효화 후 새 데이터 prefetch (홈 화면에서 즉시 반영)
+        await invalidateRecentlyViewed(user.id)
       }).catch(error => {
         console.warn("[RecipeDetailClient] Failed to add to recently viewed:", error)
       })

@@ -569,57 +569,68 @@ function SearchPageContent() {
     <div className="flex flex-col min-h-screen">
       <Header />
 
-      <main className="flex-1 flex flex-col lg:flex-row py-8 px-4 md:px-6 lg:px-8 max-w-7xl mx-auto w-full gap-8 pb-20 lg:pb-8">
-        <aside className="hidden lg:block lg:w-1/5 lg:min-w-[200px] lg:border-r lg:pr-8">
-          <h2 className="text-2xl font-bold text-gray-900 mb-6">메뉴</h2>
-          <SidebarNav items={dashboardSidebarNavItems} />
-        </aside>
+      <main className="flex-1 w-full px-4 sm:px-6 lg:px-8 py-4 sm:py-8">
+        <div className="max-w-7xl mx-auto">
+          <div className="flex flex-col lg:flex-row gap-8 pb-20 lg:pb-8">
+            <aside className="hidden lg:block lg:w-1/5 lg:min-w-[200px] lg:border-r lg:pr-8">
+              <h2 className="text-2xl font-bold text-gray-900 mb-6">메뉴</h2>
+              <SidebarNav items={dashboardSidebarNavItems} />
+            </aside>
 
-        <section className="flex-1 lg:w-4/5 space-y-8">
-          <form onSubmit={handleSearch} className="w-full max-w-2xl mx-auto">
-            <div className="flex items-center bg-white rounded-xl border border-gray-200 shadow-sm hover:shadow-md hover:border-gray-300 transition-all duration-200 focus-within:border-[#6BA368] focus-within:ring-2 focus-within:ring-[#6BA368]/10">
-              <div className="flex items-center pl-4 md:pl-6">
-                <Search className="w-4 h-4 md:w-5 md:h-5 text-gray-400" />
+            <section className="flex-1 lg:w-4/5 space-y-8">
+              {/* 검색 폼과 인기 키워드를 감싸는 컨테이너 */}
+              <div className="lg:max-w-4xl">
+                {/* 검색 제목 */}
+                <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-3 sm:mb-6">
+                  레시피 검색
+                </h1>
+
+                {/* 검색 폼 */}
+                <form onSubmit={handleSearch} className="mb-8">
+                  <div className="flex items-center bg-white rounded-xl border border-gray-200 shadow-sm hover:shadow-md hover:border-gray-300 transition-all duration-200 focus-within:border-[#6BA368] focus-within:ring-2 focus-within:ring-[#6BA368]/10">
+                    <div className="flex items-center pl-4 md:pl-6">
+                      <Search className="w-4 h-4 md:w-5 md:h-5 text-gray-400" />
+                    </div>
+                    <Input
+                      ref={inputRef}
+                      type="text"
+                      placeholder="요리 키워드 또는 URL 입력"
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="h-12 md:h-14 flex-grow px-3 md:px-4 border-none focus:outline-none focus:ring-0 focus-visible:ring-0 focus-visible:ring-offset-0 text-base md:text-lg placeholder:text-gray-400 bg-transparent rounded-xl"
+                      disabled={isSearching}
+                      autoComplete="off"
+                      autoCorrect="off"
+                      autoCapitalize="off"
+                      spellCheck="false"
+                    />
+                    <Button
+                      type="submit"
+                      disabled={!searchQuery.trim() || isSearching}
+                      className={`m-2 h-8 md:h-10 px-4 md:px-6 ${
+                        !searchQuery.trim() || isSearching
+                          ? "bg-gray-400"
+                          : "bg-[#6BA368] hover:bg-[#5a8f57]"
+                      } text-white rounded-lg font-medium transition-colors duration-200 text-sm md:text-base`}
+                    >
+                      {isSearching ? (
+                        <Loader2 className="w-4 h-4 md:w-5 md:h-5 animate-spin" />
+                      ) : (
+                        <>
+                          <span>검색</span>
+                          <ArrowRight className="w-4 h-4 md:w-5 md:h-5 ml-1 md:ml-2" />
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                </form>
+
+                {/* 인기 키워드 컴포넌트 */}
+                <PopularKeywords 
+                  onKeywordClick={handleKeywordClick} 
+                  isSearching={isSearching} 
+                />
               </div>
-              <Input
-                ref={inputRef}
-                type="text"
-                placeholder="요리 키워드 또는 URL 입력"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="h-12 md:h-14 flex-grow px-3 md:px-4 border-none focus:outline-none focus:ring-0 focus-visible:ring-0 focus-visible:ring-offset-0 text-base md:text-lg placeholder:text-gray-400 bg-transparent rounded-xl"
-                disabled={isSearching}
-                autoComplete="off"
-                autoCorrect="off"
-                autoCapitalize="off"
-                spellCheck="false"
-              />
-              <Button
-                type="submit"
-                disabled={!searchQuery.trim() || isSearching}
-                className={`m-2 h-8 md:h-10 px-4 md:px-6 ${
-                  !searchQuery.trim() || isSearching
-                    ? "bg-gray-400"
-                    : "bg-[#6BA368] hover:bg-[#5a8f57]"
-                } text-white rounded-lg font-medium transition-colors duration-200 text-sm md:text-base`}
-              >
-                {isSearching ? (
-                  <Loader2 className="w-4 h-4 md:w-5 md:h-5 animate-spin" />
-                ) : (
-                  <>
-                    <span>검색</span>
-                    <ArrowRight className="w-4 h-4 md:w-5 md:h-5 ml-1 md:ml-2" />
-                  </>
-                )}
-              </Button>
-            </div>
-          </form>
-
-          {/* ✨ 새로 추가: 인기 키워드 */}
-          <PopularKeywords 
-            onKeywordClick={handleKeywordClick} 
-            isSearching={isSearching} 
-          />
 
           {searchResults.length > 0 && (
             <div className="space-y-4">
@@ -717,8 +728,10 @@ function SearchPageContent() {
                 ))}
                 </div>
             </div>
-            )}
-        </section>
+              )}
+            </section>
+          </div>
+        </div>
       </main>
 
       <BottomNavigation />
