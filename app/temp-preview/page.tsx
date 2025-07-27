@@ -59,7 +59,7 @@ export default function RecipePreviewPage() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const { toast, dismiss } = useToast()
-  const { invalidateRecentlyViewed } = useCacheInvalidation()
+  const { invalidateRecentlyViewed, invalidateByAction } = useCacheInvalidation()
   
   // 기존 토스트를 dismiss하고 새 토스트를 표시하는 헬퍼 함수
   const showToast = (toastProps: Parameters<typeof toast>[0]) => {
@@ -226,6 +226,10 @@ export default function RecipePreviewPage() {
             description: "나의 레시피에서 확인 가능합니다.",
           })
           localStorage.removeItem(PENDING_RECIPE_STORAGE_KEY) // 저장 완료 후 로컬 스토리지 제거
+          // 레시피 저장 후 캐시 무효화
+          if (user) {
+            invalidateByAction('RECIPE_SAVED', user.id)
+          }
           // router.replace 제거 - 페이지 이동하지 않음
           console.log("[RecipePreviewPage] Recipe saved successfully.")
         } else {
