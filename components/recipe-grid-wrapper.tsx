@@ -176,11 +176,22 @@ export default function RecipeGridWrapper({
     
     // 옵티미스틱 업데이트: UI에서 즉시 제거
     const currentData = queryClient.getQueryData(['paginated-recipes', userId, selectedFolderId, page, limit])
+    console.log('[RecipeGridWrapper] 삭제 전 캐시 데이터:', {
+      hasCurrentData: !!currentData,
+      currentRecipeCount: currentData && typeof currentData === 'object' && 'recipes' in currentData ? (currentData.recipes as any[]).length : 0,
+      recipeToDeleteId: recipeToDelete.id
+    })
+    
     if (currentData && typeof currentData === 'object' && 'recipes' in currentData) {
       const updatedData = {
         ...currentData,
         recipes: (currentData.recipes as any[]).filter(recipe => recipe.id !== recipeToDelete.id)
       }
+      console.log('[RecipeGridWrapper] 옵티미스틱 업데이트 적용:', {
+        beforeCount: (currentData.recipes as any[]).length,
+        afterCount: updatedData.recipes.length,
+        removedRecipeId: recipeToDelete.id
+      })
       queryClient.setQueryData(['paginated-recipes', userId, selectedFolderId, page, limit], updatedData)
     }
     

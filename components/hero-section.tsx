@@ -554,7 +554,7 @@ export function HeroSection({ user, isDashboard = false, cachedUsageData = null,
         "relative w-full flex flex-col items-center justify-center text-center",
         isDashboard
           ? "py-6 px-4 md:px-6 space-y-6" // 박스 상자 관련 클래스 제거
-          : "py-20 md:py-32 lg:py-48 bg-white",
+          : "py-20 md:py-32 lg:py-48 xl:py-[150px] bg-white",
       )}
     >
       {!isDashboard && (

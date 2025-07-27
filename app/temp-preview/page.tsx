@@ -228,7 +228,12 @@ export default function RecipePreviewPage() {
           localStorage.removeItem(PENDING_RECIPE_STORAGE_KEY) // 저장 완료 후 로컬 스토리지 제거
           // 레시피 저장 후 캐시 무효화
           if (user) {
+            console.log('[TempPreview] 레시피 저장 완료, 캐시 무효화 시작:', {
+              userId: user.id,
+              savedRecipeId: result.recipeId
+            })
             invalidateByAction('RECIPE_SAVED', user.id)
+            console.log('[TempPreview] 캐시 무효화 완료')
           }
           // router.replace 제거 - 페이지 이동하지 않음
           console.log("[RecipePreviewPage] Recipe saved successfully.")

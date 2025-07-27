@@ -90,7 +90,10 @@ export function CachedRecipes({
   // 폴더 목록 쿼리 (중간 캐시)
   const { data: foldersResult, isLoading, isInitialLoading, isFetching } = useQuery({
     queryKey: ['recipes-folders', user.id],
-    queryFn: () => fetchRecipesAndFolders(user.id, null),
+    queryFn: () => {
+      console.log('[CachedRecipes] 폴더 쿼리 실행 중...')
+      return fetchRecipesAndFolders(user.id, null)
+    },
     initialData: { folders: initialFolders, error: null },
     staleTime: 10 * 60 * 1000, // 10분
     gcTime: 20 * 60 * 1000, // 20분
@@ -110,9 +113,17 @@ export function CachedRecipes({
     shouldShowSkeleton,
     isLoading,
     isFetching,
+    isInitialLoading,
     isActuallyLoading,
     foldersLength: folders?.length || 0,
-    hasUserProfile: !!userProfile
+    hasUserProfile: !!userProfile,
+    foldersResultData: foldersResult,
+    foldersError: foldersResult?.error
+  })
+  
+  console.log('[CachedRecipes] 폴더 데이터 상세:', {
+    folders: folders?.map(f => ({ id: f.id, name: f.name, recipeCount: f.recipeCount })),
+    foldersSource: foldersResult ? 'query' : 'initial'
   })
 
   const cacheData: RecipesCacheData = {

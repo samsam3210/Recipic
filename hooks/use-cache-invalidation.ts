@@ -64,13 +64,24 @@ export function useCacheInvalidation() {
   const invalidateByAction = useCallback((actionType: keyof typeof COMPLEX_INVALIDATION_MAP, userId: string) => {
     const cachesToInvalidate = COMPLEX_INVALIDATION_MAP[actionType]
     
+    console.log(`[Cache] 캐시 무효화 시작 - ${actionType}:`, {
+      userId,
+      cachesToInvalidate,
+      timestamp: new Date().toISOString()
+    })
+    
     cachesToInvalidate.forEach(cacheType => {
+      const beforeInvalidation = queryClient.getQueryData([cacheType, userId])
+      console.log(`[Cache] ${cacheType} 무효화 전 데이터:`, beforeInvalidation)
+      
       queryClient.invalidateQueries({
         queryKey: [cacheType, userId]
       })
+      
+      console.log(`[Cache] ${cacheType} 무효화 완료`)
     })
     
-    console.log(`[Cache] Invalidated caches for ${actionType}:`, cachesToInvalidate)
+    console.log(`[Cache] 전체 캐시 무효화 완료 - ${actionType}`)
   }, [queryClient])
 
   // 전체 캐시 무효화 (로그아웃 시)
