@@ -120,9 +120,18 @@ export function useSearchCache(userId?: string) {
     }
   }, [])
 
-  // 스크롤 위치 복원
+  // 스크롤 위치 복원 (레시피 상세/프리뷰에서 돌아올 때만)
   const restoreScrollPosition = useCallback(() => {
     try {
+      // 이전 페이지 URL 확인
+      const referrer = document.referrer
+      const isFromRecipePage = referrer.includes('/recipe/') || referrer.includes('/temp-preview')
+      
+      if (!isFromRecipePage) {
+        console.log('[SearchCache] 레시피 페이지에서 오지 않았으므로 스크롤 복원 안함')
+        return
+      }
+      
       const cached = sessionStorage.getItem(CACHE_KEY)
       if (cached) {
         const data: SearchCache = JSON.parse(cached)

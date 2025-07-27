@@ -41,23 +41,13 @@ export function RecipesContent({ userId, selectedFolderId, page, limit }: {
           
           <CurrentFolderTitle folders={cachedFolders} />
 
-          <Suspense
-            fallback={
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                {Array.from({ length: 6 }).map((_, i) => (
-                  <RecipeCardSkeleton key={i} />
-                ))}
-              </div>
-            }
-          >
-            <RecipeGridWrapper
-              userId={userId}
-              initialSelectedFolderId={selectedFolderId}
-              initialPage={page}
-              initialLimit={limit}
-              initialFolders={cachedFolders}
-            />
-          </Suspense>
+          <RecipeGridWrapper
+            userId={userId}
+            initialSelectedFolderId={selectedFolderId}
+            initialPage={page}
+            initialLimit={limit}
+            initialFolders={cachedFolders}
+          />
         </section>
       </main>
       
