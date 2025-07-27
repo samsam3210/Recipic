@@ -22,11 +22,19 @@ interface ExtractionContextType {
   isCompleted: boolean
   completedRecipeId: string | null
   isCollapsed: boolean
+  showDuplicateModal: boolean
+  duplicateInfo: {
+    type: 'saved' | 'recently_viewed' | null
+    recipeId?: string
+    recentlyViewedData?: any
+  }
   startExtraction: (url: string) => Promise<void>
   dismissExtraction: () => void
   navigateToRecipe: () => void
   toggleCollapse: () => void
   stopExtraction: () => void
+  handleDuplicateConfirm: () => void
+  handleDuplicateCancel: () => void
 }
 
 const ExtractionContext = createContext<ExtractionContextType | undefined>(undefined)
@@ -46,7 +54,14 @@ export function ExtractionProvider({ children }: { children: React.ReactNode }) 
   const [isCompleted, setIsCompleted] = useState(false)
   const [completedRecipeId, setCompletedRecipeId] = useState<string | null>(null)
   const [isCollapsed, setIsCollapsed] = useState(false)
+  const [showDuplicateModal, setShowDuplicateModal] = useState(false)
+  const [duplicateInfo, setDuplicateInfo] = useState<{
+    type: 'saved' | 'recently_viewed' | null
+    recipeId?: string
+    recentlyViewedData?: any
+  }>({ type: null })
   const abortControllerRef = useRef<AbortController | null>(null)
+  const pendingUrlRef = useRef<string | null>(null)
   
   const router = useRouter()
   const { toast } = useToast()
@@ -69,7 +84,10 @@ export function ExtractionProvider({ children }: { children: React.ReactNode }) 
     setIsCompleted(false)
     setCompletedRecipeId(null)
     setIsCollapsed(false)
+    setShowDuplicateModal(false)
+    setDuplicateInfo({ type: null })
     abortControllerRef.current = null
+    pendingUrlRef.current = null
   }, [])
 
   const startExtraction = useCallback(async (url: string) => {
@@ -90,10 +108,14 @@ export function ExtractionProvider({ children }: { children: React.ReactNode }) 
     abortControllerRef.current = new AbortController()
 
     try {
-      // Step 1: 사용량 체크 및 증가
+      // Step 1: 사용량 체크 - 더 상세한 검증
       const usageCheckResult = await checkDailyUsage()
-      if (!usageCheckResult.isAllowed) {
-        throw new Error("일일 사용량을 초과했습니다.")
+      if (!usageCheckResult.success) {
+        throw new Error(usageCheckResult.message || "사용량 확인에 실패했습니다.")
+      }
+      
+      if (!usageCheckResult.isAllowed || usageCheckResult.limitExceeded) {
+        throw new Error(`일일 사용량 한도(${usageCheckResult.currentCount}/5)를 초과했습니다. 내일 다시 시도해주세요.`)
       }
 
       // Step 1: YouTube 영상 확인
@@ -117,48 +139,16 @@ export function ExtractionProvider({ children }: { children: React.ReactNode }) 
       // 통합 중복 체크 (저장된 레시피 -> 최근 본 레시피 순서)
       const duplicateCheckResult = await checkAllDuplicates(videoMetadata.videoTitle, videoMetadata.channelName)
       if (duplicateCheckResult.isDuplicate) {
-        if (duplicateCheckResult.type === 'saved' && duplicateCheckResult.recipeId) {
-          // 저장된 레시피 발견 시 해당 레시피 페이지로 이동
-          updateStepStatus(1, 'completed', "기존 저장된 레시피를 찾았습니다.")
-          setIsCompleted(true)
-          setCompletedRecipeId(duplicateCheckResult.recipeId)
-          return
-        } else if (duplicateCheckResult.type === 'recently_viewed' && duplicateCheckResult.recentlyViewedData) {
-          // 최근 본 레시피 발견 시 temp-preview로 이동하도록 데이터 설정
-          const previewData = {
-            youtubeUrl: url,
-            videoInfo: {
-              videoId: videoMetadata.videoId || '',
-              videoTitle: duplicateCheckResult.recentlyViewedData.recipeName,
-              videoThumbnail: duplicateCheckResult.recentlyViewedData.videoThumbnail || '',
-              channelName: duplicateCheckResult.recentlyViewedData.channelName || '',
-              videoDurationSeconds: 0,
-              videoViews: 0,
-              videoDescription: '',
-              transcriptText: '',
-              structuredTranscript: [],
-              hasSubtitles: true
-            },
-            extractedRecipe: {
-              recipeName: duplicateCheckResult.recentlyViewedData.recipeName,
-              summary: duplicateCheckResult.recentlyViewedData.summary || '',
-              // 기본값들
-              difficulty: '',
-              cookingTimeMinutes: 0,
-              ingredients: [],
-              steps: [],
-              tips: [],
-              personalNotes: null,
-              noRecipeFoundMessage: null
-            }
-          }
-          localStorage.setItem('recipick_pending_recipe', JSON.stringify(previewData))
-          
-          updateStepStatus(1, 'completed', "최근 본 레시피를 찾았습니다.")
-          setIsCompleted(true)
-          setCompletedRecipeId('temp-preview')
-          return
-        }
+        // 중복 발견시 모달 표시하고 사용자 확인 대기
+        setDuplicateInfo({
+          type: duplicateCheckResult.type,
+          recipeId: duplicateCheckResult.recipeId,
+          recentlyViewedData: duplicateCheckResult.recentlyViewedData
+        })
+        setShowDuplicateModal(true)
+        pendingUrlRef.current = url
+        updateStepStatus(1, 'completed', "중복 레시피를 확인했습니다.")
+        return
       }
 
       updateStepStatus(1, 'completed', "영상 정보 확인 완료")
@@ -246,6 +236,14 @@ export function ExtractionProvider({ children }: { children: React.ReactNode }) 
       }
       localStorage.setItem('recipick_pending_recipe', JSON.stringify(previewData))
 
+      // 사용량 증가 (레시피 추출 성공시)
+      try {
+        await incrementDailyUsage()
+      } catch (usageError) {
+        console.error("Failed to increment daily usage:", usageError)
+        // 사용량 증가 실패해도 레시피 추출은 완료로 처리
+      }
+
       updateStepStatus(4, 'completed', "미리보기 준비 완료")
       setIsCompleted(true)
       // temp-preview로 이동하기 위해 특별한 상태 설정
@@ -303,6 +301,52 @@ export function ExtractionProvider({ children }: { children: React.ReactNode }) 
     resetExtraction()
   }, [resetExtraction, toast])
 
+  const handleDuplicateConfirm = useCallback(() => {
+    if (duplicateInfo.type === 'saved' && duplicateInfo.recipeId) {
+      // 저장된 레시피로 이동
+      router.push(`/recipe/${duplicateInfo.recipeId}`)
+    } else if (duplicateInfo.type === 'recently_viewed' && duplicateInfo.recentlyViewedData) {
+      // 최근 본 레시피 데이터로 temp-preview 이동
+      const previewData = {
+        youtubeUrl: pendingUrlRef.current || '',
+        videoInfo: {
+          videoId: '',
+          videoTitle: duplicateInfo.recentlyViewedData.recipeName,
+          videoThumbnail: duplicateInfo.recentlyViewedData.videoThumbnail || '',
+          channelName: duplicateInfo.recentlyViewedData.channelName || '',
+          videoDurationSeconds: 0,
+          videoViews: 0,
+          videoDescription: '',
+          transcriptText: '',
+          structuredTranscript: [],
+          hasSubtitles: true
+        },
+        extractedRecipe: {
+          recipeName: duplicateInfo.recentlyViewedData.recipeName,
+          summary: duplicateInfo.recentlyViewedData.summary || '',
+          difficulty: '',
+          cookingTimeMinutes: 0,
+          ingredients: [],
+          steps: [],
+          tips: [],
+          personalNotes: null,
+          noRecipeFoundMessage: null
+        }
+      }
+      localStorage.setItem('recipick_pending_recipe', JSON.stringify(previewData))
+      router.push('/temp-preview')
+    }
+    resetExtraction()
+  }, [duplicateInfo, router, resetExtraction])
+
+  const handleDuplicateCancel = useCallback(() => {
+    setShowDuplicateModal(false)
+    setDuplicateInfo({ type: null })
+    pendingUrlRef.current = null
+    // 추출 상태는 유지하여 사용자가 새로운 URL을 입력할 수 있게 함
+    setIsExtracting(false)
+  }, [])
+
   return (
     <ExtractionContext.Provider value={{
       isExtracting,
@@ -313,11 +357,15 @@ export function ExtractionProvider({ children }: { children: React.ReactNode }) 
       isCompleted,
       completedRecipeId,
       isCollapsed,
+      showDuplicateModal,
+      duplicateInfo,
       startExtraction,
       dismissExtraction,
       navigateToRecipe,
       toggleCollapse,
-      stopExtraction
+      stopExtraction,
+      handleDuplicateConfirm,
+      handleDuplicateCancel
     }}>
       {children}
     </ExtractionContext.Provider>

@@ -5,6 +5,7 @@ import { X, CheckCircle, AlertCircle, ChevronDown, ChevronUp } from 'lucide-reac
 import { cn } from '@/lib/utils'
 import { useExtraction } from '@/contexts/extraction-context'
 import { Button } from '@/components/ui/button'
+import { CustomDialog } from './custom-dialog'
 
 export function FloatingExtractionBar() {
   const { 
@@ -16,10 +17,14 @@ export function FloatingExtractionBar() {
     isCompleted,
     completedRecipeId,
     isCollapsed,
+    showDuplicateModal,
+    duplicateInfo,
     dismissExtraction,
     navigateToRecipe,
     toggleCollapse,
-    stopExtraction
+    stopExtraction,
+    handleDuplicateConfirm,
+    handleDuplicateCancel
   } = useExtraction()
   
   const [isVisible, setIsVisible] = useState(false)
@@ -222,6 +227,41 @@ export function FloatingExtractionBar() {
           </div>
         )}
       </div>
+
+      {/* 중복 레시피 확인 모달 */}
+      <CustomDialog
+        isOpen={showDuplicateModal}
+        onClose={handleDuplicateCancel}
+        title={
+          duplicateInfo.type === 'saved' 
+            ? "이미 저장된 레시피예요." 
+            : "최근에 본 레시피예요."
+        }
+        description={
+          duplicateInfo.type === 'saved'
+            ? "레시피 정보 화면으로 바로 이동할까요?"
+            : "레시피를 다시 확인하시겠어요?"
+        }
+        className="sm:max-w-[425px]"
+        footerClassName="flex flex-col sm:flex-row sm:justify-end gap-2 mt-4"
+        footer={
+          <>
+            <Button 
+              variant="outline" 
+              onClick={handleDuplicateCancel}
+              className="flex-1 py-3 px-4 text-sm font-medium text-gray-600 bg-white hover:bg-gray-50 border border-gray-300 rounded-xl transition-all duration-300"
+            >
+              아니요, 다른 영상 입력할게요
+            </Button>
+            <Button 
+              onClick={handleDuplicateConfirm}
+              className="flex-1 py-3 px-4 text-sm font-semibold bg-gray-900 hover:bg-black text-white rounded-xl transition-all duration-300 shadow-lg"
+            >
+              {duplicateInfo.type === 'saved' ? "예, 기존 레시피 보기" : "예, 레시피 확인하기"}
+            </Button>
+          </>
+        }
+      />
     </div>
   )
 }

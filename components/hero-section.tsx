@@ -9,7 +9,7 @@ import type { User } from "@supabase/supabase-js"
 import { useToast } from "@/hooks/use-toast"
 import { ConsentModal } from "./consent-modal"
 import { cn } from "@/lib/utils"
-import { checkDailyUsage, incrementDailyUsage } from "@/lib/actions/usage"
+import { checkDailyUsage } from "@/lib/actions/usage"
 import { checkDuplicateRecipe, checkAndSaveRecipe } from "@/lib/actions/recipe"
 import { DAILY_LIMIT } from "@/lib/constants/usage"
 import { Badge } from "@/components/ui/badge"
@@ -386,19 +386,7 @@ export function HeroSection({ user, isDashboard = false }: HeroSectionProps) {
       // Step 3: Process and save the extracted recipe
       const saveResult = await processAndSaveRecipe(youtubeUrl, videoInfo, extractedRecipe, forceReExtract)
       
-      // 사용량 증가는 레시피 추출 성공 시에만 (저장 여부와 관계없이)
-      // 로그인된 사용자이고, 관리자가 아니며, 강제 재추출이 아닌 경우
-      if (user && !isAdmin && !forceReExtract) {
-        await incrementDailyUsage()
-        // 사용량 증가 후 UI 업데이트를 위해 최신 사용량 다시 가져오기
-        const updatedUsage = await checkDailyUsage()
-        if (updatedUsage.success) {
-          setCurrentUsageCount(updatedUsage.currentCount || 0)
-        } else {
-          console.error("[HeroSection] Failed to update usage count after increment:", updatedUsage.message)
-          setCurrentUsageCount(0) // Fallback to 0 on failure
-        }
-      }
+      // 사용량 증가는 이제 extraction-context.tsx에서 처리됨
     } catch (error: any) {
       if (error.name === "AbortError") {
         console.log("[HeroSection] Fetch aborted by user.")
@@ -600,19 +588,19 @@ export function HeroSection({ user, isDashboard = false }: HeroSectionProps) {
               <div className="space-y-6 animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
                 <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold tracking-tight leading-[1.1]">
                   <span className="text-gray-900">
-                    YouTube 요리영상,
+                    YouTube 요리영상을
                   </span>
                   <br />
                   <span className="text-gray-900">
-                    5초만에 내 레시피북이 됩니다
+                    내 레시피북으로 정리해드려요
                   </span>
                 </h1>
                 
                 {/* 서브텍스트 */}
                 <p className="text-lg md:text-xl text-gray-600 max-w-2xl mx-auto leading-relaxed">
-                  수많은 요리사들이 Recipick과 함께합니다.
+                  영상 보면서 메모하느라 힘드셨죠?
                   <br />
-                  지금 바로 당신의 요리 경험을 업그레이드하세요!
+                  이제 영상만 찾으면 깔끔한 레시피로 정리해드려요
                 </p>
               </div>
 
@@ -626,7 +614,7 @@ export function HeroSection({ user, isDashboard = false }: HeroSectionProps) {
                     </div>
                     <Input
                       id="youtube-url"
-                      placeholder="레시피 검색하기"
+                      placeholder="요리영상을 검색하거나 URL을 입력해 주세요"
                       value={youtubeUrl}
                       onChange={(e) => setYoutubeUrl(e.target.value)}
                       className="h-16 flex-grow px-4 border-none focus:outline-none focus:ring-0 focus-visible:ring-0 focus-visible:ring-offset-0 text-lg placeholder:text-gray-400 bg-transparent rounded-2xl"
@@ -641,7 +629,7 @@ export function HeroSection({ user, isDashboard = false }: HeroSectionProps) {
                         <Loader2 className="w-5 h-5 animate-spin" />
                       ) : (
                         <>
-                          <span>추출하기</span>
+                          <span>레시피 만들기</span>
                           <ArrowRight className="w-5 h-5 ml-2" />
                         </>
                       )}
@@ -655,10 +643,10 @@ export function HeroSection({ user, isDashboard = false }: HeroSectionProps) {
             <div className="animate-fade-in-up" style={{ animationDelay: '0.6s' }}>
               <div className="text-center mb-12">
                 <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-                  신뢰할 수 있는 <span className="text-gray-900">성능</span>
+                  이미 많은 분들이 <span className="text-gray-900">사용하고 계세요</span>
                 </h2>
                 <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-                  수천 명의 사용자가 검증한 정확하고 빠른 레시피 추출 서비스
+                  매일 수백 개의 요리영상이 깔끔한 레시피로 변하고 있어요
                 </p>
               </div>
               
@@ -672,10 +660,10 @@ export function HeroSection({ user, isDashboard = false }: HeroSectionProps) {
                 />
                 <StatCard
                   icon={Clock}
-                  end={5}
+                  end={30}
                   suffix="초"
-                  title="평균 추출 시간"
-                  description="빠르고 효율적인 AI 기술로 즉시 결과를 제공합니다"
+                  title="평균 처리 시간"
+                  description="AI가 영상을 꼼꼼히 분석해서 정확한 레시피를 만들어드려요"
                 />
                 <StatCard
                   icon={Target}
