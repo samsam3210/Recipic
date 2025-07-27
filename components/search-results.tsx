@@ -76,24 +76,12 @@ export default function SearchResults({ query }: SearchResultsProps) {
   }
 
   const handleVideoSelect = async (video: SearchResult) => {
-    if (isExtracting) {
-      toast({
-        title: "알림",
-        description: "이전 레시피 추출이 완료된 후 시작 가능합니다.",
-        variant: "default"
-      })
-      return
-    }
-
+    // ExtractionContext에서 중복 체크 및 토스트 표시를 처리하므로 여기서는 제거
     try {
       await startExtraction(video.youtubeUrl)
     } catch (error: any) {
+      // ExtractionContext에서 이미 오류 처리를 하므로 여기서는 로그만 출력
       console.error("Recipe extraction error:", error)
-      toast({
-        title: "레시피 추출 실패",
-        description: error.message || "레시피 추출 중 오류가 발생했습니다.",
-        variant: "destructive"
-      })
     }
   }
 

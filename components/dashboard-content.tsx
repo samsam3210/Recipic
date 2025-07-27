@@ -10,7 +10,7 @@ import { dashboardSidebarNavItems } from "@/lib/navigation"
 import { useDashboardCache } from "@/components/cached-dashboard"
 
 export function DashboardContent({ user, userProfile }: { user: any, userProfile: any }) {
-  const { userProfile: cachedUserProfile, recentRecipes: cachedRecentRecipes, isLoading } = useDashboardCache()
+  const { userProfile: cachedUserProfile, recentRecipes: cachedRecentRecipes, usageData, isLoading } = useDashboardCache()
   const userName = cachedUserProfile?.nickname || userProfile.nickname
   
   return (
@@ -34,7 +34,7 @@ export function DashboardContent({ user, userProfile }: { user: any, userProfile
             <h2 className="text-3xl md:text-4xl font-bold text-gray-800 my-0">어떤 레시피를 알려드릴까요?</h2>
           </div>
 
-          <HeroSection user={user} isDashboard={true} />
+          <HeroSection user={user} isDashboard={true} cachedUsageData={usageData} />
 
           <DashboardRecentRecipesServer recipes={cachedRecentRecipes} />
         </section>

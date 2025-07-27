@@ -4,11 +4,16 @@ import { createContext, useContext } from "react"
 import { useQuery } from "@tanstack/react-query"
 import { getRecentlyViewedRecipes } from "@/lib/actions/recently-viewed"
 import { getOrCreateUserProfile } from "@/lib/actions/user"
+import { checkDailyUsage } from "@/lib/actions/usage"
 import type { User } from "@supabase/supabase-js"
 
 interface DashboardCacheData {
   userProfile: any
   recentRecipes: any[]
+  usageData: {
+    currentCount: number
+    isAdmin: boolean
+  } | null
   isLoading: boolean
 }
 
@@ -26,6 +31,7 @@ interface CachedDashboardProps {
   user: User
   initialUserProfile: any
   initialRecentRecipes: any[]
+  initialUsageData?: { currentCount: number; isAdmin: boolean } | null
   children: React.ReactNode
 }
 
@@ -33,6 +39,7 @@ export function CachedDashboard({
   user, 
   initialUserProfile, 
   initialRecentRecipes, 
+  initialUsageData = null,
   children 
 }: CachedDashboardProps) {
   // 사용자 프로필 쿼리 (긴 캐시)
@@ -55,11 +62,26 @@ export function CachedDashboard({
     refetchOnWindowFocus: false, // 탭 복귀 시 자동 갱신 비활성화
   })
 
+  // 사용량 데이터 쿼리 (중간 캐시)
+  const { data: usageResult } = useQuery({
+    queryKey: ['daily-usage', user.id],
+    queryFn: () => checkDailyUsage(),
+    initialData: initialUsageData ? { success: true, currentCount: initialUsageData.currentCount, isAdmin: initialUsageData.isAdmin } : null,
+    staleTime: 2 * 60 * 1000, // 2분 (사용량은 자주 변경될 수 있음)
+    gcTime: 5 * 60 * 1000, // 5분
+    refetchOnWindowFocus: false,
+  })
+
   const recentRecipes = recentlyViewedResult?.success ? recentlyViewedResult.recipes || [] : []
+  const usageData = usageResult?.success ? {
+    currentCount: usageResult.currentCount || 0,
+    isAdmin: usageResult.isAdmin || false
+  } : initialUsageData
 
   const cacheData: DashboardCacheData = {
     userProfile: userProfile || initialUserProfile,
     recentRecipes,
+    usageData,
     isLoading: false // 항상 캐시된 데이터 즉시 표시 (검색 결과와 동일)
   }
 

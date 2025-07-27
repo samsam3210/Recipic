@@ -70,9 +70,10 @@ const PENDING_RECIPE_STORAGE_KEY = "recipick_pending_recipe"
 interface HeroSectionProps {
   user: User | null
   isDashboard?: boolean
+  cachedUsageData?: { currentCount: number; isAdmin: boolean } | null
 }
 
-export function HeroSection({ user, isDashboard = false }: HeroSectionProps) {
+export function HeroSection({ user, isDashboard = false, cachedUsageData = null }: HeroSectionProps) {
   const [youtubeUrl, setYoutubeUrl] = useState("")
   const [showDuplicateModal, setShowDuplicateModal] = useState(false)
   const [duplicateRecipeId, setDuplicateRecipeId] = useState<string | null>(null)
@@ -80,9 +81,11 @@ export function HeroSection({ user, isDashboard = false }: HeroSectionProps) {
   const [showRecipeUnavailableModal, setShowRecipeUnavailableModal] = useState(false)
   const [recipeUnavailableMessage, setRecipeUnavailableMessage] = useState("")
   const [showUsageLimitModal, setShowUsageLimitModal] = useState(false)
-  const [currentUsageCount, setCurrentUsageCount] = useState<number | null>(null)
-  const [isAdmin, setIsAdmin] = useState(false)
-  const [isLoadingUsage, setIsLoadingUsage] = useState(true)
+  const [currentUsageCount, setCurrentUsageCount] = useState<number | null>(
+    cachedUsageData?.currentCount ?? null
+  )
+  const [isAdmin, setIsAdmin] = useState(cachedUsageData?.isAdmin ?? false)
+  const [isLoadingUsage, setIsLoadingUsage] = useState(!cachedUsageData) // 캐시된 데이터가 있으면 로딩 안함
   const { startExtraction, isExtracting } = useExtraction()
   const router = useRouter()
   const handleInputClick = () => {
@@ -160,7 +163,7 @@ export function HeroSection({ user, isDashboard = false }: HeroSectionProps) {
 
   useEffect(() => {
     const fetchUsage = async () => {
-      if (user) {
+      if (user && !cachedUsageData) { // 캐시된 데이터가 없을 때만 API 호출
         setIsLoadingUsage(true)
         try {
           const result = await checkDailyUsage()
@@ -180,14 +183,15 @@ export function HeroSection({ user, isDashboard = false }: HeroSectionProps) {
           // 더 빠르게 로딩 완료 처리 (100ms 지연으로 자연스럽게)
           setTimeout(() => setIsLoadingUsage(false), 100)
         }
-      } else {
+      } else if (!user) {
         setCurrentUsageCount(0)
         setIsAdmin(false)
         setIsLoadingUsage(false)
       }
+      // 캐시된 데이터가 있으면 이미 초기화되어 있으므로 추가 처리 불필요
     }
     fetchUsage()
-  }, [user])
+  }, [user, cachedUsageData])
 
   // MODIFIED: 함수 분리 - 유튜브 메타데이터만 가져오는 함수
   const fetchAndCheckVideoMetadata = async (url: string, forceReExtract: boolean): Promise<VideoMetadata> => {
