@@ -1,6 +1,6 @@
 "use client"
 
-import { createContext, useContext } from "react"
+import { createContext, useContext, useState, useEffect } from "react"
 import { useQuery } from "@tanstack/react-query"
 import { fetchRecipesAndFolders } from "@/lib/actions/recipe-fetch"
 import { getUserProfile } from "@/lib/actions/user"
@@ -39,6 +39,13 @@ export function CachedRecipes({
   initialUserProfile,
   children 
 }: CachedRecipesProps) {
+  // 최초 마운트 감지
+  const [isFirstMount, setIsFirstMount] = useState(true)
+  
+  useEffect(() => {
+    const timer = setTimeout(() => setIsFirstMount(false), 100)
+    return () => clearTimeout(timer)
+  }, [])
   // 사용자 프로필 쿼리 (긴 캐시)
   const { data: profileResult } = useQuery({
     queryKey: ['user-profile', user.id],
@@ -68,8 +75,8 @@ export function CachedRecipes({
   const folders = foldersResult?.folders || initialFolders
   const userProfile = profileResult?.profile || initialUserProfile
 
-  // 실제 로딩 상태 계산 - 초기 로딩이나 데이터 fetching 중일 때만 로딩
-  const isActuallyLoading = (isInitialLoading && !folders.length) || (isFetching && !isInitialLoading)
+  // 실제 로딩 상태 계산 - 최초 마운트 시 짧은 로딩 표시
+  const isActuallyLoading = isFirstMount || isLoading || isFetching
 
   const cacheData: RecipesCacheData = {
     folders,

@@ -16,7 +16,9 @@ export function SettingsContent({ user }: { user: any }) {
       {/* 헤더 */}
       <Header user={user} userProfile={cachedUserProfile} />
       
-      <main className="flex-1 flex flex-col lg:flex-row py-8 px-4 md:px-6 lg:px-8 max-w-7xl mx-auto w-full gap-8 pb-20 lg:pb-8">
+      <main className="flex-1 w-full px-4 sm:px-6 lg:px-8 py-4 sm:py-8">
+        <div className="max-w-7xl mx-auto">
+          <div className="flex flex-col lg:flex-row gap-8 pb-20 lg:pb-8">
         {/* 왼쪽 사이드바 (데스크톱만) */}
         <aside className="hidden lg:block lg:w-1/5 lg:min-w-[200px] lg:border-r lg:pr-8">
           {/* 메인 네비게이션 */}
@@ -32,7 +34,9 @@ export function SettingsContent({ user }: { user: any }) {
           <Suspense fallback={<div>로딩 중...</div>}>
             <ProfileSettingsForm user={user} userProfile={cachedUserProfile} />
           </Suspense>
-        </section>
+          </section>
+          </div>
+        </div>
       </main>
       
       {/* 하단 네비게이션 (모바일만) */}

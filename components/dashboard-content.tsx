@@ -19,7 +19,9 @@ export function DashboardContent({ user }: { user: any }) {
       {/* 헤더 - 네비게이션 메뉴 없음 */}
       <Header />
       
-      <main className="flex-1 flex flex-col lg:flex-row py-8 px-4 md:px-6 lg:px-8 max-w-7xl mx-auto w-full gap-8 pb-20 lg:pb-8">
+      <main className="flex-1 w-full px-4 sm:px-6 lg:px-8 py-4 sm:py-8">
+        <div className="max-w-7xl mx-auto">
+          <div className="flex flex-col lg:flex-row gap-8 pb-20 lg:pb-8">
         <HandlePendingRecipe user={user} />
 
         {/* 왼쪽 사이드바 (데스크톱만) */}
@@ -47,7 +49,9 @@ export function DashboardContent({ user }: { user: any }) {
           <HeroSection user={user} isDashboard={true} cachedUsageData={usageData} isLoading={isLoading} />
 
           <DashboardRecentRecipesServer recipes={cachedRecentRecipes} isLoading={isLoading} />
-        </section>
+          </section>
+          </div>
+        </div>
       </main>
       
       {/* 하단 네비게이션 (모바일만) */}
