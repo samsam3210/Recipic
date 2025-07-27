@@ -75,14 +75,31 @@ export default function RecipeGridWrapper({
   const cacheKey = ['paginated-recipes', userId, selectedFolderId, page, initialLimit]
   const cachedData = queryClient.getQueryData(cacheKey)
   const hasInitialData = initialRecipesData && page === 1
-  const isQueryEnabled = !cachedData && !hasInitialData // 캐시와 초기 데이터 모두 체크
+  
+  // 캐시 무효화 후에도 쿼리가 실행되도록 수정
+  // cachedData가 있어도 stale하면 새로 가져와야 함
+  const queryState = queryClient.getQueryState(cacheKey)
+  const isDataStale = !queryState || queryState.isInvalidated || queryState.dataUpdatedAt === 0
+  const isQueryEnabled = !cachedData || isDataStale || (!hasInitialData && page > 1)
 
   console.log('[RecipeGridWrapper] 캐시 상태:', {
     hasCachedData: !!cachedData,
     hasInitialData,
     isQueryEnabled,
     page,
-    cacheKey: JSON.stringify(cacheKey)
+    cacheKey: JSON.stringify(cacheKey),
+    queryState: {
+      exists: !!queryState,
+      isInvalidated: queryState?.isInvalidated,
+      dataUpdatedAt: queryState?.dataUpdatedAt,
+      status: queryState?.status
+    },
+    isDataStale,
+    debugValues: {
+      noCachedData: !cachedData,
+      staleData: isDataStale,
+      pageCondition: !hasInitialData && page > 1
+    }
   });
 
   // React Query로 레시피 데이터 관리 (캐시가 없을 때만 활성화)

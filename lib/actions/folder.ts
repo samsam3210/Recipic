@@ -96,7 +96,9 @@ export async function moveRecipeToFolder(recipeId: string, folderId: string | nu
     }
 
     // 기존 연결 제거 (레시피는 하나의 폴더에만 속한다고 가정)
-    await db.delete(recipeFolders).where(eq(recipeFolders.recipeId, recipeId)).execute()
+    console.log('[moveRecipeToFolder] 기존 연결 제거 시작:', { recipeId })
+    const deleteResult = await db.delete(recipeFolders).where(eq(recipeFolders.recipeId, recipeId)).execute()
+    console.log('[moveRecipeToFolder] 기존 연결 제거 완료:', deleteResult)
 
     if (folderId) {
       // 폴더가 존재하는지 확인
