@@ -581,26 +581,26 @@ export function HeroSection({ user, isDashboard = false }: HeroSectionProps) {
               {/* 서브헤딩 */}
               <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-green-50 to-emerald-50 border border-green-100/50 animate-fade-in-up">
                 <Sparkles className="w-4 h-4 text-[#6BA368]" />
-                <span className="text-sm font-medium text-[#5a8f57]">AI 기반 레시피 추출 서비스</span>
+                <span className="text-sm font-medium text-[#5a8f57]">AI 레시피 추출 서비스</span>
               </div>
 
               {/* 메인 헤드라인 */}
               <div className="space-y-6 animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
                 <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold tracking-tight leading-[1.1]">
                   <span className="text-gray-900">
-                    YouTube 요리영상을
+                    YouTube 요리영상,
                   </span>
                   <br />
                   <span className="text-gray-900">
-                    내 레시피북으로 정리해드려요
+                    나의 레시피북이됩니다
                   </span>
                 </h1>
                 
                 {/* 서브텍스트 */}
                 <p className="text-lg md:text-xl text-gray-600 max-w-2xl mx-auto leading-relaxed">
-                  영상 보면서 메모하느라 힘드셨죠?
+                  뒤로 돌리고, 멈추고, 메모할 필요 없어요.
                   <br />
-                  이제 영상만 찾으면 깔끔한 레시피로 정리해드려요
+                  영상을 알려주시면 레시피를 알려드릴게요.
                 </p>
               </div>
 
@@ -614,10 +614,10 @@ export function HeroSection({ user, isDashboard = false }: HeroSectionProps) {
                     </div>
                     <Input
                       id="youtube-url"
-                      placeholder="요리영상을 검색하거나 URL을 입력해 주세요"
+                      placeholder="요리 키워드 또는 URL 입력"
                       value={youtubeUrl}
                       onChange={(e) => setYoutubeUrl(e.target.value)}
-                      className="h-12 md:h-16 flex-grow px-3 md:px-4 border-none focus:outline-none focus:ring-0 focus-visible:ring-0 focus-visible:ring-offset-0 text-sm md:text-lg placeholder:text-gray-400 bg-transparent rounded-2xl"
+                      className="h-12 md:h-16 flex-grow px-3 md:px-4 border-none focus:outline-none focus:ring-0 focus-visible:ring-0 focus-visible:ring-offset-0 text-base md:text-lg placeholder:text-gray-400 bg-transparent rounded-2xl"
                       disabled={isExtracting}
                     />
                     <Button
@@ -644,10 +644,10 @@ export function HeroSection({ user, isDashboard = false }: HeroSectionProps) {
             <div className="animate-fade-in-up" style={{ animationDelay: '0.6s' }}>
               <div className="text-center mb-12">
                 <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-                  이미 많은 분들이 <span className="text-[#6BA368]">사용하고 계세요</span>
+                  이미 많은 분들이 <span className="text-[#6BA368]">사용해요</span>
                 </h2>
                 <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-                  매일 수백 개의 요리영상이 깔끔한 레시피로 변하고 있어요
+                  매일 수많은 영상들이 레시피로 변하고 있어요.
                 </p>
               </div>
               

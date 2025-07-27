@@ -410,7 +410,7 @@ export default function SearchPage() {
                 placeholder="URL 또는 키워드 입력"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="flex-1 h-12 md:h-14 pl-6 md:pl-8 pr-16 md:pr-20 text-sm md:text-base border-none focus-visible:ring-0 focus-visible:ring-offset-0 rounded-l-full rounded-r-none placeholder:text-gray-400"
+                className="flex-1 h-12 md:h-14 pl-6 md:pl-8 pr-16 md:pr-20 text-base md:text-base border-none focus-visible:ring-0 focus-visible:ring-offset-0 rounded-l-full rounded-r-none placeholder:text-gray-400"
                 disabled={isSearching}
               />
 
