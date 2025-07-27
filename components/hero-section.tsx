@@ -836,6 +836,7 @@ export function HeroSection({ user, isDashboard = false }: HeroSectionProps) {
         titleClassName="text-xl font-semibold text-gray-900"
         descriptionClassName="text-base leading-relaxed"
         footerClassName="flex justify-center mt-4 w-full"
+        overlayClassName="bg-black/60"
         hideCloseButton={true}
         footer={
           <Button
