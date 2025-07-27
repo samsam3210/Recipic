@@ -190,8 +190,11 @@ export async function checkDuplicateRecipe(videoTitle: string, channelName: stri
   const userId = await getUserId()
 
   if (!userId) {
+    console.log("[checkDuplicateRecipe] 사용자 인증 실패")
     return { success: false, message: "사용자 인증에 실패했습니다.", isDuplicate: false }
   }
+
+  console.log("[checkDuplicateRecipe] 시작 - userId:", userId, "videoTitle:", videoTitle, "channelName:", channelName)
 
   // 비디오 타이틀이나 채널 이름이 없는 경우, 중복 확인을 수행할 수 없습니다.
   if (!videoTitle || !channelName) {
@@ -212,7 +215,10 @@ export async function checkDuplicateRecipe(videoTitle: string, channelName: stri
       .where(and(eq(recipes.userId, userId), eq(recipes.videoTitle, videoTitle), eq(recipes.channelName, channelName)))
       .limit(1)
 
+    console.log("[checkDuplicateRecipe] 저장된 레시피 검색 결과:", existingRecipe.length, "개")
+
     if (existingRecipe.length > 0) {
+      console.log("[checkDuplicateRecipe] 저장된 레시피 중복 발견:", existingRecipe[0].id)
       return {
         success: true,
         message: "이미 저장된 레시피입니다.",
@@ -220,6 +226,7 @@ export async function checkDuplicateRecipe(videoTitle: string, channelName: stri
         recipeId: existingRecipe[0].id,
       }
     } else {
+      console.log("[checkDuplicateRecipe] 저장된 레시피 중복 없음")
       return { success: true, message: "중복 레시피가 없습니다.", isDuplicate: false }
     }
   } catch (error) {

@@ -114,7 +114,8 @@ export function ExtractionProvider({ children }: { children: React.ReactNode }) 
         throw new Error(usageCheckResult.message || "사용량 확인에 실패했습니다.")
       }
       
-      if (!usageCheckResult.isAllowed || usageCheckResult.limitExceeded) {
+      // 관리자가 아닌 경우에만 사용량 제한 체크
+      if (!usageCheckResult.isAdmin && (!usageCheckResult.isAllowed || usageCheckResult.limitExceeded)) {
         throw new Error(`일일 사용량 한도(${usageCheckResult.currentCount}/5)를 초과했습니다. 내일 다시 시도해주세요.`)
       }
 

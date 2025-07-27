@@ -237,12 +237,17 @@ export async function checkRecentlyViewedDuplicate(
   }
 }> {
   try {
+    console.log("[checkRecentlyViewedDuplicate] 시작 - videoTitle:", videoTitle, "channelName:", channelName)
+    
     const supabase = createClient()
     const { data: { user }, error: authError } = await supabase.auth.getUser()
 
     if (authError || !user) {
+      console.log("[checkRecentlyViewedDuplicate] 인증 실패")
       return { isDuplicate: false }
     }
+
+    console.log("[checkRecentlyViewedDuplicate] 사용자 ID:", user.id)
 
     const duplicate = await db
       .select({
@@ -256,19 +261,23 @@ export async function checkRecentlyViewedDuplicate(
       .where(
         and(
           eq(recentlyViewedRecipes.userId, user.id),
-          eq(recentlyViewedRecipes.recipeName, videoTitle),
+          eq(recentlyViewedRecipes.videoTitle, videoTitle),
           eq(recentlyViewedRecipes.channelName, channelName)
         )
       )
       .limit(1)
 
+    console.log("[checkRecentlyViewedDuplicate] 검색 결과:", duplicate.length, "개")
+
     if (duplicate.length > 0) {
+      console.log("[checkRecentlyViewedDuplicate] 중복 발견:", duplicate[0])
       return {
         isDuplicate: true,
         recentlyViewedData: duplicate[0]
       }
     }
 
+    console.log("[checkRecentlyViewedDuplicate] 중복 없음")
     return { isDuplicate: false }
   } catch (error) {
     console.error("[checkRecentlyViewedDuplicate] Error:", error)
