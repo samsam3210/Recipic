@@ -91,11 +91,14 @@ export function CachedDashboard({
     userId: user.id
   });
 
+  // 실제 로딩 상태 계산 - 핵심 데이터가 없으면 로딩 중
+  const isActuallyLoading = !userProfile || isLoading || isInitialLoading
+
   const cacheData: DashboardCacheData = {
     userProfile,
     recentRecipes,
     usageData,
-    isLoading: false // 항상 캐시된 데이터 즉시 표시 (검색 결과와 동일)
+    isLoading: isActuallyLoading // 실제 로딩 상태 반영
   }
 
   return (

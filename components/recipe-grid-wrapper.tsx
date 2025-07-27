@@ -115,12 +115,15 @@ export default function RecipeGridWrapper({
     actualIsLoading,
     isFetching,
     hasCachedData: !!cachedData,
+    hasInitialData,
     hasRecipesData: !!finalData,
     recipesCount: finalData?.recipes?.length || 0,
     selectedFolderId,
     page,
     queryStatus: status,
-    isQueryEnabled
+    isQueryEnabled,
+    cachedDataType: cachedData ? 'cached' : 'none',
+    finalDataSource: cachedData ? 'cache' : recipesData ? 'query' : hasInitialData ? 'initial' : 'none'
   });
 
   const allRecipes = finalData?.recipes || []

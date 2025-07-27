@@ -8,6 +8,7 @@ import { BottomNavigation } from "@/components/bottom-navigation"
 import { SidebarNav } from "@/components/sidebar-nav"
 import { dashboardSidebarNavItems } from "@/lib/navigation"
 import { useDashboardCache } from "@/components/cached-dashboard"
+import { Skeleton } from "@/components/ui/skeleton"
 
 export function DashboardContent({ user }: { user: any }) {
   const { userProfile: cachedUserProfile, recentRecipes: cachedRecentRecipes, usageData, isLoading } = useDashboardCache()
@@ -30,8 +31,17 @@ export function DashboardContent({ user }: { user: any }) {
         <section className="flex-1 lg:w-4/5 space-y-6">
           {/* 인사말과 캐치프레이즈 문구 */}
           <div className="space-y-0">
-            <h1 className="text-3xl md:text-4xl font-extrabold text-gray-900 my-0">안녕하세요, {userName}님! 👋</h1>
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-800 my-0">어떤 레시피를 알려드릴까요?</h2>
+            {isLoading ? (
+              <>
+                <Skeleton className="h-10 w-80 mb-2" />
+                <Skeleton className="h-10 w-96" />
+              </>
+            ) : (
+              <>
+                <h1 className="text-3xl md:text-4xl font-extrabold text-gray-900 my-0">안녕하세요, {userName}님! 👋</h1>
+                <h2 className="text-3xl md:text-4xl font-bold text-gray-800 my-0">어떤 레시피를 알려드릴까요?</h2>
+              </>
+            )}
           </div>
 
           <HeroSection user={user} isDashboard={true} cachedUsageData={usageData} />
