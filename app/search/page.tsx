@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useRef } from "react"
+import { useState, useEffect, useRef, Suspense } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { Search, Loader2, ArrowUpDown, ChevronDown, Clock, Eye } from "lucide-react"
 import { Input } from "@/components/ui/input"
@@ -91,7 +91,7 @@ function formatDuration(duration: string): string {
 
 type SortType = 'uploadDate' | 'viewCount'
 
-export default function SearchPage() {
+function SearchPageContent() {
   const [searchQuery, setSearchQuery] = useState("")
   const [searchResults, setSearchResults] = useState<SearchResult[]>([])
   const [isSearching, setIsSearching] = useState(false)
@@ -656,5 +656,13 @@ export default function SearchPage() {
         message="유튜브 링크를 자동으로 불러왔어요!"
       />
     </div>
+  )
+}
+
+export default function SearchPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <SearchPageContent />
+    </Suspense>
   )
 }
