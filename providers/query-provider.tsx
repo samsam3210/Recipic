@@ -13,7 +13,7 @@ export function QueryProvider({ children }: { children: React.ReactNode }) {
             // 기본 설정
             staleTime: 5 * 60 * 1000, // 5분 - 이 시간동안은 fresh로 취급
             gcTime: 30 * 60 * 1000, // 30분 - 캐시 보관 시간 (구 cacheTime)
-            refetchOnWindowFocus: true, // 탭 복귀시 자동 갱신
+            refetchOnWindowFocus: false, // 탭 복귀시 자동 갱신 비활성화 (검색 결과처럼 캐시 우선)
             refetchOnReconnect: true, // 네트워크 재연결시 자동 갱신
             retry: 1, // 실패시 1번 재시도
             retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000), // 지수적 백오프

@@ -46,6 +46,7 @@ export function CachedRecipes({
     initialData: { profile: initialUserProfile },
     staleTime: 30 * 60 * 1000, // 30분
     gcTime: 60 * 60 * 1000, // 1시간
+    refetchOnWindowFocus: false, // 탭 복귀 시 자동 갱신 비활성화
   })
 
   // 폴더 목록 쿼리 (중간 캐시)
@@ -55,6 +56,7 @@ export function CachedRecipes({
     initialData: { folders: initialFolders, error: null },
     staleTime: 10 * 60 * 1000, // 10분
     gcTime: 20 * 60 * 1000, // 20분
+    refetchOnWindowFocus: false, // 탭 복귀 시 자동 갱신 비활성화
   })
 
   const folders = foldersResult?.folders || initialFolders
@@ -63,7 +65,7 @@ export function CachedRecipes({
   const cacheData: RecipesCacheData = {
     folders,
     userProfile,
-    isLoading
+    isLoading: isLoading && !foldersResult // 초기 로딩만 표시, 백그라운드 갱신 시엔 표시 안함
   }
 
   return (

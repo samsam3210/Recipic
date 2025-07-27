@@ -42,15 +42,17 @@ export function CachedDashboard({
     initialData: initialUserProfile,
     staleTime: 30 * 60 * 1000, // 30분
     gcTime: 60 * 60 * 1000, // 1시간
+    refetchOnWindowFocus: false, // 탭 복귀 시 자동 갱신 비활성화
   })
 
   // 최근 본 레시피 쿼리 (짧은 캐시)
-  const { data: recentlyViewedResult, isLoading } = useQuery({
+  const { data: recentlyViewedResult, isLoading, isFetching } = useQuery({
     queryKey: ['recently-viewed-recipes', user.id],
     queryFn: () => getRecentlyViewedRecipes(),
     initialData: { success: true, recipes: initialRecentRecipes },
     staleTime: 5 * 60 * 1000, // 5분
     gcTime: 10 * 60 * 1000, // 10분
+    refetchOnWindowFocus: false, // 탭 복귀 시 자동 갱신 비활성화
   })
 
   const recentRecipes = recentlyViewedResult?.success ? recentlyViewedResult.recipes || [] : []
@@ -58,7 +60,7 @@ export function CachedDashboard({
   const cacheData: DashboardCacheData = {
     userProfile: userProfile || initialUserProfile,
     recentRecipes,
-    isLoading
+    isLoading: isLoading && !recentlyViewedResult // 초기 로딩만 표시, 백그라운드 갱신 시엔 표시 안함
   }
 
   return (
