@@ -278,31 +278,32 @@ function SearchPageContent() {
     }
   }, [searchParams, getCache, getRecentCache, restoreScrollPosition, router])
 
-  // 사용자 정보는 UserContext에서 관리됨
-
-  // 자동 포커스 처리
+  // 검색결과가 없을 때 자동 포커싱
   useEffect(() => {
+    const urlQuery = searchParams.get('q')
     const shouldFocus = searchParams.get('focus') === 'true'
-    if (shouldFocus && inputRef.current) {
+    
+    // 검색결과가 없고 포커스 요청이 있거나, 캐시도 없고 검색어도 없을 때 포커싱
+    const shouldAutoFocus = (shouldFocus) || 
+                           (!urlQuery && searchResults.length === 0 && !getRecentCache())
+    
+    if (shouldAutoFocus && inputRef.current) {
       // iOS 감지
       const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent)
       const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
       
       if (isIOS) {
-        // iOS는 즉시 포커스 시도 (여러 방법 시도)
+        // iOS는 즉시 포커스 시도
         const focusInput = () => {
           if (inputRef.current) {
             inputRef.current.focus()
-            // 추가 방법들
             inputRef.current.setAttribute('readonly', 'readonly')
             inputRef.current.focus()
             inputRef.current.removeAttribute('readonly')
           }
         }
         
-        // 즉시 시도
         focusInput()
-        // 한 번 더 시도
         setTimeout(focusInput, 100)
       } else {
         const delay = isMobile ? 300 : 100
@@ -311,7 +312,10 @@ function SearchPageContent() {
         }, delay)
       }
     }
-  }, [searchParams])
+  }, [searchParams, searchResults.length, getRecentCache])
+
+  // 사용자 정보는 UserContext에서 관리됨
+
 
   // 클립보드에서 YouTube URL 자동 감지
   useEffect(() => {
