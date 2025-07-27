@@ -1,5 +1,6 @@
 "use client"
 
+import { createContext, useContext } from "react"
 import { useQuery } from "@tanstack/react-query"
 import { fetchRecipesAndFolders } from "@/lib/actions/recipe-fetch"
 import { getUserProfile } from "@/lib/actions/user"
@@ -7,16 +8,28 @@ import type { User } from "@supabase/supabase-js"
 import type { folders as foldersSchema } from "@/lib/db/schema"
 import type { Profile } from "@/lib/db/schema"
 
+interface RecipesCacheData {
+  folders: (typeof foldersSchema.$inferSelect)[]
+  userProfile: Profile | null
+  isLoading: boolean
+}
+
+const RecipesCacheContext = createContext<RecipesCacheData | null>(null)
+
+export function useRecipesCache() {
+  const context = useContext(RecipesCacheContext)
+  if (!context) {
+    throw new Error('useRecipesCache must be used within CachedRecipes')
+  }
+  return context
+}
+
 interface CachedRecipesProps {
   user: User
   selectedFolderId: string | null
   initialFolders: (typeof foldersSchema.$inferSelect)[]
   initialUserProfile: Profile | null
-  children: (data: {
-    folders: (typeof foldersSchema.$inferSelect)[]
-    userProfile: Profile | null
-    isLoading: boolean
-  }) => React.ReactNode
+  children: React.ReactNode
 }
 
 export function CachedRecipes({ 
@@ -47,13 +60,15 @@ export function CachedRecipes({
   const folders = foldersResult?.folders || initialFolders
   const userProfile = profileResult?.profile || initialUserProfile
 
+  const cacheData: RecipesCacheData = {
+    folders,
+    userProfile,
+    isLoading
+  }
+
   return (
-    <>
-      {children({
-        folders,
-        userProfile,
-        isLoading
-      })}
-    </>
+    <RecipesCacheContext.Provider value={cacheData}>
+      {children}
+    </RecipesCacheContext.Provider>
   )
 }

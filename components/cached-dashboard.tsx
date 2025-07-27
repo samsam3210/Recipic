@@ -1,20 +1,32 @@
 "use client"
 
-import { useEffect, useState } from "react"
-import { useQuery, useQueryClient } from "@tanstack/react-query"
+import { createContext, useContext } from "react"
+import { useQuery } from "@tanstack/react-query"
 import { getRecentlyViewedRecipes } from "@/lib/actions/recently-viewed"
 import { getOrCreateUserProfile } from "@/lib/actions/user"
 import type { User } from "@supabase/supabase-js"
+
+interface DashboardCacheData {
+  userProfile: any
+  recentRecipes: any[]
+  isLoading: boolean
+}
+
+const DashboardCacheContext = createContext<DashboardCacheData | null>(null)
+
+export function useDashboardCache() {
+  const context = useContext(DashboardCacheContext)
+  if (!context) {
+    throw new Error('useDashboardCache must be used within CachedDashboard')
+  }
+  return context
+}
 
 interface CachedDashboardProps {
   user: User
   initialUserProfile: any
   initialRecentRecipes: any[]
-  children: (data: {
-    userProfile: any
-    recentRecipes: any[]
-    isLoading: boolean
-  }) => React.ReactNode
+  children: React.ReactNode
 }
 
 export function CachedDashboard({ 
@@ -43,13 +55,15 @@ export function CachedDashboard({
 
   const recentRecipes = recentlyViewedResult?.success ? recentlyViewedResult.recipes || [] : []
 
+  const cacheData: DashboardCacheData = {
+    userProfile: userProfile || initialUserProfile,
+    recentRecipes,
+    isLoading
+  }
+
   return (
-    <>
-      {children({
-        userProfile,
-        recentRecipes,
-        isLoading
-      })}
-    </>
+    <DashboardCacheContext.Provider value={cacheData}>
+      {children}
+    </DashboardCacheContext.Provider>
   )
 }

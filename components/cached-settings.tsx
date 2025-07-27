@@ -1,17 +1,30 @@
 "use client"
 
+import { createContext, useContext } from "react"
 import { useQuery } from "@tanstack/react-query"
 import { getOrCreateUserProfile } from "@/lib/actions/user"
 import type { User } from "@supabase/supabase-js"
 import type { Profile } from "@/lib/db/schema"
 
+interface SettingsCacheData {
+  userProfile: Profile
+  isLoading: boolean
+}
+
+const SettingsCacheContext = createContext<SettingsCacheData | null>(null)
+
+export function useSettingsCache() {
+  const context = useContext(SettingsCacheContext)
+  if (!context) {
+    throw new Error('useSettingsCache must be used within CachedSettings')
+  }
+  return context
+}
+
 interface CachedSettingsProps {
   user: User
   initialUserProfile: Profile
-  children: (data: {
-    userProfile: Profile
-    isLoading: boolean
-  }) => React.ReactNode
+  children: React.ReactNode
 }
 
 export function CachedSettings({ 
@@ -28,12 +41,14 @@ export function CachedSettings({
     gcTime: 60 * 60 * 1000, // 1시간
   })
 
+  const cacheData: SettingsCacheData = {
+    userProfile: userProfile || initialUserProfile,
+    isLoading
+  }
+
   return (
-    <>
-      {children({
-        userProfile: userProfile || initialUserProfile,
-        isLoading
-      })}
-    </>
+    <SettingsCacheContext.Provider value={cacheData}>
+      {children}
+    </SettingsCacheContext.Provider>
   )
 }
