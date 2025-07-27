@@ -119,6 +119,9 @@ export default function RecipeGridWrapper({
   // 실제 로딩 상태 - 데이터가 있으면 false, 없고 쿼리가 활성화되어 로딩 중이면 true
   const actualIsLoading = !finalData && isQueryEnabled && isLoadingRecipes
 
+  const allRecipes = finalData?.recipes || []
+  const hasMore = finalData?.hasMore || false
+
   console.log('[RecipeGridWrapper] 상태:', {
     originalIsLoading: isLoadingRecipes,
     actualIsLoading,
@@ -135,9 +138,6 @@ export default function RecipeGridWrapper({
     cachedDataType: cachedData ? 'cached' : 'none',
     finalDataSource: cachedData ? 'cache' : recipesData ? 'query+initial' : 'none'
   });
-
-  const allRecipes = finalData?.recipes || []
-  const hasMore = finalData?.hasMore || false
 
   // 레시피 삭제 관련 상태
   const [showDeleteConfirmDialog, setShowDeleteConfirmDialog] = useState(false)
