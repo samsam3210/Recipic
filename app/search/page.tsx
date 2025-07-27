@@ -18,6 +18,7 @@ import { PopularKeywords } from '@/components/popular-keywords'
 import { SearchGuide } from '@/components/search-guide'
 import { useExtraction } from '@/contexts/extraction-context'
 import { useSearchCache } from '@/hooks/use-search-cache'
+import { useUser } from '@/contexts/user-context'
 
 interface SearchResult {
   videoId: string
@@ -96,8 +97,7 @@ function SearchPageContent() {
   const [searchQuery, setSearchQuery] = useState("")
   const [searchResults, setSearchResults] = useState<SearchResult[]>([])
   const [isSearching, setIsSearching] = useState(false)
-  const [user, setUser] = useState<any>(null)
-  const [isUserLoading, setIsUserLoading] = useState(true)
+  const { user, isLoading: isUserLoading } = useUser()
   const [showClipboardToast, setShowClipboardToast] = useState(false)
   const [showUsageLimitModal, setShowUsageLimitModal] = useState(false)
   const [sortType, setSortType] = useState<SortType>('uploadDate')
@@ -278,22 +278,7 @@ function SearchPageContent() {
     }
   }, [searchParams, getCache, getRecentCache, restoreScrollPosition, router])
 
-  // 사용자 정보 가져오기
-  useEffect(() => {
-    const getUser = async () => {
-      setIsUserLoading(true)
-      try {
-        const supabase = createClient()
-        const { data: { user } } = await supabase.auth.getUser()
-        setUser(user)
-      } catch {
-        setUser(null)
-      } finally {
-        setIsUserLoading(false)
-      }
-    }
-    getUser()
-  }, [])
+  // 사용자 정보는 UserContext에서 관리됨
 
   // 자동 포커스 처리
   useEffect(() => {

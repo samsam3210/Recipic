@@ -60,7 +60,7 @@ export function CachedDashboard({
   const cacheData: DashboardCacheData = {
     userProfile: userProfile || initialUserProfile,
     recentRecipes,
-    isLoading: isInitialLoading // 최초 로딩만 표시 (초기 데이터가 있으면 false)
+    isLoading: false // 항상 캐시된 데이터 즉시 표시 (검색 결과와 동일)
   }
 
   return (

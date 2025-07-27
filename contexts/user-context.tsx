@@ -3,6 +3,7 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from "react"
 import { createClient } from "@/lib/supabase/client"
 import { getOrCreateUserProfile } from "@/lib/actions/user"
+import { useCacheInvalidation } from "@/hooks/use-cache-invalidation"
 import type { User } from "@supabase/supabase-js"
 import type { UserProfile } from "@/lib/actions/user"
 
@@ -22,6 +23,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null)
   const [isLoading, setIsLoading] = useState(true)
+  const { invalidateAll } = useCacheInvalidation()
 
   useEffect(() => {
     const supabase = createClient()
@@ -61,6 +63,8 @@ export function UserProvider({ children }: { children: ReactNode }) {
           }
         } else {
           setUserProfile(null)
+          // 로그아웃 시 모든 캐시 삭제
+          invalidateAll()
         }
         
         setIsLoading(false)
