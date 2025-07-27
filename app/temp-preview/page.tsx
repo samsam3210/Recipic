@@ -105,6 +105,7 @@ export default function RecipePreviewPage() {
           if (parsedStoredData?.extractedRecipe?.recipeName) {
             addRecentlyViewedRecipe({
               recipeName: parsedStoredData.extractedRecipe.recipeName,
+              videoTitle: parsedStoredData.videoInfo?.videoTitle, // 실제 YouTube 비디오 제목 추가
               youtubeUrl: parsedStoredData.youtubeUrl || '',
               videoThumbnail: parsedStoredData.videoInfo?.videoThumbnail,
               channelName: parsedStoredData.videoInfo?.channelName,

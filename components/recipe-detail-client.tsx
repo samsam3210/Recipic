@@ -81,6 +81,7 @@ export function RecipeDetailClient({ recipe, videoId }: RecipeDetailClientProps)
     if (recipe.recipeName) {
       addRecentlyViewedRecipe({
         recipeName: recipe.recipeName,
+        videoTitle: recipe.videoTitle || recipe.recipeName, // 실제 YouTube 비디오 제목 추가
         youtubeUrl: recipe.youtubeUrl || '',
         videoThumbnail: recipe.videoThumbnail || '',
         channelName: recipe.channelName || '',

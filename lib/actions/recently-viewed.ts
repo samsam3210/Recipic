@@ -34,6 +34,7 @@ interface RecentlyViewedRecipe {
 
 interface AddRecentlyViewedParams {
   recipeName: string
+  videoTitle?: string // 실제 YouTube 비디오 제목 (중복 체크용)
   youtubeUrl: string
   videoThumbnail?: string
   channelName?: string
@@ -141,15 +142,15 @@ export async function addRecentlyViewedRecipe(params: AddRecentlyViewedParams): 
 
     console.log("[addRecentlyViewedRecipe] 인증 성공, 사용자 ID:", user.id)
 
-    // 중복 확인 (recipe_name + channel_name 기준)
-    console.log("[addRecentlyViewedRecipe] 중복 확인 시작")
+    // 중복 확인 (videoTitle + channel_name 기준)
+    console.log("[addRecentlyViewedRecipe] 중복 확인 시작 - videoTitle:", params.videoTitle || params.recipeName, "channelName:", params.channelName)
     const existingRecipe = await db
       .select({ id: recentlyViewedRecipes.id })
       .from(recentlyViewedRecipes)
       .where(
         and(
           eq(recentlyViewedRecipes.userId, user.id),
-          eq(recentlyViewedRecipes.videoTitle, params.recipeName),
+          eq(recentlyViewedRecipes.videoTitle, params.videoTitle || params.recipeName),
           eq(recentlyViewedRecipes.channelName, params.channelName || "")
         )
       )
@@ -170,7 +171,7 @@ export async function addRecentlyViewedRecipe(params: AddRecentlyViewedParams): 
       console.log("[addRecentlyViewedRecipe] 새 레시피 추가 시작")
       const insertResult = await db.insert(recentlyViewedRecipes).values({
         userId: user.id,
-        videoTitle: params.recipeName,
+        videoTitle: params.videoTitle || params.recipeName, // 실제 YouTube 비디오 제목 우선, 없으면 레시피명
         recipeName: params.recipeName,
         youtubeUrl: params.youtubeUrl,
         videoThumbnail: params.videoThumbnail,

@@ -273,6 +273,7 @@ export function FloatingExtractionBar() {
         }
         className="sm:max-w-[425px]"
         footerClassName="flex flex-col sm:flex-row sm:justify-end gap-2 mt-4"
+        hideCloseButton={true}
         footer={
           <>
             <Button 
