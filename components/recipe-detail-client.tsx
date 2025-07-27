@@ -8,6 +8,8 @@ import { Loader2 } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import { savePersonalNotes } from "@/lib/actions/recipe" // savePersonalNotes 액션 임포트
 import { addRecentlyViewedRecipe } from "@/lib/actions/recently-viewed"
+import { useCacheInvalidation } from "@/hooks/use-cache-invalidation"
+import { useUser } from "@/contexts/user-context"
 
 interface RecipeData {
   id?: string
@@ -41,6 +43,8 @@ export function RecipeDetailClient({ recipe, videoId }: RecipeDetailClientProps)
   console.log("[RecipeDetailClient] Received videoId:", videoId) // 추가
   const youtubePlayerRef = useRef<HTMLDivElement>(null)
   const { toast } = useToast()
+  const { user } = useUser()
+  const { invalidateRecentlyViewed } = useCacheInvalidation()
   const { youtubePlayer, isPlayerReady } = useYoutubePlayer({
     videoId,
     playerRef: youtubePlayerRef,
@@ -78,7 +82,7 @@ export function RecipeDetailClient({ recipe, videoId }: RecipeDetailClientProps)
 
   // 최근 본 레시피에 기록 (완전한 레시피 데이터 포함, 저장된 레시피 ID 포함)
   useEffect(() => {
-    if (recipe.recipeName) {
+    if (recipe.recipeName && user?.id) {
       addRecentlyViewedRecipe({
         recipeName: recipe.recipeName,
         videoTitle: recipe.videoTitle || recipe.recipeName, // 실제 YouTube 비디오 제목 추가
@@ -93,11 +97,14 @@ export function RecipeDetailClient({ recipe, videoId }: RecipeDetailClientProps)
         tips: recipe.tips,
         videoDurationSeconds: recipe.videoDurationSeconds,
         savedRecipeId: recipe.id, // 저장된 레시피 ID 포함
+      }).then(() => {
+        // 최근 본 레시피 캐시 무효화 (홈 화면에서 즉시 반영)
+        invalidateRecentlyViewed(user.id)
       }).catch(error => {
         console.warn("[RecipeDetailClient] Failed to add to recently viewed:", error)
       })
     }
-  }, [recipe])
+  }, [recipe, user?.id, invalidateRecentlyViewed])
 
   // 개인 메모 저장 핸들러
   const handleSavePersonalNotes = async (notes: string | null) => {
