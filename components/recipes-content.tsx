@@ -41,7 +41,7 @@ export function RecipesContent({ userId, selectedFolderId, page, limit, initialR
           )}
         </aside>
 
-        <section className="flex-1 lg:w-4/5 space-y-10">
+        <section className="flex-1 lg:w-4/5 space-y-10 min-h-screen">
           {isLoading ? (
             <div className="space-y-10">
               {/* 모바일 폴더 선택기 스켈레톤 */}

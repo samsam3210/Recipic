@@ -1,7 +1,7 @@
 "use client"
 
 import { createContext, useContext, useState, useEffect } from "react"
-import { useQuery } from "@tanstack/react-query"
+import { useQuery, useQueryClient } from "@tanstack/react-query"
 import { fetchRecipesAndFolders } from "@/lib/actions/recipe-fetch"
 import { getUserProfile } from "@/lib/actions/user"
 import type { User } from "@supabase/supabase-js"
@@ -39,13 +39,24 @@ export function CachedRecipes({
   initialUserProfile,
   children 
 }: CachedRecipesProps) {
-  // 최초 마운트 감지
-  const [isFirstMount, setIsFirstMount] = useState(true)
+  const queryClient = useQueryClient()
+  
+  // 캐시 확인
+  const foldersCache = queryClient.getQueryData(['recipes-folders', user.id])
+  const profileCache = queryClient.getQueryData(['user-profile', user.id])
+  
+  // 실제 캐시가 없으면 로딩 표시
+  const [shouldShowSkeleton, setShouldShowSkeleton] = useState(!foldersCache)
   
   useEffect(() => {
-    const timer = setTimeout(() => setIsFirstMount(false), 100)
-    return () => clearTimeout(timer)
-  }, [])
+    if (!foldersCache) {
+      // 캐시가 없으면 짧은 시간 동안 스켈레톤 표시
+      const timer = setTimeout(() => setShouldShowSkeleton(false), 200)
+      return () => clearTimeout(timer)
+    } else {
+      setShouldShowSkeleton(false)
+    }
+  }, [foldersCache])
   // 사용자 프로필 쿼리 (긴 캐시)
   const { data: profileResult } = useQuery({
     queryKey: ['user-profile', user.id],
@@ -75,8 +86,8 @@ export function CachedRecipes({
   const folders = foldersResult?.folders || initialFolders
   const userProfile = profileResult?.profile || initialUserProfile
 
-  // 실제 로딩 상태 계산 - 최초 마운트 시 짧은 로딩 표시
-  const isActuallyLoading = isFirstMount || isLoading || isFetching
+  // 실제 로딩 상태 계산 - 캐시가 없거나 데이터 fetching 중일 때 로딩 표시
+  const isActuallyLoading = shouldShowSkeleton || isLoading || isFetching
 
   const cacheData: RecipesCacheData = {
     folders,
