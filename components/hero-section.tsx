@@ -87,7 +87,7 @@ export function HeroSection({ user, isDashboard = false }: HeroSectionProps) {
   const router = useRouter()
   const handleInputClick = () => {
     if (isDashboard) {
-      router.push('/search')
+      router.push('/search?focus=true')
     }
   }
   const { toast } = useToast()

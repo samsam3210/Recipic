@@ -1,7 +1,7 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import { useRouter } from "next/navigation"
+import { useState, useEffect, useRef } from "react"
+import { useRouter, useSearchParams } from "next/navigation"
 import { Search, Loader2, ArrowUpDown, ChevronDown, Clock, Eye } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
@@ -104,6 +104,8 @@ export default function SearchPage() {
   const { startExtraction, isExtracting } = useExtraction()
   const { toast } = useToast()
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const inputRef = useRef<HTMLInputElement>(null)
 
   const [showErrorModal, setShowErrorModal] = useState(false)
   const [errorMessage, setErrorMessage] = useState("")
@@ -219,6 +221,21 @@ export default function SearchPage() {
     }
     getUser()
   }, [])
+
+  // 자동 포커스 처리 (모바일에서만)
+  useEffect(() => {
+    const shouldFocus = searchParams.get('focus') === 'true'
+    if (shouldFocus && inputRef.current) {
+      // 모바일 감지
+      const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
+      if (isMobile) {
+        // 페이지 로드 후 약간의 지연을 두고 포커스 (키보드가 자연스럽게 올라오도록)
+        setTimeout(() => {
+          inputRef.current?.focus()
+        }, 300)
+      }
+    }
+  }, [searchParams])
 
   // 클립보드에서 YouTube URL 자동 감지
   useEffect(() => {
@@ -406,6 +423,7 @@ export default function SearchPage() {
           <form onSubmit={handleSearch} className="w-full max-w-2xl mx-auto">
             <div className="relative flex items-center w-full rounded-full shadow-lg border border-green-200 bg-white overflow-hidden focus-within:border-[#6BA368] focus-within:shadow-xl focus-within:ring-2 focus-within:ring-[#6BA368]/20 transition-all">
             <Input
+                ref={inputRef}
                 type="text"
                 placeholder="URL 또는 키워드 입력"
                 value={searchQuery}
