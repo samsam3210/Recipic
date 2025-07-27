@@ -87,20 +87,37 @@ export function CachedRecipes({
     refetchInterval: false,
   })
 
+  console.log('[CachedRecipes] 쿼리 설정 전 상태:', {
+    userId: user.id,
+    hasInitialFolders: !!initialFolders,
+    initialFoldersLength: initialFolders?.length || 0
+  })
+
   // 폴더 목록 쿼리 (중간 캐시)
-  const { data: foldersResult, isLoading, isInitialLoading, isFetching } = useQuery({
+  const { data: foldersResult, isLoading, isInitialLoading, isFetching, status, fetchStatus } = useQuery({
     queryKey: ['recipes-folders', user.id],
     queryFn: () => {
       console.log('[CachedRecipes] 폴더 쿼리 실행 중...')
       return fetchRecipesAndFolders(user.id, null)
     },
     initialData: { folders: initialFolders, error: null },
-    staleTime: 10 * 60 * 1000, // 10분
+    staleTime: 0, // 즉시 stale로 만들어서 항상 실행
     gcTime: 20 * 60 * 1000, // 20분
     refetchOnWindowFocus: false,
     refetchOnMount: true, // 마운트 시 쿼리 실행 허용
     refetchOnReconnect: false,
     refetchInterval: false,
+    enabled: true, // 명시적으로 활성화
+  })
+
+  console.log('[CachedRecipes] 쿼리 상태 상세:', {
+    status,
+    fetchStatus,
+    isLoading,
+    isFetching,
+    isInitialLoading,
+    hasData: !!foldersResult,
+    dataFoldersLength: foldersResult?.folders?.length || 0
   })
 
   const folders = foldersResult?.folders || initialFolders
