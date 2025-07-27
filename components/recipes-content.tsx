@@ -1,6 +1,6 @@
 "use client"
 
-import { Suspense } from "react"
+import { Suspense, useState, useEffect } from "react"
 import { Header } from "@/components/header"
 import { SidebarNav } from "@/components/sidebar-nav"
 import { BottomNavigation } from "@/components/bottom-navigation"
@@ -13,19 +13,37 @@ import { myRecipesSidebarNavItems } from "@/lib/navigation"
 import { MobileFolderSelector } from "@/components/mobile-folder-selector"
 import { useRecipesCache } from "@/components/cached-recipes"
 
-export function RecipesContent({ userId, selectedFolderId, page, limit, initialRecipesData }: { 
+export function RecipesContent({ userId, selectedFolderId, page, limit, initialRecipesData, forceInitialSkeleton = false }: { 
   userId: string, 
   selectedFolderId: string | null, 
   page: number, 
   limit: number,
-  initialRecipesData?: any
+  initialRecipesData?: any,
+  forceInitialSkeleton?: boolean
 }) {
   const { folders: cachedFolders, userProfile: cachedUserProfile, isLoading } = useRecipesCache()
+  
+  // 강제 초기 스켈레톤 표시
+  const [showInitialSkeleton, setShowInitialSkeleton] = useState(forceInitialSkeleton)
+  
+  useEffect(() => {
+    if (forceInitialSkeleton) {
+      const timer = setTimeout(() => {
+        setShowInitialSkeleton(false)
+      }, 500)
+      return () => clearTimeout(timer)
+    }
+  }, [forceInitialSkeleton])
+  
+  // 실제 로딩 상태: 강제 스켈레톤이 있으면 우선, 없으면 기존 로딩 상태
+  const actualIsLoading = showInitialSkeleton || isLoading
   
   console.log('[RecipesContent] 렌더링:', {
     timestamp: new Date().toISOString(),
     userId,
     isLoading,
+    actualIsLoading,
+    showInitialSkeleton,
     foldersLength: cachedFolders?.length || 0,
     hasUserProfile: !!cachedUserProfile,
     hasInitialRecipesData: !!initialRecipesData
@@ -51,7 +69,7 @@ export function RecipesContent({ userId, selectedFolderId, page, limit, initialR
         </aside>
 
         <section className="flex-1 lg:w-4/5 space-y-10 min-h-screen">
-          {isLoading ? (
+          {actualIsLoading ? (
             <div className="space-y-10">
               {/* 모바일 폴더 선택기 스켈레톤 */}
               <div className="lg:hidden">
