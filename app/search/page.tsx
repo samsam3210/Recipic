@@ -546,23 +546,40 @@ export default function SearchPage() {
       <CustomDialog
         isOpen={showUsageLimitModal}
         onClose={() => setShowUsageLimitModal(false)}
-        title="일일 사용량 제한"
+        title="⏰ 일일 사용량 제한"
         description={
-          <>
-            하루에 최대 5회만 레시피 조회가 가능해요 🙏
-            <br />
-            서비스 개선이 될 때까지 잠시만 기다려주세요!
-          </>
+          <div className="space-y-4 text-center">
+            <div className="text-5xl mb-3">🙏</div>
+            <div className="space-y-2">
+              <p className="text-gray-700 font-medium">현재 무료 서비스로 운영되고 있어서</p>
+              <p className="text-gray-700">하루 5회로 제한하고 있어요 🥺</p>
+            </div>
+            <div className="p-4 bg-blue-50 rounded-lg">
+              <p className="text-sm text-blue-700">💡 <strong>팁:</strong> 레시피를 저장해두면 언제든 다시 볼 수 있어요!</p>
+            </div>
+          </div>
         }
-        className="sm:max-w-[425px]"
-        footerClassName="flex justify-end mt-4"
+        className="sm:max-w-[450px] p-8"
+        headerClassName="mb-6 text-center w-full"
+        titleClassName="text-2xl font-bold text-gray-900"
+        descriptionClassName="text-base leading-relaxed"
+        footerClassName="flex flex-col space-y-3 mt-6 w-full"
         footer={
-          <Button
-            onClick={() => setShowUsageLimitModal(false)}
-            className="py-3 px-4 text-sm font-semibold bg-gray-900 hover:bg-black text-white rounded-xl transition-all duration-300 shadow-lg"
-          >
-            확인
-          </Button>
+          <div className="space-y-3 w-full">
+            <Button
+              onClick={() => router.push('/recipes')}
+              variant="outline"
+              className="w-full py-3 text-sm border-2 border-blue-500 text-blue-600 hover:bg-blue-50 rounded-xl transition-all duration-300 font-medium"
+            >
+              📚 저장된 레시피 보러가기
+            </Button>
+            <Button
+              onClick={() => setShowUsageLimitModal(false)}
+              className="w-full py-3 text-sm font-semibold bg-gradient-to-r from-gray-800 to-gray-900 hover:from-gray-900 hover:to-black text-white rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-[1.01]"
+            >
+              확인했어요
+            </Button>
+          </div>
         }
       />
 

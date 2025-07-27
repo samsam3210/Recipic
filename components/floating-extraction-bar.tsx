@@ -89,7 +89,17 @@ export function FloatingExtractionBar() {
             </h3>
           </div>
           <div className="flex items-center gap-1">
-            {isCollapsed ? (
+            {error || isCompleted ? (
+              // 에러 상태 또는 완료 상태: 닫기 버튼만 표시
+              <button
+                onClick={dismissExtraction}
+                className="p-1 rounded-full hover:bg-gray-100 transition-colors"
+                title="닫기"
+              >
+                <X className="w-4 h-4 text-gray-500" />
+              </button>
+            ) : isCollapsed ? (
+              // 진행 중 - 접힌 상태: 펼치기 + 닫기 버튼
               <>
                 <button
                   onClick={handleToggleCollapse}
@@ -107,6 +117,7 @@ export function FloatingExtractionBar() {
                 </button>
               </>
             ) : (
+              // 진행 중 - 펼쳐진 상태: 접기 버튼만
               <button
                 onClick={handleToggleCollapse}
                 className="p-1 rounded-full hover:bg-gray-100 transition-colors"
