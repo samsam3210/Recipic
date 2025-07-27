@@ -22,6 +22,15 @@ export function RecipesContent({ userId, selectedFolderId, page, limit, initialR
 }) {
   const { folders: cachedFolders, userProfile: cachedUserProfile, isLoading } = useRecipesCache()
   
+  console.log('[RecipesContent] 렌더링:', {
+    timestamp: new Date().toISOString(),
+    userId,
+    isLoading,
+    foldersLength: cachedFolders?.length || 0,
+    hasUserProfile: !!cachedUserProfile,
+    hasInitialRecipesData: !!initialRecipesData
+  })
+  
   return (
     <div className="flex flex-col min-h-screen">
       {/* 헤더 - 네비게이션 메뉴 없음 */}

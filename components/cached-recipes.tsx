@@ -45,15 +45,35 @@ export function CachedRecipes({
   const foldersCache = queryClient.getQueryData(['recipes-folders', user.id])
   const profileCache = queryClient.getQueryData(['user-profile', user.id])
   
+  console.log('[CachedRecipes] 초기 상태:', {
+    timestamp: new Date().toISOString(),
+    userId: user.id,
+    hasFoldersCache: !!foldersCache,
+    hasProfileCache: !!profileCache,
+    initialFoldersLength: initialFolders?.length || 0,
+    hasInitialProfile: !!initialUserProfile
+  })
+  
   // 실제 캐시가 없으면 로딩 표시
   const [shouldShowSkeleton, setShouldShowSkeleton] = useState(!foldersCache)
   
+  console.log('[CachedRecipes] shouldShowSkeleton 초기값:', !foldersCache)
+  
   useEffect(() => {
+    console.log('[CachedRecipes] useEffect 실행:', {
+      hasFoldersCache: !!foldersCache,
+      shouldShowSkeleton
+    })
+    
     if (!foldersCache) {
-      // 캐시가 없으면 짧은 시간 동안 스켈레톤 표시
-      const timer = setTimeout(() => setShouldShowSkeleton(false), 200)
+      console.log('[CachedRecipes] 캐시 없음 - 200ms 스켈레톤 표시 시작')
+      const timer = setTimeout(() => {
+        console.log('[CachedRecipes] 200ms 후 스켈레톤 숨김')
+        setShouldShowSkeleton(false)
+      }, 200)
       return () => clearTimeout(timer)
     } else {
+      console.log('[CachedRecipes] 캐시 있음 - 즉시 스켈레톤 숨김')
       setShouldShowSkeleton(false)
     }
   }, [foldersCache])
@@ -88,6 +108,15 @@ export function CachedRecipes({
 
   // 실제 로딩 상태 계산 - 캐시가 없거나 데이터 fetching 중일 때 로딩 표시
   const isActuallyLoading = shouldShowSkeleton || isLoading || isFetching
+
+  console.log('[CachedRecipes] 최종 로딩 상태:', {
+    shouldShowSkeleton,
+    isLoading,
+    isFetching,
+    isActuallyLoading,
+    foldersLength: folders?.length || 0,
+    hasUserProfile: !!userProfile
+  })
 
   const cacheData: RecipesCacheData = {
     folders,
