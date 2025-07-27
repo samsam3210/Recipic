@@ -4,6 +4,7 @@ import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { AspectRatio } from "@/components/ui/aspect-ratio"
+import { Skeleton } from "@/components/ui/skeleton"
 import Image from "next/image"
 
 interface RecentlyViewedRecipeProps {
@@ -35,9 +36,10 @@ interface RecentlyViewedRecipeProps {
 
 interface DashboardRecentRecipesServerProps {
   recipes: RecentlyViewedRecipeProps[]
+  isLoading?: boolean
 }
 
-export function DashboardRecentRecipesServer({ recipes }: DashboardRecentRecipesServerProps) {
+export function DashboardRecentRecipesServer({ recipes, isLoading = false }: DashboardRecentRecipesServerProps) {
   return (
     <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
       <div className="flex justify-between items-center mb-6">
@@ -49,7 +51,24 @@ export function DashboardRecentRecipesServer({ recipes }: DashboardRecentRecipes
         )}
       </div>
       
-      {recipes.length === 0 ? (
+      {isLoading ? (
+        <div className="space-y-4">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <Card key={i} className="p-4">
+              <div className="flex gap-4">
+                <AspectRatio ratio={16 / 9} className="w-32">
+                  <Skeleton className="w-full h-full rounded-md" />
+                </AspectRatio>
+                <div className="flex-1 space-y-2">
+                  <Skeleton className="h-6 w-3/4" />
+                  <Skeleton className="h-4 w-1/2" />
+                  <Skeleton className="h-4 w-1/3" />
+                </div>
+              </div>
+            </Card>
+          ))}
+        </div>
+      ) : recipes.length === 0 ? (
         <div className="border-dashed border-2 p-8 text-center text-muted-foreground rounded-lg">
           <p className="text-lg mb-4">최근 본 레시피가 없습니다.</p>
         </div>

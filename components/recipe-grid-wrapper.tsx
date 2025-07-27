@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useCallback } from "react"
+import React, { useState, useCallback } from "react"
 import { useSearchParams, useRouter } from "next/navigation"
 import { useQuery, useQueryClient } from "@tanstack/react-query"
 import { Button } from "@/components/ui/button"
@@ -61,6 +61,15 @@ export default function RecipeGridWrapper({
   // URL의 folderId 및 page 변경 감지
   const selectedFolderId = searchParams.get("folder") || null
   const page = Number.parseInt(searchParams.get("page") || "1")
+
+  // 서버 초기 데이터를 React Query 캐시에 즉시 설정
+  React.useEffect(() => {
+    if (initialRecipesData && page === 1) {
+      const cacheKey = ['paginated-recipes', userId, selectedFolderId, page, initialLimit]
+      console.log('[RecipeGridWrapper] 서버 초기 데이터를 캐시에 설정:', cacheKey)
+      queryClient.setQueryData(cacheKey, initialRecipesData)
+    }
+  }, []) // 빈 의존성 배열로 마운트 시에만 실행
 
   // 캐시가 있는지 확인
   const cacheKey = ['paginated-recipes', userId, selectedFolderId, page, initialLimit]
