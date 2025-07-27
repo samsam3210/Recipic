@@ -68,16 +68,28 @@ export default function RecipeGridWrapper({
     error 
   } = useQuery({
     queryKey: ['paginated-recipes', userId, selectedFolderId, page, initialLimit],
-    queryFn: () => getPaginatedRecipes({
-      userId,
-      page,
-      limit: initialLimit,
-      folderId: selectedFolderId,
-    }),
+    queryFn: () => {
+      console.log('[RecipeGridWrapper] API 호출:', { userId, selectedFolderId, page, initialLimit });
+      return getPaginatedRecipes({
+        userId,
+        page,
+        limit: initialLimit,
+        folderId: selectedFolderId,
+      });
+    },
     staleTime: 2 * 60 * 1000, // 2분
     gcTime: 5 * 60 * 1000, // 5분
     refetchOnWindowFocus: false,
   })
+
+  console.log('[RecipeGridWrapper] 상태:', {
+    isLoadingRecipes,
+    isFetching,
+    hasRecipesData: !!recipesData,
+    recipesCount: recipesData?.recipes?.length || 0,
+    selectedFolderId,
+    page
+  });
 
   const allRecipes = recipesData?.recipes || []
   const hasMore = recipesData?.hasMore || false

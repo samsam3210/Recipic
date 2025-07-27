@@ -78,6 +78,15 @@ export function CachedDashboard({
     isAdmin: usageResult.isAdmin || false
   } : initialUsageData
 
+  console.log('[CachedDashboard] 상태:', {
+    hasUserProfile: !!(userProfile || initialUserProfile),
+    recentRecipesCount: recentRecipes.length,
+    hasUsageData: !!usageData,
+    isLoadingRecentRecipes: isLoading,
+    isFetchingRecentRecipes: isFetching,
+    isInitialLoadingRecentRecipes: isInitialLoading
+  });
+
   const cacheData: DashboardCacheData = {
     userProfile: userProfile || initialUserProfile,
     recentRecipes,

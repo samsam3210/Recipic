@@ -86,6 +86,14 @@ export function HeroSection({ user, isDashboard = false, cachedUsageData = null 
   )
   const [isAdmin, setIsAdmin] = useState(cachedUsageData?.isAdmin ?? false)
   const [isLoadingUsage, setIsLoadingUsage] = useState(!cachedUsageData) // 캐시된 데이터가 있으면 로딩 안함
+
+  console.log('[HeroSection] 초기 상태:', {
+    hasCachedUsageData: !!cachedUsageData,
+    currentUsageCount,
+    isAdmin,
+    isLoadingUsage,
+    isDashboard
+  });
   const { startExtraction, isExtracting } = useExtraction()
   const router = useRouter()
   const handleInputClick = () => {
@@ -162,11 +170,18 @@ export function HeroSection({ user, isDashboard = false, cachedUsageData = null 
   }, [resetLoadingState, toast])
 
   useEffect(() => {
+    console.log('[HeroSection] useEffect 실행:', { 
+      hasUser: !!user, 
+      hasCachedUsageData: !!cachedUsageData 
+    });
+    
     const fetchUsage = async () => {
       if (user && !cachedUsageData) { // 캐시된 데이터가 없을 때만 API 호출
+        console.log('[HeroSection] API 호출 시작 - checkDailyUsage');
         setIsLoadingUsage(true)
         try {
           const result = await checkDailyUsage()
+          console.log('[HeroSection] API 응답:', result);
           if (result.success) {
             setCurrentUsageCount(result.currentCount || 0)
             setIsAdmin(result.isAdmin || false)
@@ -181,12 +196,16 @@ export function HeroSection({ user, isDashboard = false, cachedUsageData = null 
           setIsAdmin(false)
         } finally {
           // 더 빠르게 로딩 완료 처리 (100ms 지연으로 자연스럽게)
+          console.log('[HeroSection] 로딩 완료 처리');
           setTimeout(() => setIsLoadingUsage(false), 100)
         }
       } else if (!user) {
+        console.log('[HeroSection] 사용자 없음 - 기본값 설정');
         setCurrentUsageCount(0)
         setIsAdmin(false)
         setIsLoadingUsage(false)
+      } else {
+        console.log('[HeroSection] 캐시된 데이터 사용 - API 호출 안함');
       }
       // 캐시된 데이터가 있으면 이미 초기화되어 있으므로 추가 처리 불필요
     }

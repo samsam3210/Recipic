@@ -76,12 +76,19 @@ export default function SearchResults({ query }: SearchResultsProps) {
   }
 
   const handleVideoSelect = async (video: SearchResult) => {
+    console.log('[SearchResults] handleVideoSelect 호출:', { 
+      videoTitle: video.title, 
+      isExtracting,
+      youtubeUrl: video.youtubeUrl 
+    });
+    
     // ExtractionContext에서 중복 체크 및 토스트 표시를 처리하므로 여기서는 제거
     try {
       await startExtraction(video.youtubeUrl)
+      console.log('[SearchResults] startExtraction 완료');
     } catch (error: any) {
       // ExtractionContext에서 이미 오류 처리를 하므로 여기서는 로그만 출력
-      console.error("Recipe extraction error:", error)
+      console.error("[SearchResults] Recipe extraction error:", error)
     }
   }
 

@@ -91,7 +91,10 @@ export function ExtractionProvider({ children }: { children: React.ReactNode }) 
   }, [])
 
   const startExtraction = useCallback(async (url: string) => {
+    console.log('[ExtractionContext] startExtraction 호출:', { url, isExtracting });
+    
     if (isExtracting) {
+      console.log('[ExtractionContext] 이미 추출 중이므로 토스트 표시');
       toast({
         title: "알림",
         description: "이전 레시피 추출이 완료된 후 시작 가능합니다.",
