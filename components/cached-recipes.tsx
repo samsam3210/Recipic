@@ -101,7 +101,7 @@ export function CachedRecipes({
       return fetchRecipesAndFolders(user.id, null)
     },
     initialData: { folders: initialFolders, error: null },
-    staleTime: 0, // 즉시 stale로 만들어서 항상 실행
+    staleTime: 10 * 60 * 1000, // 10분 - 원래대로 복구
     gcTime: 20 * 60 * 1000, // 20분
     refetchOnWindowFocus: false,
     refetchOnMount: true, // 마운트 시 쿼리 실행 허용
@@ -123,8 +123,8 @@ export function CachedRecipes({
   const folders = foldersResult?.folders || initialFolders
   const userProfile = profileResult?.profile || initialUserProfile
 
-  // 실제 로딩 상태 계산 - 캐시가 없거나 데이터 fetching 중일 때 로딩 표시
-  const isActuallyLoading = shouldShowSkeleton || isLoading || isFetching
+  // 실제 로딩 상태 계산 - 캐시가 없을 때만 로딩 표시 (백그라운드 fetching은 무시)
+  const isActuallyLoading = shouldShowSkeleton || isLoading
 
   console.log('[CachedRecipes] 최종 로딩 상태:', {
     shouldShowSkeleton,
