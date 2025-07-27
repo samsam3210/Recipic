@@ -99,17 +99,39 @@ export async function moveRecipeToFolder(recipeId: string, folderId: string | nu
     await db.delete(recipeFolders).where(eq(recipeFolders.recipeId, recipeId)).execute()
 
     if (folderId) {
+      // 폴더가 존재하는지 확인
+      const [folderExists] = await db
+        .select()
+        .from(folders)
+        .where(and(eq(folders.id, folderId), eq(folders.userId, userId)))
+        .limit(1)
+      
+      if (!folderExists) {
+        return { success: false, message: "대상 폴더를 찾을 수 없거나 접근 권한이 없습니다." }
+      }
+
       // 새 폴더로 연결 추가
-      console.log('[moveRecipeToFolder] 폴더 연결 추가:', { recipeId, folderId })
-      await db
-        .insert(recipeFolders)
-        .values({
-          recipeId,
-          folderId,
-          createdAt: new Date(),
-        })
-        .execute()
-      console.log('[moveRecipeToFolder] 폴더 연결 추가 완료')
+      console.log('[moveRecipeToFolder] 폴더 연결 추가:', { 
+        recipeId, 
+        folderId, 
+        userId,
+        folderName: folderExists.name 
+      })
+      
+      try {
+        await db
+          .insert(recipeFolders)
+          .values({
+            recipeId,
+            folderId,
+            createdAt: new Date(),
+          })
+          .execute()
+        console.log('[moveRecipeToFolder] 폴더 연결 추가 완료')
+      } catch (insertError: any) {
+        console.error('[moveRecipeToFolder] 폴더 연결 추가 실패:', insertError)
+        return { success: false, message: `폴더 연결 실패: ${insertError.message}` }
+      }
     }
 
     revalidatePath("/recipes")

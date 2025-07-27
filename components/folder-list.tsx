@@ -66,12 +66,13 @@ export function FolderList({ folders, selectedFolderId }: FolderListProps) {
       if (result.success) {
         toast({ title: "성공", description: result.message })
         setNewFolderName("")
-        // React Query 캐시 무효화
+        // React Query 캐시 무효화 (즉시 반영)
         if (user) {
           console.log('[FolderList] 폴더 생성 후 캐시 무효화')
           invalidateByAction('FOLDER_OPERATIONS', user.id)
+          // 즉시 새로운 데이터를 다시 패치하도록 강제
+          setTimeout(() => router.refresh(), 100)
         }
-        router.refresh()
       } else {
         throw new Error(result.message)
       }
@@ -97,12 +98,12 @@ export function FolderList({ folders, selectedFolderId }: FolderListProps) {
       if (result.success) {
         toast({ title: "성공", description: result.message })
         setEditingFolderId(null)
-        // React Query 캐시 무효화
+        // React Query 캐시 무효화 (즉시 반영)
         if (user) {
           console.log('[FolderList] 폴더 수정 후 캐시 무효화')
           invalidateByAction('FOLDER_OPERATIONS', user.id)
+          setTimeout(() => router.refresh(), 100)
         }
-        router.refresh()
       } else {
         throw new Error(result.message)
       }
@@ -123,7 +124,7 @@ export function FolderList({ folders, selectedFolderId }: FolderListProps) {
       const result = await deleteFolder(folderToDelete.id)
       if (result.success) {
         toast({ title: "성공", description: result.message })
-        // React Query 캐시 무효화
+        // React Query 캐시 무효화 (즉시 반영)
         if (user) {
           console.log('[FolderList] 폴더 삭제 후 캐시 무효화')
           invalidateByAction('FOLDER_OPERATIONS', user.id)
@@ -135,7 +136,7 @@ export function FolderList({ folders, selectedFolderId }: FolderListProps) {
           newSearchParams.delete("page")
           router.push(`/recipes?${newSearchParams.toString()}`)
         } else {
-          router.refresh()
+          setTimeout(() => router.refresh(), 100)
         }
       } else {
         throw new Error(result.message)

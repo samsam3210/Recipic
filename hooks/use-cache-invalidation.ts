@@ -6,8 +6,8 @@ import { getRecentlyViewedRecipes } from "@/lib/actions/recently-viewed"
 
 // 복잡한 액션별 캐시 무효화 매핑 (여러 캐시를 동시에 무효화해야 하는 경우)
 const COMPLEX_INVALIDATION_MAP = {
-  // 레시피 저장 시: 나의레시피 + 홈 사용량 갱신
-  RECIPE_SAVED: ['recipes-folders', 'recently-viewed-recipes'],
+  // 레시피 저장 시: 나의레시피 + 홈 사용량 갱신 + 페이지네이션 캐시
+  RECIPE_SAVED: ['recipes-folders', 'recently-viewed-recipes', 'paginated-recipes'],
   
   // 레시피 삭제 시: 나의레시피만 갱신
   RECIPE_DELETED: ['recipes-folders'],
@@ -74,9 +74,17 @@ export function useCacheInvalidation() {
       const beforeInvalidation = queryClient.getQueryData([cacheType, userId])
       console.log(`[Cache] ${cacheType} 무효화 전 데이터:`, beforeInvalidation)
       
-      queryClient.invalidateQueries({
-        queryKey: [cacheType, userId]
-      })
+      if (cacheType === 'paginated-recipes') {
+        // 페이지네이션된 레시피 캐시는 모든 페이지와 폴더 조합을 무효화
+        queryClient.invalidateQueries({
+          queryKey: [cacheType, userId],
+          exact: false // 부분 매칭으로 모든 페이지네이션 캐시 무효화
+        })
+      } else {
+        queryClient.invalidateQueries({
+          queryKey: [cacheType, userId]
+        })
+      }
       
       console.log(`[Cache] ${cacheType} 무효화 완료`)
     })
