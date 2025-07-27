@@ -98,7 +98,7 @@ export function CachedRecipes({
     staleTime: 10 * 60 * 1000, // 10분
     gcTime: 20 * 60 * 1000, // 20분
     refetchOnWindowFocus: false,
-    refetchOnMount: false,
+    refetchOnMount: true, // 마운트 시 쿼리 실행 허용
     refetchOnReconnect: false,
     refetchInterval: false,
   })
