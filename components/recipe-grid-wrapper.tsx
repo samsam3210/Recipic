@@ -1,7 +1,8 @@
 "use client"
 
-import { useState, useEffect, useCallback } from "react"
+import { useState, useCallback } from "react"
 import { useSearchParams, useRouter } from "next/navigation"
+import { useQuery, useQueryClient } from "@tanstack/react-query"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
 import { Plus, Loader2, Folder } from "lucide-react"
@@ -50,20 +51,36 @@ export default function RecipeGridWrapper({
   initialLimit,
   initialFolders,
 }: RecipeGridWrapperProps) {
-  const [allRecipes, setAllRecipes] = useState<(typeof recipesSchema.$inferSelect)[]>([])
-  const [hasMore, setHasMore] = useState(false)
-  const [currentPage, setCurrentPage] = useState(initialPage)
-  const [isLoadingRecipes, setIsLoadingRecipes] = useState(true)
-  const [isFolderChanging, setIsFolderChanging] = useState(false) // 폴더 변경 중 상태
-  const [previousFolderId, setPreviousFolderId] = useState<string | null>(initialSelectedFolderId) // 이전 폴더 ID 추적
-  const [isLoadingMore, setIsLoadingMore] = useState(false) // 더 불러오기 로딩 상태
   const { toast } = useToast()
   const router = useRouter()
   const searchParams = useSearchParams()
+  const queryClient = useQueryClient()
 
   // URL의 folderId 및 page 변경 감지
   const selectedFolderId = searchParams.get("folder") || null
   const page = Number.parseInt(searchParams.get("page") || "1")
+
+  // React Query로 레시피 데이터 관리
+  const { 
+    data: recipesData, 
+    isLoading: isLoadingRecipes, 
+    isFetching,
+    error 
+  } = useQuery({
+    queryKey: ['paginated-recipes', userId, selectedFolderId, page, initialLimit],
+    queryFn: () => getPaginatedRecipes({
+      userId,
+      page,
+      limit: initialLimit,
+      folderId: selectedFolderId,
+    }),
+    staleTime: 2 * 60 * 1000, // 2분
+    gcTime: 5 * 60 * 1000, // 5분
+    refetchOnWindowFocus: false,
+  })
+
+  const allRecipes = recipesData?.recipes || []
+  const hasMore = recipesData?.hasMore || false
 
   // 레시피 삭제 관련 상태
   const [showDeleteConfirmDialog, setShowDeleteConfirmDialog] = useState(false)
@@ -77,88 +94,17 @@ export default function RecipeGridWrapper({
   const [folderSearchTerm, setFolderSearchTerm] = useState("")
   const [selectedMoveToFolderId, setSelectedMoveToFolderId] = useState<string | null>(null) // 🆕 선택된 폴더 ID
 
-  // 레시피 데이터 로드 함수 (수정됨)
-  const loadRecipes = useCallback(async (isAppending = false) => {
-    if (isAppending) {
-      setIsLoadingMore(true) // 더 불러오기 로딩 상태
-    } else {
-      setIsLoadingRecipes(true) // 일반 로딩 상태
-    }
-    
-    try {
-      const {
-        recipes: fetchedRecipes,
-        hasMore: fetchedHasMore,
-        error,
-      } = await getPaginatedRecipes({
-        userId,
-        page,
-        limit: initialLimit,
-        folderId: selectedFolderId,
-      })
-
-      if (error) {
-        throw new Error(error)
-      }
-      
-      // 🔧 페이지가 1보다 크고 데이터가 없으면 첫 페이지로 리다이렉트
-      if (page > 1 && fetchedRecipes.length === 0 && !isAppending) {
-        const newSearchParams = new URLSearchParams(searchParams.toString())
-        newSearchParams.delete("page")
-        router.replace(`/recipes?${newSearchParams.toString()}`)
-        return
-      }
-      
-      if (isAppending) {
-        // 더 불러오기: 기존 데이터에 추가
-        setAllRecipes(prev => [...prev, ...fetchedRecipes])
-      } else {
-        // 새로운 조회: 기존 데이터 교체
-        setAllRecipes(fetchedRecipes)
-      }
-      
-      setHasMore(fetchedHasMore)
-      setCurrentPage(page)
-    } catch (err: any) {
-      console.error("Failed to load recipes:", err)
+  // 에러 처리
+  if (error) {
+    console.error("Failed to load recipes:", error)
+    if (recipesData?.error) {
       toast({
         title: "오류",
-        description: err.message || "레시피를 불러오는 데 실패했습니다.",
+        description: recipesData.error || "레시피를 불러오는 데 실패했습니다.",
         variant: "destructive",
       })
-      if (!isAppending) {
-        setAllRecipes([])
-        setHasMore(false)
-      }
-    } finally {
-      if (isAppending) {
-        setIsLoadingMore(false)
-      } else {
-        setIsLoadingRecipes(false)
-      }
     }
-  }, [userId, page, initialLimit, selectedFolderId, toast, router, searchParams])
-
-
-  useEffect(() => {
-    // 폴더가 실제로 변경되었는지 확인
-    if (previousFolderId !== selectedFolderId) {
-      setIsFolderChanging(true)
-      setPreviousFolderId(selectedFolderId)
-      loadRecipes(false) // 폴더 변경 시에는 새로운 조회
-    } else if (page > 1) {
-      loadRecipes(true) // 페이지가 증가한 경우에는 추가 로드
-    } else {
-      loadRecipes(false) // 첫 페이지는 새로운 조회
-    }
-  }, [loadRecipes, selectedFolderId, previousFolderId, page])
-
-  // 폴더 변경 완료 처리
-  useEffect(() => {
-    if (isFolderChanging && !isLoadingRecipes) {
-      setIsFolderChanging(false)
-    }
-  }, [isFolderChanging, isLoadingRecipes])
+  }
 
   // 레시피 삭제 핸들러
   const handleDeleteClick = (id: string, name: string | null) => {
@@ -174,7 +120,9 @@ export default function RecipeGridWrapper({
       const result = await deleteRecipe(recipeToDelete.id)
       if (result.success) {
         toast({ title: "삭제 완료", description: result.message })
-        loadRecipes() // 레시피 목록 새로고침
+        // React Query 캐시 무효화
+        queryClient.invalidateQueries({ queryKey: ['paginated-recipes'] })
+        queryClient.invalidateQueries({ queryKey: ['recipes-folders'] })
       } else {
         throw new Error(result.message)
       }
@@ -212,7 +160,9 @@ export default function RecipeGridWrapper({
       const result = await moveRecipeToFolder(recipeToMove.id, selectedMoveToFolderId)
       if (result.success) {
         toast({ title: "이동 완료", description: result.message })
-        loadRecipes() // 레시피 목록 새로고침
+        // React Query 캐시 무효화
+        queryClient.invalidateQueries({ queryKey: ['paginated-recipes'] })
+        queryClient.invalidateQueries({ queryKey: ['recipes-folders'] })
         setShowMoveToFolderDialog(false) // 🆕 다이얼로그 닫기
       } else {
         throw new Error(result.message)
@@ -245,7 +195,7 @@ export default function RecipeGridWrapper({
 
   return (
     <>
-      {(isLoadingRecipes || isFolderChanging) ? (
+      {(isLoadingRecipes && !recipesData) ? ( // 캐시된 데이터가 없을 때만 스켈레톤 표시
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {Array.from({ length: initialLimit }).map((_, i) => (
             <RecipeCardSkeleton key={i} />

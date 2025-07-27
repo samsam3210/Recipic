@@ -25,56 +25,24 @@ interface ProfileSettingsFormProps {
 
 export function ProfileSettingsForm({ user, userProfile: initialProfile }: ProfileSettingsFormProps) {
   const [userProfile, setUserProfile] = useState<UserProfile | null>(initialProfile || null)
-  const [isLoading, setIsLoading] = useState(!initialProfile) // 프로필이 없으면 로딩
   const [isEditing, setIsEditing] = useState(false)
-  const [editedName, setEditedName] = useState("")
+  const [editedName, setEditedName] = useState(initialProfile?.nickname || "")
   const [isSaving, setIsSaving] = useState(false)
   const [isSigningOut, setIsSigningOut] = useState(false)
   const { toast } = useToast()
   const router = useRouter()
   const supabase = createClient()
 
-  // 클라이언트에서 사용자 프로필 로드
+  // 초기 프로필이 있으면 즉시 사용
   useEffect(() => {
-    if (!initialProfile && user) {
-      const loadUserProfile = async () => {
-        try {
-          const profile = await getUserProfile(user.id)
-          const finalProfile = profile || {
-            userId: user.id,
-            nickname: user.user_metadata?.full_name || user.email?.split("@")[0] || "사용자",
-            avatarUrl: user.user_metadata?.avatar_url || null,
-          }
-          setUserProfile(finalProfile)
-          setEditedName(finalProfile.nickname)
-        } catch (error) {
-          console.error("Failed to load user profile:", error)
-          toast({
-            title: "프로필 로드 실패",
-            description: "사용자 프로필을 불러오는데 실패했습니다.",
-            variant: "destructive",
-          })
-          // 기본 프로필 설정
-          const defaultProfile = {
-            userId: user.id,
-            nickname: user.user_metadata?.full_name || user.email?.split("@")[0] || "사용자",
-            avatarUrl: user.user_metadata?.avatar_url || null,
-          }
-          setUserProfile(defaultProfile)
-          setEditedName(defaultProfile.nickname)
-        } finally {
-          setIsLoading(false)
-        }
-      }
-      
-      loadUserProfile()
-    } else if (initialProfile) {
+    if (initialProfile) {
+      setUserProfile(initialProfile)
       setEditedName(initialProfile.nickname || "")
     }
-  }, [user, initialProfile, toast])
+  }, [initialProfile])
 
-  // 로딩 중일 때 스켈레톤 표시
-  if (isLoading) {
+  // 프로필이 없을 때만 스켈레톤 표시
+  if (!userProfile) {
     return (
       <Card className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
         <CardHeader className="px-0 pt-0 pb-4">
