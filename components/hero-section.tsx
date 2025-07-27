@@ -821,8 +821,8 @@ export function HeroSection({ user, isDashboard = false }: HeroSectionProps) {
         onClose={() => setShowUsageLimitModal(false)}
         title="일일 사용량 제한"
         description={
-          <div className="text-center space-y-4">
-            <div className="space-y-3">
+          <div className="text-center space-y-3">
+            <div className="space-y-2">
               <p className="text-gray-700">현재 무료 서비스로 운영되고 있어서</p>
               <p className="text-gray-700">하루 {DAILY_LIMIT}회로 제한하고 있어요</p>
             </div>
@@ -832,10 +832,11 @@ export function HeroSection({ user, isDashboard = false }: HeroSectionProps) {
           </div>
         }
         className="sm:max-w-[400px]"
-        headerClassName="mb-4 text-center w-full"
+        headerClassName="mb-3 text-center w-full"
         titleClassName="text-xl font-semibold text-gray-900"
         descriptionClassName="text-base leading-relaxed"
         footerClassName="flex justify-center mt-4 w-full"
+        hideCloseButton={true}
         footer={
           <Button
             onClick={() => setShowUsageLimitModal(false)}
