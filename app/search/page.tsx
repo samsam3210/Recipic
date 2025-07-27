@@ -231,12 +231,21 @@ function SearchPageContent() {
       const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
       
       if (isIOS) {
-        // iOS는 즉시 포커스 시도
-        requestAnimationFrame(() => {
-          inputRef.current?.focus()
-          // iOS에서 키보드 강제 표시 시도
-          inputRef.current?.click()
-        })
+        // iOS는 즉시 포커스 시도 (여러 방법 시도)
+        const focusInput = () => {
+          if (inputRef.current) {
+            inputRef.current.focus()
+            // 추가 방법들
+            inputRef.current.setAttribute('readonly', 'readonly')
+            inputRef.current.focus()
+            inputRef.current.removeAttribute('readonly')
+          }
+        }
+        
+        // 즉시 시도
+        focusInput()
+        // 한 번 더 시도
+        setTimeout(focusInput, 100)
       } else {
         const delay = isMobile ? 300 : 100
         setTimeout(() => {
