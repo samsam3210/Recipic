@@ -78,6 +78,9 @@ export function CachedDashboard({
     isAdmin: usageResult.isAdmin || false
   } : null
 
+  // 실제 로딩 상태 계산 - 모든 필수 데이터가 로드될 때까지 로딩 중
+  const isActuallyLoading = !userProfile || !usageData || isLoading || isInitialLoading
+
   console.log('[CachedDashboard] 상태:', {
     timestamp: new Date().toISOString(),
     hasUserProfile: !!userProfile,
@@ -88,12 +91,9 @@ export function CachedDashboard({
     isLoadingRecentRecipes: isLoading,
     isFetchingRecentRecipes: isFetching,
     isInitialLoadingRecentRecipes: isInitialLoading,
-    isActuallyLoading: isActuallyLoading, // 이게 핵심!
+    isActuallyLoading: isActuallyLoading, // 이제 정상!
     userId: user.id
   });
-
-  // 실제 로딩 상태 계산 - 모든 필수 데이터가 로드될 때까지 로딩 중
-  const isActuallyLoading = !userProfile || !usageData || isLoading || isInitialLoading
 
   const cacheData: DashboardCacheData = {
     userProfile,
