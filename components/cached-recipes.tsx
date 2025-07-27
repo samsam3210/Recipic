@@ -68,8 +68,8 @@ export function CachedRecipes({
   const folders = foldersResult?.folders || initialFolders
   const userProfile = profileResult?.profile || initialUserProfile
 
-  // 실제 로딩 상태 계산 - 필수 데이터가 없거나 fetching 중일 때 로딩
-  const isActuallyLoading = !userProfile || !folders || isLoading || isInitialLoading || isFetching
+  // 실제 로딩 상태 계산 - 초기 로딩이나 데이터 fetching 중일 때만 로딩
+  const isActuallyLoading = (isInitialLoading && !folders.length) || (isFetching && !isInitialLoading)
 
   const cacheData: RecipesCacheData = {
     folders,
