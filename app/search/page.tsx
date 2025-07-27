@@ -451,6 +451,14 @@ function SearchPageContent() {
   }
 
   const handleYouTubeSearch = async (query: string, sort?: SortType) => {
+    console.log('[Search] handleYouTubeSearch 호출:', { query, sort, isSearching });
+    
+    // 이미 검색 중이면 중복 실행 방지
+    if (isSearching) {
+      console.log('[Search] 이미 검색 중이므로 중복 실행 방지');
+      return;
+    }
+    
     const currentSort = sort || sortType
     setIsSearching(true)
     

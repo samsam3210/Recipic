@@ -241,12 +241,12 @@ export default function RecipeGridWrapper({
           <Button
             onClick={() => {
               const newSearchParams = new URLSearchParams(searchParams.toString())
-              newSearchParams.set("page", (currentPage + 1).toString())
+              newSearchParams.set("page", (page + 1).toString())
               router.push(`/recipes?${newSearchParams.toString()}`)
             }}
-            disabled={isLoadingMore || isLoadingRecipes}
+            disabled={isFetching || isLoadingRecipes}
           >
-            {isLoadingMore ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}더 불러오기
+            {isFetching ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}더 불러오기
           </Button>
         </div>
       )}
