@@ -61,7 +61,6 @@ export default function RecipeGridWrapper({
   const page = Number.parseInt(searchParams.get("page") || "1")
 
   // 캐시가 있는지 확인
-  const queryClient = useQueryClient()
   const cacheKey = ['paginated-recipes', userId, selectedFolderId, page, initialLimit]
   const cachedData = queryClient.getQueryData(cacheKey)
 
