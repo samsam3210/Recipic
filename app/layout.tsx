@@ -4,6 +4,7 @@ import { UserProvider } from "@/contexts/user-context"
 import { ExtractionProvider } from "@/contexts/extraction-context"
 import { FloatingExtractionBar } from "@/components/floating-extraction-bar"
 import { Toaster } from "@/components/ui/toaster"
+import { QueryProvider } from "@/providers/query-provider"
 
 export const metadata: Metadata = {
   title: 'Recipick',
@@ -18,13 +19,15 @@ export default function RootLayout({
   return (
     <html lang="ko">
       <body>
-        <UserProvider>
-          <ExtractionProvider>
-            <Toaster />
-            {children}
-            <FloatingExtractionBar />
-          </ExtractionProvider>
-        </UserProvider>
+        <QueryProvider>
+          <UserProvider>
+            <ExtractionProvider>
+              <Toaster />
+              {children}
+              <FloatingExtractionBar />
+            </ExtractionProvider>
+          </UserProvider>
+        </QueryProvider>
       </body>
     </html>
   )

@@ -50,6 +50,8 @@
     "@radix-ui/react-tooltip": "1.1.6",
     "@supabase/ssr": "latest",
     "@supabase/supabase-js": "latest",
+    "@tanstack/react-query": "^5.83.0",
+    "@tanstack/react-query-devtools": "^5.83.0",
     "@tidbcloud/serverless": "latest",
     "@types/better-sqlite3": "latest",
     "@types/pg": "latest",
