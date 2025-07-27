@@ -9,9 +9,9 @@ import { SidebarNav } from "@/components/sidebar-nav"
 import { dashboardSidebarNavItems } from "@/lib/navigation"
 import { useDashboardCache } from "@/components/cached-dashboard"
 
-export function DashboardContent({ user, userProfile }: { user: any, userProfile: any }) {
+export function DashboardContent({ user }: { user: any }) {
   const { userProfile: cachedUserProfile, recentRecipes: cachedRecentRecipes, usageData, isLoading } = useDashboardCache()
-  const userName = cachedUserProfile?.nickname || userProfile.nickname
+  const userName = cachedUserProfile?.nickname
   
   return (
     <div className="flex flex-col min-h-screen">

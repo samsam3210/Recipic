@@ -1,45 +1,45 @@
-import { createClient } from "@/lib/supabase/server"
-import { redirect } from "next/navigation"
-import { getRecentlyViewedRecipes } from "@/lib/actions/recently-viewed"
-import { getOrCreateUserProfile } from "@/lib/actions/user"
-import { checkDailyUsage } from "@/lib/actions/usage"
+"use client"
+
+import { useEffect } from "react"
+import { useRouter } from "next/navigation"
 import { CachedDashboard } from "@/components/cached-dashboard"
 import { DashboardContent } from "@/components/dashboard-content"
+import { useUser } from "@/contexts/user-context"
 
-export const dynamic = "force-dynamic"
+export default function DashboardPage() {
+  const { user, isLoading } = useUser()
+  const router = useRouter()
 
-export default async function DashboardPage() {
-  const supabase = createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  console.log('[DashboardPage] 렌더링:', {
+    timestamp: new Date().toISOString(),
+    hasUser: !!user,
+    isLoading,
+    userId: user?.id
+  })
 
-  if (!user) {
-    redirect("/")
+  useEffect(() => {
+    console.log('[DashboardPage] useEffect 실행:', { hasUser: !!user, isLoading })
+    if (!isLoading && !user) {
+      console.log('[DashboardPage] 리다이렉트 실행')
+      router.push("/")
+    }
+  }, [user, isLoading, router])
+
+  if (isLoading) {
+    console.log('[DashboardPage] UserProvider 로딩 중')
+    return null // UserProvider가 로딩 중
   }
 
-  // 병렬로 데이터 조회
-  const [userProfile, recentlyViewedResult, usageResult] = await Promise.all([
-    getOrCreateUserProfile(user),
-    getRecentlyViewedRecipes(),
-    checkDailyUsage()
-  ])
+  if (!user) {
+    console.log('[DashboardPage] 사용자 없음 - 리다이렉트 중')
+    return null // 리다이렉트 중
+  }
 
-  const userName = userProfile.nickname
-  const recentRecipes = recentlyViewedResult.success ? recentlyViewedResult.recipes || [] : []
-  const usageData = usageResult.success ? {
-    currentCount: usageResult.currentCount || 0,
-    isAdmin: usageResult.isAdmin || false
-  } : null
+  console.log('[DashboardPage] CachedDashboard 렌더링 시작')
 
   return (
-    <CachedDashboard 
-      user={user} 
-      initialUserProfile={userProfile}
-      initialRecentRecipes={recentRecipes}
-      initialUsageData={usageData}
-    >
-      <DashboardContent user={user} userProfile={userProfile} />
+    <CachedDashboard user={user}>
+      <DashboardContent user={user} />
     </CachedDashboard>
   )
 }

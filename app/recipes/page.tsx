@@ -42,14 +42,16 @@ export default async function RecipesPage({
       console.error("Error fetching folders for RecipesPage:", foldersResult.error)
     }
 
-    // 초기 레시피 데이터 가져오기 (첫 페이지만)
-    const initialRecipes = await getPaginatedRecipes({
-      userId,
-      page,
-      limit,
-      folderId: selectedFolderId,
-    })
-    initialRecipesData = initialRecipes
+    // 초기 레시피 데이터 가져오기 - 클라이언트와 동일한 매개변수 사용
+    if (page === 1) { // 첫 페이지만 서버에서 로드
+      const initialRecipes = await getPaginatedRecipes({
+        userId,
+        page,
+        limit,
+        folderId: selectedFolderId,
+      })
+      initialRecipesData = initialRecipes
+    }
   } catch (err: any) {
     console.error("Failed to load initial data for RecipesPage:", err)
     return (

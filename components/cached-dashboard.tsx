@@ -29,24 +29,17 @@ export function useDashboardCache() {
 
 interface CachedDashboardProps {
   user: User
-  initialUserProfile: any
-  initialRecentRecipes: any[]
-  initialUsageData?: { currentCount: number; isAdmin: boolean } | null
   children: React.ReactNode
 }
 
 export function CachedDashboard({ 
   user, 
-  initialUserProfile, 
-  initialRecentRecipes, 
-  initialUsageData = null,
   children 
 }: CachedDashboardProps) {
   // 사용자 프로필 쿼리 (긴 캐시)
   const { data: userProfile } = useQuery({
     queryKey: ['user-profile', user.id],
     queryFn: () => getOrCreateUserProfile(user),
-    initialData: initialUserProfile,
     staleTime: 30 * 60 * 1000, // 30분
     gcTime: 60 * 60 * 1000, // 1시간
     refetchOnWindowFocus: false,
@@ -59,7 +52,6 @@ export function CachedDashboard({
   const { data: recentlyViewedResult, isLoading, isFetching, isInitialLoading } = useQuery({
     queryKey: ['recently-viewed-recipes', user.id],
     queryFn: () => getRecentlyViewedRecipes(),
-    initialData: { success: true, recipes: initialRecentRecipes },
     staleTime: 10 * 60 * 1000, // 10분으로 연장
     gcTime: 20 * 60 * 1000, // 20분으로 연장
     refetchOnWindowFocus: false,
@@ -72,7 +64,6 @@ export function CachedDashboard({
   const { data: usageResult } = useQuery({
     queryKey: ['daily-usage', user.id],
     queryFn: () => checkDailyUsage(),
-    initialData: initialUsageData ? { success: true, currentCount: initialUsageData.currentCount, isAdmin: initialUsageData.isAdmin } : null,
     staleTime: 10 * 60 * 1000, // 10분으로 연장
     gcTime: 20 * 60 * 1000, // 20분으로 연장
     refetchOnWindowFocus: false,
@@ -85,19 +76,23 @@ export function CachedDashboard({
   const usageData = usageResult?.success ? {
     currentCount: usageResult.currentCount || 0,
     isAdmin: usageResult.isAdmin || false
-  } : initialUsageData
+  } : null
 
   console.log('[CachedDashboard] 상태:', {
-    hasUserProfile: !!(userProfile || initialUserProfile),
+    timestamp: new Date().toISOString(),
+    hasUserProfile: !!userProfile,
+    userProfileNickname: userProfile?.nickname,
     recentRecipesCount: recentRecipes.length,
     hasUsageData: !!usageData,
+    usageCurrentCount: usageData?.currentCount,
     isLoadingRecentRecipes: isLoading,
     isFetchingRecentRecipes: isFetching,
-    isInitialLoadingRecentRecipes: isInitialLoading
+    isInitialLoadingRecentRecipes: isInitialLoading,
+    userId: user.id
   });
 
   const cacheData: DashboardCacheData = {
-    userProfile: userProfile || initialUserProfile,
+    userProfile,
     recentRecipes,
     usageData,
     isLoading: false // 항상 캐시된 데이터 즉시 표시 (검색 결과와 동일)

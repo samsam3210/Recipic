@@ -65,11 +65,14 @@ export default function RecipeGridWrapper({
   // 캐시가 있는지 확인
   const cacheKey = ['paginated-recipes', userId, selectedFolderId, page, initialLimit]
   const cachedData = queryClient.getQueryData(cacheKey)
-  const isQueryEnabled = !cachedData
+  const hasInitialData = initialRecipesData && page === 1
+  const isQueryEnabled = !cachedData && !hasInitialData
 
   console.log('[RecipeGridWrapper] 캐시 상태:', {
     hasCachedData: !!cachedData,
+    hasInitialData,
     isQueryEnabled,
+    page,
     cacheKey: JSON.stringify(cacheKey)
   });
 
@@ -91,8 +94,8 @@ export default function RecipeGridWrapper({
         folderId: selectedFolderId,
       });
     },
-    initialData: initialRecipesData, // 서버에서 가져온 초기 데이터
-    enabled: isQueryEnabled, // 캐시가 없을 때만 쿼리 실행
+    initialData: hasInitialData ? initialRecipesData : undefined, // 첫 페이지만 초기 데이터 사용
+    enabled: isQueryEnabled, // 캐시도 없고 초기 데이터도 없을 때만 쿼리 실행
     staleTime: 10 * 60 * 1000,
     gcTime: 20 * 60 * 1000,
     refetchOnWindowFocus: false,
@@ -101,11 +104,11 @@ export default function RecipeGridWrapper({
     refetchInterval: false,
   })
 
-  // 캐시된 데이터가 있으면 사용, 없으면 쿼리 결과 사용
-  const finalData = cachedData || recipesData
+  // 데이터 우선순위: 캐시 > 쿼리 결과 > 초기 데이터
+  const finalData = cachedData || recipesData || (hasInitialData ? initialRecipesData : null)
   
-  // 실제 로딩 상태 (캐시가 있으면 로딩 상태가 아님)
-  const actualIsLoading = cachedData ? false : isLoadingRecipes
+  // 실제 로딩 상태 (캐시나 초기 데이터가 있으면 로딩 상태가 아님)
+  const actualIsLoading = (cachedData || hasInitialData) ? false : isLoadingRecipes
 
   console.log('[RecipeGridWrapper] 상태:', {
     originalIsLoading: isLoadingRecipes,

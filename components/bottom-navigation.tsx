@@ -49,6 +49,14 @@ export function BottomNavigation({ className }: BottomNavigationProps) {
             <Link
               key={item.href}
               href={item.href}
+              onClick={() => {
+                console.log('[BottomNavigation] 탭 클릭:', {
+                  timestamp: new Date().toISOString(),
+                  from: pathname,
+                  to: item.href,
+                  label: item.label
+                })
+              }}
               className={cn(
                 "flex flex-col items-center justify-center flex-1 h-full space-y-1 text-xs transition-colors",
                 isActive 
