@@ -17,6 +17,7 @@ import { dashboardSidebarNavItems } from "@/lib/navigation"
 import { PopularKeywords } from '@/components/popular-keywords'
 import { SearchGuide } from '@/components/search-guide'
 import { useExtraction } from '@/contexts/extraction-context'
+import { useSearchCache } from '@/hooks/use-search-cache'
 
 interface SearchResult {
   videoId: string
@@ -106,6 +107,7 @@ function SearchPageContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const inputRef = useRef<HTMLInputElement>(null)
+  const { saveCache, getCache, saveScrollPosition, restoreScrollPosition, clearCache } = useSearchCache()
 
   const [showErrorModal, setShowErrorModal] = useState(false)
   const [errorMessage, setErrorMessage] = useState("")
@@ -156,15 +158,39 @@ function SearchPageContent() {
 
   // 정렬 옵션 변경 핸들러
   const handleSortChange = (newSortType: SortType) => {
-    console.log('정렬 변경:', newSortType) // 디버깅용
+    console.log('정렬 변경:', newSortType)
     setSortType(newSortType)
     setIsDropdownOpen(false)
     
-    // 즉시 정렬 적용
+    // URL 업데이트
+    if (lastSearchQuery) {
+      const newUrl = new URL(window.location.href)
+      newUrl.searchParams.set('q', lastSearchQuery)
+      newUrl.searchParams.set('sort', newSortType)
+      router.replace(newUrl.pathname + newUrl.search, { scroll: false })
+    }
+    
+    // 캐시에서 해당 정렬 조건의 결과 확인
+    if (lastSearchQuery) {
+      const cachedData = getCache({
+        keyword: lastSearchQuery,
+        sortType: newSortType
+      })
+      
+      if (cachedData) {
+        console.log('정렬 변경: 캐시된 결과 사용')
+        setSearchResults(cachedData.results)
+        return
+      }
+    }
+    
+    // 캐시가 없으면 현재 결과를 정렬하고 캐시 저장
     const sortedResults = sortSearchResults(searchResults, newSortType)
-    console.log('정렬 전:', searchResults.slice(0, 3).map(r => ({title: r.title, views: r.viewCountFormatted})))
-    console.log('정렬 후:', sortedResults.slice(0, 3).map(r => ({title: r.title, views: r.viewCountFormatted})))
     setSearchResults(sortedResults)
+    
+    if (lastSearchQuery && sortedResults.length > 0) {
+      saveCache(lastSearchQuery, sortedResults, newSortType)
+    }
   }
 
   // 정렬 함수
@@ -201,9 +227,40 @@ function SearchPageContent() {
 
   const handleKeywordClick = (keyword: string) => {
     setSearchQuery(keyword)
-    // 바로 검색 실행
-    handleYouTubeSearch(keyword)
+    // 바로 검색 실행 (URL 업데이트와 캐시 포함)
+    handleYouTubeSearch(keyword, sortType)
   }
+
+  // URL에서 검색 조건 초기화 및 캐시 복원
+  useEffect(() => {
+    const urlQuery = searchParams.get('q')
+    const urlSort = searchParams.get('sort') as SortType | null
+    
+    if (urlQuery) {
+      setSearchQuery(urlQuery)
+      const currentSort = urlSort || sortType
+      setSortType(currentSort)
+      
+      // 캐시된 결과 확인
+      const cachedData = getCache({
+        keyword: urlQuery,
+        sortType: currentSort
+      })
+      
+      if (cachedData) {
+        console.log('[Search] 캐시된 검색 결과 복원:', cachedData.results.length + '개')
+        setSearchResults(cachedData.results)
+        setLastSearchQuery(urlQuery)
+        
+        // 스크롤 위치 복원
+        restoreScrollPosition()
+      } else {
+        // 캐시가 없으면 검색 실행
+        console.log('[Search] 캐시 없음, 새로 검색 실행')
+        handleYouTubeSearch(urlQuery, currentSort)
+      }
+    }
+  }, [searchParams, getCache, restoreScrollPosition])
 
   // 사용자 정보 가져오기
   useEffect(() => {
@@ -274,16 +331,58 @@ function SearchPageContent() {
     checkClipboard()
   }, [])
 
-  // 뒤로가기 시 검색 상태 복원
+  // 페이지 떠날 때 스크롤 위치 저장
   useEffect(() => {
-    const handlePopState = () => {
-      if (lastSearchQuery) {
-        setSearchQuery(lastSearchQuery)
+    const handleBeforeUnload = () => {
+      if (searchResults.length > 0) {
+        saveScrollPosition()
       }
     }
+    
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'hidden' && searchResults.length > 0) {
+        saveScrollPosition()
+      }
+    }
+    
+    window.addEventListener('beforeunload', handleBeforeUnload)
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+    
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload)
+      document.removeEventListener('visibilitychange', handleVisibilityChange)
+    }
+  }, [searchResults, saveScrollPosition])
+  
+  // 뒤로가기 시 검색 상태 복원 (개선된 버전)
+  useEffect(() => {
+    const handlePopState = () => {
+      // URL에서 검색 조건 읽어오기
+      const urlQuery = searchParams.get('q')
+      const urlSort = searchParams.get('sort') as SortType | null
+      
+      if (urlQuery) {
+        setSearchQuery(urlQuery)
+        if (urlSort) setSortType(urlSort)
+        
+        // 캐시된 결과 확인
+        const cachedData = getCache({
+          keyword: urlQuery,
+          sortType: urlSort || 'uploadDate'
+        })
+        
+        if (cachedData) {
+          console.log('[Search] 뒤로가기: 캐시된 결과 복원')
+          setSearchResults(cachedData.results)
+          setLastSearchQuery(urlQuery)
+          restoreScrollPosition()
+        }
+      }
+    }
+    
     window.addEventListener('popstate', handlePopState)
     return () => window.removeEventListener('popstate', handlePopState)
-  }, [lastSearchQuery])
+  }, [searchParams, getCache, restoreScrollPosition])
 
   const isYouTubeUrl = (text: string): boolean => {
     const youtubeRegex = /(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/|youtube\.com\/v\/|m\.youtube\.com\/watch\?v=|youtube\.com\/\?v=|youtube\.com\/shorts\/)([a-zA-Z0-9_-]{11})/
@@ -338,9 +437,17 @@ function SearchPageContent() {
     }
   }
 
-  const handleYouTubeSearch = async (query: string) => {
+  const handleYouTubeSearch = async (query: string, sort?: SortType) => {
+    const currentSort = sort || sortType
     setIsSearching(true)
+    
     try {
+      // URL 업데이트
+      const newUrl = new URL(window.location.href)
+      newUrl.searchParams.set('q', query)
+      newUrl.searchParams.set('sort', currentSort)
+      router.replace(newUrl.pathname + newUrl.search, { scroll: false })
+      
       const response = await fetch("/api/youtube/search", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -358,9 +465,13 @@ function SearchPageContent() {
       }
 
       if (data.results && data.results.length > 0) {
-        const sortedResults = sortSearchResults(data.results, sortType)
+        const sortedResults = sortSearchResults(data.results, currentSort)
         setSearchResults(sortedResults)
         setLastSearchQuery(query)
+        
+        // 검색 결과 캐시 저장
+        saveCache(query, sortedResults, currentSort)
+        
         toast({
           title: "검색 완료",
           description: `${data.results.length}개의 영상을 찾았습니다.`,
@@ -368,6 +479,7 @@ function SearchPageContent() {
         })
       } else {
         setSearchResults([])
+        clearCache() // 빈 결과는 캐시하지 않음
         toast({
           title: "검색 결과가 없습니다",
           description: "다른 키워드로 다시 검색해보세요.",
@@ -381,6 +493,7 @@ function SearchPageContent() {
         variant: "destructive",
       })
       setSearchResults([])
+      clearCache()
     } finally {
       setIsSearching(false)
     }
@@ -424,6 +537,10 @@ function SearchPageContent() {
       })
       return
     }
+    
+    // 다른 페이지로 이동하기 전 스크롤 위치 저장
+    saveScrollPosition()
+    
     await handleRecipeExtraction(video.youtubeUrl)
   }
 
