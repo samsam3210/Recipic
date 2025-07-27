@@ -154,7 +154,7 @@ export function useSearchCache() {
   }, [getCache])
 
   // 최근 검색 결과 가져오기 (검색 조건 무관)
-  const getRecentCache = useCallback(): SearchCache | null => {
+  const getRecentCache = useCallback((): SearchCache | null => {
     try {
       const cached = sessionStorage.getItem(CACHE_KEY)
       if (!cached) {
