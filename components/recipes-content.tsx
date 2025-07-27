@@ -32,24 +32,47 @@ export function RecipesContent({ userId, selectedFolderId, page, limit, initialR
         <aside className="hidden lg:block lg:w-1/5 lg:min-w-[200px] lg:border-r lg:pr-8">
           <h2 className="text-2xl font-bold text-gray-900 mb-6">메뉴</h2>
           <SidebarNav items={myRecipesSidebarNavItems} className="mb-8" />
-          <Suspense fallback={<FolderListSkeleton />}>
+          {isLoading ? (
+            <FolderListSkeleton />
+          ) : (
             <FolderList folders={cachedFolders} selectedFolderId={selectedFolderId} />
-          </Suspense>
+          )}
         </aside>
 
         <section className="flex-1 lg:w-4/5 space-y-10">
-          <MobileFolderSelector folders={cachedFolders} selectedFolderId={selectedFolderId} />
-          
-          <CurrentFolderTitle folders={cachedFolders} />
+          {isLoading ? (
+            <div className="space-y-10">
+              {/* 모바일 폴더 선택기 스켈레톤 */}
+              <div className="lg:hidden">
+                <div className="h-10 w-full bg-gray-200 rounded animate-pulse"></div>
+              </div>
+              
+              {/* 현재 폴더 제목 스켈레톤 */}
+              <div className="h-8 w-48 bg-gray-200 rounded animate-pulse"></div>
+              
+              {/* 레시피 그리드 스켈레톤 */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                {Array.from({ length: limit }).map((_, i) => (
+                  <RecipeCardSkeleton key={i} />
+                ))}
+              </div>
+            </div>
+          ) : (
+            <>
+              <MobileFolderSelector folders={cachedFolders} selectedFolderId={selectedFolderId} />
+              
+              <CurrentFolderTitle folders={cachedFolders} />
 
-          <RecipeGridWrapper
-            userId={userId}
-            initialSelectedFolderId={selectedFolderId}
-            initialPage={page}
-            initialLimit={limit}
-            initialFolders={cachedFolders}
-            initialRecipesData={initialRecipesData}
-          />
+              <RecipeGridWrapper
+                userId={userId}
+                initialSelectedFolderId={selectedFolderId}
+                initialPage={page}
+                initialLimit={limit}
+                initialFolders={cachedFolders}
+                initialRecipesData={initialRecipesData}
+              />
+            </>
+          )}
         </section>
       </main>
       

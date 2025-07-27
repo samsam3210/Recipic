@@ -53,7 +53,7 @@ export function CachedRecipes({
   })
 
   // 폴더 목록 쿼리 (중간 캐시)
-  const { data: foldersResult, isLoading, isInitialLoading } = useQuery({
+  const { data: foldersResult, isLoading, isInitialLoading, isFetching } = useQuery({
     queryKey: ['recipes-folders', user.id],
     queryFn: () => fetchRecipesAndFolders(user.id, null),
     initialData: { folders: initialFolders, error: null },
@@ -68,10 +68,13 @@ export function CachedRecipes({
   const folders = foldersResult?.folders || initialFolders
   const userProfile = profileResult?.profile || initialUserProfile
 
+  // 실제 로딩 상태 계산 - 필수 데이터가 없거나 fetching 중일 때 로딩
+  const isActuallyLoading = !userProfile || !folders || isLoading || isInitialLoading || isFetching
+
   const cacheData: RecipesCacheData = {
     folders,
     userProfile,
-    isLoading: false // 항상 캐시된 데이터 즉시 표시 (검색 결과와 동일)
+    isLoading: isActuallyLoading
   }
 
   return (
