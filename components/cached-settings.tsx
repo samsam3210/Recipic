@@ -33,7 +33,7 @@ export function CachedSettings({
   children 
 }: CachedSettingsProps) {
   // 사용자 프로필 쿼리 (긴 캐시 - 설정에서만 수정되므로)
-  const { data: userProfile, isLoading } = useQuery({
+  const { data: userProfile, isLoading, isInitialLoading } = useQuery({
     queryKey: ['user-profile', user.id],
     queryFn: () => getOrCreateUserProfile(user),
     initialData: initialUserProfile,
@@ -44,7 +44,7 @@ export function CachedSettings({
 
   const cacheData: SettingsCacheData = {
     userProfile: userProfile || initialUserProfile,
-    isLoading: isLoading && !userProfile // 초기 로딩만 표시, 백그라운드 갱신 시엔 표시 안함
+    isLoading: isInitialLoading // 최초 로딩만 표시 (초기 데이터가 있으면 false)
   }
 
   return (

@@ -50,7 +50,7 @@ export function CachedRecipes({
   })
 
   // 폴더 목록 쿼리 (중간 캐시)
-  const { data: foldersResult, isLoading } = useQuery({
+  const { data: foldersResult, isLoading, isInitialLoading } = useQuery({
     queryKey: ['recipes-folders', user.id],
     queryFn: () => fetchRecipesAndFolders(user.id, null),
     initialData: { folders: initialFolders, error: null },
@@ -65,7 +65,7 @@ export function CachedRecipes({
   const cacheData: RecipesCacheData = {
     folders,
     userProfile,
-    isLoading: isLoading && !foldersResult // 초기 로딩만 표시, 백그라운드 갱신 시엔 표시 안함
+    isLoading: isInitialLoading // 최초 로딩만 표시 (초기 데이터가 있으면 false)
   }
 
   return (

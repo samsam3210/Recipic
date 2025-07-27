@@ -107,7 +107,7 @@ function SearchPageContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const inputRef = useRef<HTMLInputElement>(null)
-  const { saveCache, getCache, getRecentCache, saveScrollPosition, restoreScrollPosition, clearCache } = useSearchCache()
+  const { saveCache, getCache, getRecentCache, saveScrollPosition, restoreScrollPosition, clearCache } = useSearchCache(user?.id)
 
   const [showErrorModal, setShowErrorModal] = useState(false)
   const [errorMessage, setErrorMessage] = useState("")

@@ -46,7 +46,7 @@ export function CachedDashboard({
   })
 
   // 최근 본 레시피 쿼리 (짧은 캐시)
-  const { data: recentlyViewedResult, isLoading, isFetching } = useQuery({
+  const { data: recentlyViewedResult, isLoading, isFetching, isInitialLoading } = useQuery({
     queryKey: ['recently-viewed-recipes', user.id],
     queryFn: () => getRecentlyViewedRecipes(),
     initialData: { success: true, recipes: initialRecentRecipes },
@@ -60,7 +60,7 @@ export function CachedDashboard({
   const cacheData: DashboardCacheData = {
     userProfile: userProfile || initialUserProfile,
     recentRecipes,
-    isLoading: isLoading && !recentlyViewedResult // 초기 로딩만 표시, 백그라운드 갱신 시엔 표시 안함
+    isLoading: isInitialLoading // 최초 로딩만 표시 (초기 데이터가 있으면 false)
   }
 
   return (

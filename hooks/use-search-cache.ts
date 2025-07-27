@@ -35,8 +35,9 @@ interface SearchParams {
   page?: number
 }
 
-export function useSearchCache() {
-  const CACHE_KEY = 'recipick_search_cache'
+export function useSearchCache(userId?: string) {
+  // 사용자별 캐시 키 (보안 중요!)
+  const CACHE_KEY = userId ? `recipick_search_cache_${userId}` : 'recipick_search_cache_guest'
   const CACHE_DURATION = 2 * 60 * 60 * 1000 // 2시간 (탭 간 이동 시 연속성 확보)
 
   // 캐시 저장
@@ -146,6 +147,25 @@ export function useSearchCache() {
     } catch (error) {
       console.warn('[SearchCache] 캐시 삭제 실패:', error)
     }
+  }, [CACHE_KEY])
+
+  // 모든 사용자 캐시 삭제 (로그아웃 시)
+  const clearAllUserCaches = useCallback(() => {
+    try {
+      // recipick_search_cache로 시작하는 모든 키 삭제
+      const keysToRemove: string[] = []
+      for (let i = 0; i < sessionStorage.length; i++) {
+        const key = sessionStorage.key(i)
+        if (key && key.startsWith('recipick_search_cache')) {
+          keysToRemove.push(key)
+        }
+      }
+      
+      keysToRemove.forEach(key => sessionStorage.removeItem(key))
+      console.log('[SearchCache] 모든 사용자 캐시 삭제:', keysToRemove.length + '개')
+    } catch (error) {
+      console.warn('[SearchCache] 모든 캐시 삭제 실패:', error)
+    }
   }, [])
 
   // 캐시 유효성 확인
@@ -186,6 +206,7 @@ export function useSearchCache() {
     saveScrollPosition,
     restoreScrollPosition,
     clearCache,
+    clearAllUserCaches,
     isCacheValid
   }
 }

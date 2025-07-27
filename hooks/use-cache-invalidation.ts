@@ -61,7 +61,21 @@ export function useCacheInvalidation() {
   // 전체 캐시 무효화 (로그아웃 시)
   const invalidateAll = useCallback(() => {
     queryClient.clear()
-    console.log(`[Cache] Cleared all caches`)
+    
+    // 검색 캐시도 모두 삭제
+    try {
+      const keysToRemove: string[] = []
+      for (let i = 0; i < sessionStorage.length; i++) {
+        const key = sessionStorage.key(i)
+        if (key && key.startsWith('recipick_search_cache')) {
+          keysToRemove.push(key)
+        }
+      }
+      keysToRemove.forEach(key => sessionStorage.removeItem(key))
+      console.log(`[Cache] Cleared all caches and ${keysToRemove.length} search caches`)
+    } catch (error) {
+      console.warn('[Cache] Failed to clear search caches:', error)
+    }
   }, [queryClient])
 
   return {
