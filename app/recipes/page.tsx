@@ -75,7 +75,7 @@ export default async function RecipesPage({
         page={page}
         limit={limit}
         initialRecipesData={initialRecipesData}
-        forceInitialSkeleton={true}
+        forceInitialSkeleton={!(initialFolders && initialFolders.length > 0)}
       />
     </CachedRecipes>
   )
