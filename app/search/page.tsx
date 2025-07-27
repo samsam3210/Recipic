@@ -226,13 +226,23 @@ function SearchPageContent() {
   useEffect(() => {
     const shouldFocus = searchParams.get('focus') === 'true'
     if (shouldFocus && inputRef.current) {
-      // 모바일에서는 키보드가 자연스럽게 올라오도록 지연
+      // iOS 감지
+      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent)
       const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
-      const delay = isMobile ? 300 : 100 // 데스크탑은 짧은 지연만
       
-      setTimeout(() => {
-        inputRef.current?.focus()
-      }, delay)
+      if (isIOS) {
+        // iOS는 즉시 포커스 시도
+        requestAnimationFrame(() => {
+          inputRef.current?.focus()
+          // iOS에서 키보드 강제 표시 시도
+          inputRef.current?.click()
+        })
+      } else {
+        const delay = isMobile ? 300 : 100
+        setTimeout(() => {
+          inputRef.current?.focus()
+        }, delay)
+      }
     }
   }, [searchParams])
 
@@ -434,6 +444,10 @@ function SearchPageContent() {
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="h-12 md:h-16 flex-grow px-3 md:px-4 border-none focus:outline-none focus:ring-0 focus-visible:ring-0 focus-visible:ring-offset-0 text-base md:text-lg placeholder:text-gray-400 bg-transparent rounded-2xl"
                   disabled={isSearching}
+                  autoComplete="off"
+                  autoCorrect="off"
+                  autoCapitalize="off"
+                  spellCheck="false"
                 />
                 <Button
                   type="submit"
