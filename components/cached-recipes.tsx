@@ -100,7 +100,7 @@ export function CachedRecipes({
       console.log('[CachedRecipes] 폴더 쿼리 실행 중...')
       return fetchRecipesAndFolders(user.id, null)
     },
-    initialData: { folders: initialFolders, error: null },
+    // initialData 제거 - 서버에서 실제 데이터를 가져오도록 함
     staleTime: 10 * 60 * 1000, // 10분 - 원래대로 복구
     gcTime: 20 * 60 * 1000, // 20분
     refetchOnWindowFocus: false,
