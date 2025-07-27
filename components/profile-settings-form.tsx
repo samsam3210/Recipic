@@ -11,6 +11,7 @@ import { updateUserName, getUserProfile } from "@/lib/actions/user"
 import { signOut } from "@/lib/actions/auth"
 import { createClient } from "@/lib/supabase/client"
 import { useRouter } from "next/navigation"
+import { useCacheInvalidation } from "@/hooks/use-cache-invalidation"
 
 interface UserProfile {
   userId: string
@@ -32,6 +33,7 @@ export function ProfileSettingsForm({ user, userProfile: initialProfile }: Profi
   const { toast } = useToast()
   const router = useRouter()
   const supabase = createClient()
+  const { invalidateUserProfile } = useCacheInvalidation()
 
   // 초기 프로필이 있으면 즉시 사용
   useEffect(() => {
@@ -97,6 +99,8 @@ export function ProfileSettingsForm({ user, userProfile: initialProfile }: Profi
         setIsEditing(false)
         // 로컬 상태 업데이트
         setUserProfile(prev => prev ? { ...prev, nickname: editedName.trim() } : null)
+        // React Query 캐시 무효화 (대시보드 홈화면 갱신)
+        invalidateUserProfile(user.id)
         router.refresh()
       } else {
         throw new Error(result.message)

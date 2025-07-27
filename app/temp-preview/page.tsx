@@ -10,6 +10,7 @@ import { checkAndSaveRecipe } from "@/lib/actions/recipe" // 수정된 서버 �
 import { addRecentlyViewedRecipe } from "@/lib/actions/recently-viewed"
 import { incrementDailyUsage } from "@/lib/actions/usage"
 import { useYoutubePlayer } from "@/hooks/use-youtube-player"
+import { useCacheInvalidation } from "@/hooks/use-cache-invalidation"
 import { Card, CardContent } from "@/components/ui/card"
 import { Loader2, Bookmark } from "lucide-react"
 import { Header } from "@/components/header"
@@ -58,6 +59,7 @@ export default function RecipePreviewPage() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const { toast, dismiss } = useToast()
+  const { invalidateRecentlyViewed } = useCacheInvalidation()
   
   // 기존 토스트를 dismiss하고 새 토스트를 표시하는 헬퍼 함수
   const showToast = (toastProps: Parameters<typeof toast>[0]) => {
@@ -120,6 +122,9 @@ export default function RecipePreviewPage() {
               videoDurationSeconds: parsedStoredData.videoInfo?.videoDurationSeconds,
               videoViews: parsedStoredData.videoInfo?.videoViews,
               savedRecipeId: null, // 프리뷰는 저장된 레시피가 아니므로 null
+            }).then(() => {
+              // 사용자가 로그인된 경우 캐시 무효화는 별도 useEffect에서 처리
+              console.log("[RecipePreviewPage] Recently viewed recipe added successfully")
             }).catch(error => {
               console.warn("[RecipePreviewPage] Failed to add to recently viewed:", error)
             })
@@ -160,6 +165,14 @@ export default function RecipePreviewPage() {
       }
     }
   }, [searchParams, router, toast])
+
+  // 사용자가 로그인된 상태에서 프리뷰 페이지 진입 시 최근 본 레시피 캐시 무효화
+  useEffect(() => {
+    if (user && previewData?.extractedRecipe?.recipeName) {
+      console.log("[RecipePreviewPage] User logged in with preview data, invalidating recently viewed cache")
+      invalidateRecentlyViewed(user.id)
+    }
+  }, [user, previewData, invalidateRecentlyViewed])
 
   const handleSaveRecipe = async (forceReExtract = false) => {
     if (!previewData) {

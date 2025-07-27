@@ -86,13 +86,12 @@ export function HeroSection({ user, isDashboard = false, cachedUsageData = null,
     cachedUsageData?.currentCount ?? null
   )
   const [isAdmin, setIsAdmin] = useState(cachedUsageData?.isAdmin ?? false)
-  const [isLoadingUsage, setIsLoadingUsage] = useState(!cachedUsageData) // 캐시된 데이터가 있으면 로딩 안함
 
   console.log('[HeroSection] 초기 상태:', {
     hasCachedUsageData: !!cachedUsageData,
     currentUsageCount,
     isAdmin,
-    isLoadingUsage,
+    isLoading,
     isDashboard
   });
   const { startExtraction, isExtracting } = useExtraction()
@@ -171,46 +170,14 @@ export function HeroSection({ user, isDashboard = false, cachedUsageData = null,
   }, [resetLoadingState, toast])
 
   useEffect(() => {
-    console.log('[HeroSection] useEffect 실행:', { 
-      hasUser: !!user, 
-      hasCachedUsageData: !!cachedUsageData 
-    });
-    
-    const fetchUsage = async () => {
-      if (user && !cachedUsageData) { // 캐시된 데이터가 없을 때만 API 호출
-        console.log('[HeroSection] API 호출 시작 - checkDailyUsage');
-        setIsLoadingUsage(true)
-        try {
-          const result = await checkDailyUsage()
-          console.log('[HeroSection] API 응답:', result);
-          if (result.success) {
-            setCurrentUsageCount(result.currentCount || 0)
-            setIsAdmin(result.isAdmin || false)
-          } else {
-            console.error("[HeroSection] Failed to fetch daily usage:", result.message)
-            setCurrentUsageCount(0)
-            setIsAdmin(false)
-          }
-        } catch (error) {
-          console.error("[HeroSection] Error fetching usage:", error)
-          setCurrentUsageCount(0)
-          setIsAdmin(false)
-        } finally {
-          // 더 빠르게 로딩 완료 처리 (100ms 지연으로 자연스럽게)
-          console.log('[HeroSection] 로딩 완료 처리');
-          setTimeout(() => setIsLoadingUsage(false), 100)
-        }
-      } else if (!user) {
-        console.log('[HeroSection] 사용자 없음 - 기본값 설정');
-        setCurrentUsageCount(0)
-        setIsAdmin(false)
-        setIsLoadingUsage(false)
-      } else {
-        console.log('[HeroSection] 캐시된 데이터 사용 - API 호출 안함');
-      }
-      // 캐시된 데이터가 있으면 이미 초기화되어 있으므로 추가 처리 불필요
+    // 캐시된 데이터가 있으면 상태 업데이트
+    if (cachedUsageData) {
+      setCurrentUsageCount(cachedUsageData.currentCount)
+      setIsAdmin(cachedUsageData.isAdmin)
+    } else if (!user) {
+      setCurrentUsageCount(0)
+      setIsAdmin(false)
     }
-    fetchUsage()
   }, [user, cachedUsageData])
 
   // MODIFIED: 함수 분리 - 유튜브 메타데이터만 가져오는 함수
@@ -763,7 +730,7 @@ export function HeroSection({ user, isDashboard = false, cachedUsageData = null,
               {/* 사용량 표시 - 스켈레톤 포함 */}
               {user && (
                 <div className="text-center">
-                  {isLoadingUsage ? (
+                  {isLoading ? (
                     <div className="flex items-center justify-center">
                       <Skeleton className="h-4 w-12 rounded-full mr-2" />
                       <Skeleton className="h-4 w-24" />
