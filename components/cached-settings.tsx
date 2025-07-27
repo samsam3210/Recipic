@@ -39,7 +39,10 @@ export function CachedSettings({
     initialData: initialUserProfile,
     staleTime: 30 * 60 * 1000, // 30분
     gcTime: 60 * 60 * 1000, // 1시간
-    refetchOnWindowFocus: false, // 탭 복귀 시 자동 갱신 비활성화
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
+    refetchOnReconnect: false,
+    refetchInterval: false,
   })
 
   const cacheData: SettingsCacheData = {

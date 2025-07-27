@@ -77,9 +77,12 @@ export default function RecipeGridWrapper({
         folderId: selectedFolderId,
       });
     },
-    staleTime: 2 * 60 * 1000, // 2분
-    gcTime: 5 * 60 * 1000, // 5분
+    staleTime: 10 * 60 * 1000, // 10분으로 연장
+    gcTime: 20 * 60 * 1000, // 20분으로 연장
     refetchOnWindowFocus: false,
+    refetchOnMount: false, // 마운트 시 refetch 방지
+    refetchOnReconnect: false, // 재연결 시 refetch 방지
+    refetchInterval: false, // 주기적 refetch 방지
   })
 
   console.log('[RecipeGridWrapper] 상태:', {

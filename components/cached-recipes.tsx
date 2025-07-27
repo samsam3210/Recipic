@@ -46,7 +46,10 @@ export function CachedRecipes({
     initialData: { profile: initialUserProfile },
     staleTime: 30 * 60 * 1000, // 30분
     gcTime: 60 * 60 * 1000, // 1시간
-    refetchOnWindowFocus: false, // 탭 복귀 시 자동 갱신 비활성화
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
+    refetchOnReconnect: false,
+    refetchInterval: false,
   })
 
   // 폴더 목록 쿼리 (중간 캐시)
@@ -56,7 +59,10 @@ export function CachedRecipes({
     initialData: { folders: initialFolders, error: null },
     staleTime: 10 * 60 * 1000, // 10분
     gcTime: 20 * 60 * 1000, // 20분
-    refetchOnWindowFocus: false, // 탭 복귀 시 자동 갱신 비활성화
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
+    refetchOnReconnect: false,
+    refetchInterval: false,
   })
 
   const folders = foldersResult?.folders || initialFolders

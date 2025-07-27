@@ -49,7 +49,10 @@ export function CachedDashboard({
     initialData: initialUserProfile,
     staleTime: 30 * 60 * 1000, // 30분
     gcTime: 60 * 60 * 1000, // 1시간
-    refetchOnWindowFocus: false, // 탭 복귀 시 자동 갱신 비활성화
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
+    refetchOnReconnect: false,
+    refetchInterval: false,
   })
 
   // 최근 본 레시피 쿼리 (짧은 캐시)
@@ -57,9 +60,12 @@ export function CachedDashboard({
     queryKey: ['recently-viewed-recipes', user.id],
     queryFn: () => getRecentlyViewedRecipes(),
     initialData: { success: true, recipes: initialRecentRecipes },
-    staleTime: 5 * 60 * 1000, // 5분
-    gcTime: 10 * 60 * 1000, // 10분
-    refetchOnWindowFocus: false, // 탭 복귀 시 자동 갱신 비활성화
+    staleTime: 10 * 60 * 1000, // 10분으로 연장
+    gcTime: 20 * 60 * 1000, // 20분으로 연장
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
+    refetchOnReconnect: false,
+    refetchInterval: false,
   })
 
   // 사용량 데이터 쿼리 (중간 캐시)
@@ -67,9 +73,12 @@ export function CachedDashboard({
     queryKey: ['daily-usage', user.id],
     queryFn: () => checkDailyUsage(),
     initialData: initialUsageData ? { success: true, currentCount: initialUsageData.currentCount, isAdmin: initialUsageData.isAdmin } : null,
-    staleTime: 2 * 60 * 1000, // 2분 (사용량은 자주 변경될 수 있음)
-    gcTime: 5 * 60 * 1000, // 5분
+    staleTime: 10 * 60 * 1000, // 10분으로 연장
+    gcTime: 20 * 60 * 1000, // 20분으로 연장
     refetchOnWindowFocus: false,
+    refetchOnMount: false,
+    refetchOnReconnect: false,
+    refetchInterval: false,
   })
 
   const recentRecipes = recentlyViewedResult?.success ? recentlyViewedResult.recipes || [] : []
