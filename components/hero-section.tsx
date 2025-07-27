@@ -629,8 +629,7 @@ export function HeroSection({ user, isDashboard = false }: HeroSectionProps) {
                         <Loader2 className="w-4 h-4 md:w-5 md:h-5 animate-spin" />
                       ) : (
                         <>
-                          <span className="hidden md:inline">레시피 만들기</span>
-                          <span className="md:hidden">추출</span>
+                          <span>검색</span>
                           <ArrowRight className="w-4 h-4 md:w-5 md:h-5 ml-1 md:ml-2" />
                         </>
                       )}
@@ -681,17 +680,22 @@ export function HeroSection({ user, isDashboard = false }: HeroSectionProps) {
 
           {isDashboard && (
             <div className="w-full max-w-2xl space-y-4">
-              <div className="relative w-full">
-              <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
-                <Input
-                  type="text"
-                  placeholder="레시피 검색하기"
-                  value={youtubeUrl}
-                  onChange={(e) => setYoutubeUrl(e.target.value)}
-                  onClick={handleInputClick}
-                  readOnly
-                  className="w-full h-14 pl-12 pr-4 text-base rounded-xl border-2 border-gray-200 focus:border-gray-400 focus:ring-0 focus-visible:ring-0 focus-visible:ring-offset-0 focus:outline-none transition-colors cursor-pointer"
-                />
+              <div className="relative group">
+                <div className="absolute -inset-0.5 bg-[#6BA368] rounded-2xl blur opacity-25 group-hover:opacity-50 transition duration-300"></div>
+                <div className="relative flex items-center bg-white rounded-2xl border border-green-200 shadow-xl hover:shadow-2xl transition-all duration-300 focus-within:border-[#6BA368] focus-within:ring-2 focus-within:ring-[#6BA368]/20">
+                  <div className="flex items-center pl-4 md:pl-6">
+                    <Search className="w-4 h-4 md:w-5 md:h-5 text-[#6BA368]" />
+                  </div>
+                  <Input
+                    type="text"
+                    placeholder="요리 키워드 또는 URL 입력"
+                    value={youtubeUrl}
+                    onChange={(e) => setYoutubeUrl(e.target.value)}
+                    onClick={handleInputClick}
+                    readOnly
+                    className="h-12 md:h-16 flex-grow px-3 md:px-4 border-none focus:outline-none focus:ring-0 focus-visible:ring-0 focus-visible:ring-offset-0 text-base md:text-lg placeholder:text-gray-400 bg-transparent rounded-2xl cursor-pointer"
+                  />
+                </div>
               </div>
               <p className="text-sm text-gray-600 leading-relaxed">
                 Recipick AI가 레시피 추출을 도와드려요.

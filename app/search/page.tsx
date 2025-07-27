@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef, Suspense } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
-import { Search, Loader2, ArrowUpDown, ChevronDown, Clock, Eye } from "lucide-react"
+import { Search, Loader2, ArrowUpDown, ChevronDown, Clock, Eye, ArrowRight } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Header } from "@/components/header"
@@ -222,18 +222,17 @@ function SearchPageContent() {
     getUser()
   }, [])
 
-  // 자동 포커스 처리 (모바일에서만)
+  // 자동 포커스 처리
   useEffect(() => {
     const shouldFocus = searchParams.get('focus') === 'true'
     if (shouldFocus && inputRef.current) {
-      // 모바일 감지
+      // 모바일에서는 키보드가 자연스럽게 올라오도록 지연
       const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
-      if (isMobile) {
-        // 페이지 로드 후 약간의 지연을 두고 포커스 (키보드가 자연스럽게 올라오도록)
-        setTimeout(() => {
-          inputRef.current?.focus()
-        }, 300)
-      }
+      const delay = isMobile ? 300 : 100 // 데스크탑은 짧은 지연만
+      
+      setTimeout(() => {
+        inputRef.current?.focus()
+      }, delay)
     }
   }, [searchParams])
 
@@ -421,33 +420,40 @@ function SearchPageContent() {
 
         <section className="flex-1 lg:w-4/5 space-y-8">
           <form onSubmit={handleSearch} className="w-full max-w-2xl mx-auto">
-            <div className="relative flex items-center w-full rounded-full shadow-lg border border-green-200 bg-white overflow-hidden focus-within:border-[#6BA368] focus-within:shadow-xl focus-within:ring-2 focus-within:ring-[#6BA368]/20 transition-all">
-            <Input
-                ref={inputRef}
-                type="text"
-                placeholder="URL 또는 키워드 입력"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="flex-1 h-12 md:h-14 pl-6 md:pl-8 pr-16 md:pr-20 text-base md:text-base border-none focus-visible:ring-0 focus-visible:ring-offset-0 rounded-l-full rounded-r-none placeholder:text-gray-400"
-                disabled={isSearching}
-              />
-
-              <Button
-                type="submit"
-                disabled={!searchQuery.trim() || isSearching}
-                size="icon"
-                className={`absolute right-0 h-full w-12 md:w-14 ${
-                  !searchQuery.trim() || isSearching
-                    ? "bg-gray-400"
-                    : "bg-[#6BA368] hover:bg-[#5a8f57]"
-                } text-white rounded-r-full rounded-l-none transition-colors duration-200`}
-              >
-                {isSearching ? (
-                  <Loader2 className="h-4 w-4 md:h-5 md:w-5 animate-spin" />
-                ) : (
-                  <Search className="h-4 w-4 md:h-5 md:w-5" />
-                )}
-              </Button>
+            <div className="relative group">
+              <div className="absolute -inset-0.5 bg-[#6BA368] rounded-2xl blur opacity-25 group-hover:opacity-50 transition duration-300"></div>
+              <div className="relative flex items-center bg-white rounded-2xl border border-green-200 shadow-xl hover:shadow-2xl transition-all duration-300 focus-within:border-[#6BA368] focus-within:ring-2 focus-within:ring-[#6BA368]/20">
+                <div className="flex items-center pl-4 md:pl-6">
+                  <Search className="w-4 h-4 md:w-5 md:h-5 text-[#6BA368]" />
+                </div>
+                <Input
+                  ref={inputRef}
+                  type="text"
+                  placeholder="요리 키워드 또는 URL 입력"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="h-12 md:h-16 flex-grow px-3 md:px-4 border-none focus:outline-none focus:ring-0 focus-visible:ring-0 focus-visible:ring-offset-0 text-base md:text-lg placeholder:text-gray-400 bg-transparent rounded-2xl"
+                  disabled={isSearching}
+                />
+                <Button
+                  type="submit"
+                  disabled={!searchQuery.trim() || isSearching}
+                  className={`m-2 h-8 md:h-12 px-4 md:px-8 ${
+                    !searchQuery.trim() || isSearching
+                      ? "bg-gray-400"
+                      : "bg-[#6BA368] hover:bg-[#5a8f57]"
+                  } text-white rounded-xl font-semibold transition-all duration-300 hover:scale-105 shadow-lg hover:shadow-xl text-sm md:text-base`}
+                >
+                  {isSearching ? (
+                    <Loader2 className="w-4 h-4 md:w-5 md:h-5 animate-spin" />
+                  ) : (
+                    <>
+                      <span>검색</span>
+                      <ArrowRight className="w-4 h-4 md:w-5 md:h-5 ml-1 md:ml-2" />
+                    </>
+                  )}
+                </Button>
+              </div>
             </div>
           </form>
 
