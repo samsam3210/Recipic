@@ -198,6 +198,7 @@ export default function RecipeGridWrapper({
     try {
       const result = await deleteRecipe(recipeToDelete.id)
       if (result.success) {
+        console.log('[RecipeGridWrapper] 레시피 삭제 성공, 토스트 표시:', result.message)
         toast({ title: "삭제 완료", description: result.message })
         // 폴더 캐시만 무효화 (레시피 수 업데이트용)
         queryClient.invalidateQueries({ queryKey: ['recipes-folders', userId] })

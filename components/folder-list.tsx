@@ -6,6 +6,8 @@ import { Input } from "@/components/ui/input"
 import { Plus, Folder, Edit, Trash2, Save, X, Loader2, MoreHorizontal } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import { createFolder, updateFolder, deleteFolder } from "@/lib/actions/folder"
+import { useCacheInvalidation } from "@/hooks/use-cache-invalidation"
+import { useUser } from "@/contexts/user-context"
 import { cn } from "@/lib/utils"
 import {
   Dialog,
@@ -38,6 +40,8 @@ export function FolderList({ folders, selectedFolderId }: FolderListProps) {
   const [loadingFolderId, setLoadingFolderId] = useState<string | null>(null)
   const [showEditMode, setShowEditMode] = useState(false) // 🆕 편집 모드 상태
   const { toast } = useToast()
+  const { user } = useUser()
+  const { invalidateByAction } = useCacheInvalidation()
   const router = useRouter()
   const searchParams = useSearchParams()
 
@@ -62,6 +66,11 @@ export function FolderList({ folders, selectedFolderId }: FolderListProps) {
       if (result.success) {
         toast({ title: "성공", description: result.message })
         setNewFolderName("")
+        // React Query 캐시 무효화
+        if (user) {
+          console.log('[FolderList] 폴더 생성 후 캐시 무효화')
+          invalidateByAction('FOLDER_OPERATIONS', user.id)
+        }
         router.refresh()
       } else {
         throw new Error(result.message)
@@ -88,6 +97,11 @@ export function FolderList({ folders, selectedFolderId }: FolderListProps) {
       if (result.success) {
         toast({ title: "성공", description: result.message })
         setEditingFolderId(null)
+        // React Query 캐시 무효화
+        if (user) {
+          console.log('[FolderList] 폴더 수정 후 캐시 무효화')
+          invalidateByAction('FOLDER_OPERATIONS', user.id)
+        }
         router.refresh()
       } else {
         throw new Error(result.message)
@@ -109,6 +123,11 @@ export function FolderList({ folders, selectedFolderId }: FolderListProps) {
       const result = await deleteFolder(folderToDelete.id)
       if (result.success) {
         toast({ title: "성공", description: result.message })
+        // React Query 캐시 무효화
+        if (user) {
+          console.log('[FolderList] 폴더 삭제 후 캐시 무효화')
+          invalidateByAction('FOLDER_OPERATIONS', user.id)
+        }
         // 선택된 폴더가 삭제되면 '모든 레시피'로 이동
         if (optimisticSelectedFolderId === folderToDelete.id) {
           const newSearchParams = new URLSearchParams(searchParams.toString())
