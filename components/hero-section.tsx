@@ -764,11 +764,9 @@ export function HeroSection({ user, isDashboard = false, cachedUsageData = null,
               {user && (
                 <div className="text-center">
                   {isLoadingUsage ? (
-                    <div className="text-sm text-gray-500 opacity-50">
-                      <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-400 mr-2">
-                        ...
-                      </span>
-                      사용량 확인 중...
+                    <div className="flex items-center justify-center">
+                      <Skeleton className="h-4 w-12 rounded-full mr-2" />
+                      <Skeleton className="h-4 w-24" />
                     </div>
                   ) : (
                     <p className="text-sm text-gray-500 animate-in fade-in duration-200">

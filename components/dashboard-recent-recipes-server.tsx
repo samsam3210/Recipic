@@ -43,8 +43,12 @@ export function DashboardRecentRecipesServer({ recipes, isLoading = false }: Das
   return (
     <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-bold text-gray-800">최근 본 레시피</h2>
-        {recipes.length > 0 && (
+        {isLoading ? (
+          <Skeleton className="h-8 w-40" />
+        ) : (
+          <h2 className="text-2xl font-bold text-gray-800">최근 본 레시피</h2>
+        )}
+        {!isLoading && recipes.length > 0 && (
           <Button variant="link" asChild className="underline">
             <Link href="/recipes">모두 보기</Link>
           </Button>
@@ -54,15 +58,17 @@ export function DashboardRecentRecipesServer({ recipes, isLoading = false }: Das
       {isLoading ? (
         <div className="space-y-4">
           {Array.from({ length: 3 }).map((_, i) => (
-            <Card key={i} className="p-4">
-              <div className="flex gap-4">
-                <AspectRatio ratio={16 / 9} className="w-32">
-                  <Skeleton className="w-full h-full rounded-md" />
-                </AspectRatio>
+            <Card key={i}>
+              <div className="flex flex-col md:flex-row p-4">
+                <div className="w-full md:w-48 md:h-32 flex-shrink-0 md:mr-4 mb-4 md:mb-0">
+                  <AspectRatio ratio={16 / 9}>
+                    <Skeleton className="w-full h-full rounded-md" />
+                  </AspectRatio>
+                </div>
                 <div className="flex-1 space-y-2">
-                  <Skeleton className="h-6 w-3/4" />
+                  <Skeleton className="h-5 w-3/4" />
                   <Skeleton className="h-4 w-1/2" />
-                  <Skeleton className="h-4 w-1/3" />
+                  <Skeleton className="h-4 w-full" />
                 </div>
               </div>
             </Card>
