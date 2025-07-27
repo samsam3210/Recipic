@@ -42,6 +42,7 @@ interface RecipeGridWrapperProps {
   initialPage: number
   initialLimit: number
   initialFolders: (typeof foldersSchema.$inferSelect)[]
+  initialRecipesData?: any
 }
 
 export default function RecipeGridWrapper({
@@ -50,6 +51,7 @@ export default function RecipeGridWrapper({
   initialPage,
   initialLimit,
   initialFolders,
+  initialRecipesData,
 }: RecipeGridWrapperProps) {
   const { toast } = useToast()
   const router = useRouter()
@@ -89,6 +91,7 @@ export default function RecipeGridWrapper({
         folderId: selectedFolderId,
       });
     },
+    initialData: initialRecipesData, // 서버에서 가져온 초기 데이터
     enabled: isQueryEnabled, // 캐시가 없을 때만 쿼리 실행
     staleTime: 10 * 60 * 1000,
     gcTime: 20 * 60 * 1000,

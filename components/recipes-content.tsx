@@ -13,11 +13,12 @@ import { myRecipesSidebarNavItems } from "@/lib/navigation"
 import { MobileFolderSelector } from "@/components/mobile-folder-selector"
 import { useRecipesCache } from "@/components/cached-recipes"
 
-export function RecipesContent({ userId, selectedFolderId, page, limit }: { 
+export function RecipesContent({ userId, selectedFolderId, page, limit, initialRecipesData }: { 
   userId: string, 
   selectedFolderId: string | null, 
   page: number, 
-  limit: number
+  limit: number,
+  initialRecipesData?: any
 }) {
   const { folders: cachedFolders, userProfile: cachedUserProfile, isLoading } = useRecipesCache()
   
@@ -47,6 +48,7 @@ export function RecipesContent({ userId, selectedFolderId, page, limit }: {
             initialPage={page}
             initialLimit={limit}
             initialFolders={cachedFolders}
+            initialRecipesData={initialRecipesData}
           />
         </section>
       </main>

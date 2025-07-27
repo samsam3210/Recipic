@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation"
 import { createClient as createServerClient } from "@/lib/supabase/server"
 import { getUserProfile } from "@/lib/actions/user"
-import { fetchRecipesAndFolders } from "@/lib/actions/recipe-fetch"
+import { fetchRecipesAndFolders, getPaginatedRecipes } from "@/lib/actions/recipe-fetch"
 import type { folders as foldersSchema } from "@/lib/db/schema"
 import type { Profile } from "@/lib/db/schema"
 import { CachedRecipes } from "@/components/cached-recipes"
@@ -30,6 +30,7 @@ export default async function RecipesPage({
 
   let initialFolders: (typeof foldersSchema.$inferSelect)[] = []
   let userProfile: Profile | null = null
+  let initialRecipesData: any = null
 
   try {
     const profileResult = await getUserProfile(userId)
@@ -40,6 +41,15 @@ export default async function RecipesPage({
     if (foldersResult.error) {
       console.error("Error fetching folders for RecipesPage:", foldersResult.error)
     }
+
+    // 초기 레시피 데이터 가져오기 (첫 페이지만)
+    const initialRecipes = await getPaginatedRecipes({
+      userId,
+      page,
+      limit,
+      folderId: selectedFolderId,
+    })
+    initialRecipesData = initialRecipes
   } catch (err: any) {
     console.error("Failed to load initial data for RecipesPage:", err)
     return (
@@ -62,6 +72,7 @@ export default async function RecipesPage({
         selectedFolderId={selectedFolderId}
         page={page}
         limit={limit}
+        initialRecipesData={initialRecipesData}
       />
     </CachedRecipes>
   )
