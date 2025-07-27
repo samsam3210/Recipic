@@ -578,14 +578,8 @@ function SearchPageContent() {
             </aside>
 
             <section className="flex-1 lg:w-4/5 space-y-8">
-              {/* 검색 폼과 인기 키워드를 감싸는 컨테이너 */}
+              {/* 검색 폼 컨테이너 */}
               <div className="lg:max-w-4xl">
-                {/* 검색 제목 */}
-                <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-3 sm:mb-6">
-                  레시피 검색
-                </h1>
-
-                {/* 검색 폼 */}
                 <form onSubmit={handleSearch} className="mb-8">
                   <div className="flex items-center bg-white rounded-xl border border-gray-200 shadow-sm hover:shadow-md hover:border-gray-300 transition-all duration-200 focus-within:border-[#6BA368] focus-within:ring-2 focus-within:ring-[#6BA368]/10">
                     <div className="flex items-center pl-4 md:pl-6">
@@ -624,13 +618,13 @@ function SearchPageContent() {
                     </Button>
                   </div>
                 </form>
-
-                {/* 인기 키워드 컴포넌트 */}
-                <PopularKeywords 
-                  onKeywordClick={handleKeywordClick} 
-                  isSearching={isSearching} 
-                />
               </div>
+
+              {/* 인기 키워드 컴포넌트 - 검색 결과와 동일한 정렬 */}
+              <PopularKeywords 
+                onKeywordClick={handleKeywordClick} 
+                isSearching={isSearching} 
+              />
 
           {searchResults.length > 0 && (
             <div className="space-y-4">

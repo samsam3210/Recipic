@@ -47,7 +47,7 @@ export function PopularKeywords({ onKeywordClick, isSearching = false }: Popular
   }
 
   return (
-    <div className="max-w-2xl mx-auto mb-8">
+    <div className="mb-8">
       <div className="flex items-center gap-2 mb-4">
         <h3 className="text-lg font-semibold text-gray-900">인기 레시피</h3>
       </div>

@@ -78,8 +78,8 @@ export function CachedDashboard({
     isAdmin: usageResult.isAdmin || false
   } : null
 
-  // 실제 로딩 상태 계산 - 모든 필수 데이터가 로드될 때까지 로딩 중
-  const isActuallyLoading = !userProfile || !usageData || isLoading || isInitialLoading
+  // 실제 로딩 상태 계산 - 모든 필수 데이터가 로드될 때까지 로딩 중 (fetching 상태도 포함)
+  const isActuallyLoading = !userProfile || !usageData || isLoading || isInitialLoading || isFetching
 
   console.log('[CachedDashboard] 상태:', {
     timestamp: new Date().toISOString(),
