@@ -60,14 +60,19 @@ export default function RecipeGridWrapper({
   const selectedFolderId = searchParams.get("folder") || null
   const page = Number.parseInt(searchParams.get("page") || "1")
 
-  // React Query로 레시피 데이터 관리
+  // 캐시가 있는지 확인
+  const queryClient = useQueryClient()
+  const cacheKey = ['paginated-recipes', userId, selectedFolderId, page, initialLimit]
+  const cachedData = queryClient.getQueryData(cacheKey)
+
+  // React Query로 레시피 데이터 관리 (캐시가 없을 때만 활성화)
   const { 
     data: recipesData, 
     isLoading: isLoadingRecipes, 
     isFetching,
     error 
   } = useQuery({
-    queryKey: ['paginated-recipes', userId, selectedFolderId, page, initialLimit],
+    queryKey: cacheKey,
     queryFn: () => {
       console.log('[RecipeGridWrapper] API 호출:', { userId, selectedFolderId, page, initialLimit });
       return getPaginatedRecipes({
@@ -77,25 +82,30 @@ export default function RecipeGridWrapper({
         folderId: selectedFolderId,
       });
     },
-    staleTime: 10 * 60 * 1000, // 10분으로 연장
-    gcTime: 20 * 60 * 1000, // 20분으로 연장
+    enabled: !cachedData, // 캐시가 없을 때만 쿼리 실행
+    staleTime: 10 * 60 * 1000,
+    gcTime: 20 * 60 * 1000,
     refetchOnWindowFocus: false,
-    refetchOnMount: false, // 마운트 시 refetch 방지
-    refetchOnReconnect: false, // 재연결 시 refetch 방지
-    refetchInterval: false, // 주기적 refetch 방지
+    refetchOnMount: false,
+    refetchOnReconnect: false,
+    refetchInterval: false,
   })
+
+  // 캐시된 데이터가 있으면 사용, 없으면 쿼리 결과 사용
+  const finalData = cachedData || recipesData
 
   console.log('[RecipeGridWrapper] 상태:', {
     isLoadingRecipes,
     isFetching,
-    hasRecipesData: !!recipesData,
-    recipesCount: recipesData?.recipes?.length || 0,
+    hasCachedData: !!cachedData,
+    hasRecipesData: !!finalData,
+    recipesCount: finalData?.recipes?.length || 0,
     selectedFolderId,
     page
   });
 
-  const allRecipes = recipesData?.recipes || []
-  const hasMore = recipesData?.hasMore || false
+  const allRecipes = finalData?.recipes || []
+  const hasMore = finalData?.hasMore || false
 
   // 레시피 삭제 관련 상태
   const [showDeleteConfirmDialog, setShowDeleteConfirmDialog] = useState(false)
@@ -210,7 +220,7 @@ export default function RecipeGridWrapper({
 
   return (
     <>
-      {(isLoadingRecipes && !recipesData) ? ( // 캐시된 데이터가 없을 때만 스켈레톤 표시
+      {(isLoadingRecipes && !finalData) ? ( // 캐시된 데이터가 없을 때만 스켈레톤 표시
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {Array.from({ length: initialLimit }).map((_, i) => (
             <RecipeCardSkeleton key={i} />

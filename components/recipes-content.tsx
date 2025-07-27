@@ -17,7 +17,7 @@ export function RecipesContent({ userId, selectedFolderId, page, limit }: {
   userId: string, 
   selectedFolderId: string | null, 
   page: number, 
-  limit: number 
+  limit: number
 }) {
   const { folders: cachedFolders, userProfile: cachedUserProfile, isLoading } = useRecipesCache()
   
