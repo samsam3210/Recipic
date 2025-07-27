@@ -41,37 +41,28 @@ interface DashboardRecentRecipesServerProps {
 
 export function DashboardRecentRecipesServer({ recipes, isLoading = false }: DashboardRecentRecipesServerProps) {
   return (
-    <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-      <div className="flex justify-between items-center mb-6">
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
         {isLoading ? (
-          <Skeleton className="h-8 w-40" />
+          <Skeleton className="h-7 w-40" />
         ) : (
-          <h2 className="text-2xl font-bold text-gray-800">최근 본 레시피</h2>
-        )}
-        {!isLoading && recipes.length > 0 && (
-          <Button variant="link" asChild className="underline">
-            <Link href="/recipes">모두 보기</Link>
-          </Button>
+          <h2 className="text-lg font-semibold text-gray-900">최근 본 레시피</h2>
         )}
       </div>
       
       {isLoading ? (
-        <div className="space-y-4">
+        <div className="grid gap-4">
           {Array.from({ length: 3 }).map((_, i) => (
-            <Card key={i}>
-              <div className="flex flex-col md:flex-row p-4">
-                <div className="w-full md:w-48 md:h-32 flex-shrink-0 md:mr-4 mb-4 md:mb-0">
-                  <AspectRatio ratio={16 / 9}>
-                    <Skeleton className="w-full h-full rounded-md" />
-                  </AspectRatio>
-                </div>
-                <div className="flex-1 space-y-2">
-                  <Skeleton className="h-5 w-3/4" />
-                  <Skeleton className="h-4 w-1/2" />
-                  <Skeleton className="h-4 w-full" />
-                </div>
+            <div key={i} className="flex gap-4 p-4 border rounded-lg">
+              <div className="relative w-32 h-24">
+                <Skeleton className="w-full h-full rounded" />
               </div>
-            </Card>
+              <div className="flex-1 space-y-2">
+                <Skeleton className="h-5 w-3/4" />
+                <Skeleton className="h-4 w-1/2" />
+                <Skeleton className="h-4 w-full" />
+              </div>
+            </div>
           ))}
         </div>
       ) : recipes.length === 0 ? (
@@ -79,77 +70,72 @@ export function DashboardRecentRecipesServer({ recipes, isLoading = false }: Das
           <p className="text-lg mb-4">최근 본 레시피가 없습니다.</p>
         </div>
       ) : (
-        <div className="space-y-4">
+        <div className="grid gap-4">
           {recipes.map((recipe) => (
-            <Card key={recipe.id} className="hover:shadow-md transition-shadow duration-200">
-              <div 
-                className="cursor-pointer"
-                onClick={() => {
-                  // savedRecipeId가 있으면 레시피 상세 페이지로, 없으면 프리뷰 페이지로
-                  if (recipe.savedRecipeId) {
-                    // 저장된 레시피 → 레시피 상세 페이지
-                    window.location.href = `/recipe/${recipe.savedRecipeId}`
-                  } else {
-                    // 프리뷰만 본 레시피 → 프리뷰 페이지 (완전한 레시피 데이터 사용)
-                    const previewData = {
-                      youtubeUrl: recipe.youtubeUrl,
-                      videoInfo: {
-                        videoId: '',
-                        videoTitle: recipe.recipeName,
-                        videoThumbnail: recipe.videoThumbnail || '',
-                        channelName: recipe.channelName || '',
-                        videoDurationSeconds: recipe.videoDurationSeconds || 0,
-                        videoViews: recipe.videoViews || 0,
-                        videoDescription: recipe.videoDescription || '',
-                        transcriptText: '',
-                        structuredTranscript: [],
-                        hasSubtitles: true
-                      },
-                      extractedRecipe: {
-                        recipeName: recipe.recipeName,
-                        summary: recipe.summary || '',
-                        difficulty: recipe.difficulty || '',
-                        cookingTimeMinutes: recipe.cookingTimeMinutes || 0,
-                        ingredients: recipe.ingredients || [],
-                        steps: recipe.steps || [],
-                        tips: recipe.tips || [],
-                        personalNotes: recipe.personalNotes,
-                        noRecipeFoundMessage: recipe.noRecipeFoundMessage
-                      }
+            <div
+              key={recipe.id}
+              className="flex gap-4 p-4 border rounded-lg hover:bg-gray-50 cursor-pointer transition-colors"
+              onClick={() => {
+                // savedRecipeId가 있으면 레시피 상세 페이지로, 없으면 프리뷰 페이지로
+                if (recipe.savedRecipeId) {
+                  // 저장된 레시피 → 레시피 상세 페이지
+                  window.location.href = `/recipe/${recipe.savedRecipeId}`
+                } else {
+                  // 프리뷰만 본 레시피 → 프리뷰 페이지 (완전한 레시피 데이터 사용)
+                  const previewData = {
+                    youtubeUrl: recipe.youtubeUrl,
+                    videoInfo: {
+                      videoId: '',
+                      videoTitle: recipe.recipeName,
+                      videoThumbnail: recipe.videoThumbnail || '',
+                      channelName: recipe.channelName || '',
+                      videoDurationSeconds: recipe.videoDurationSeconds || 0,
+                      videoViews: recipe.videoViews || 0,
+                      videoDescription: recipe.videoDescription || '',
+                      transcriptText: '',
+                      structuredTranscript: [],
+                      hasSubtitles: true
+                    },
+                    extractedRecipe: {
+                      recipeName: recipe.recipeName,
+                      summary: recipe.summary || '',
+                      difficulty: recipe.difficulty || '',
+                      cookingTimeMinutes: recipe.cookingTimeMinutes || 0,
+                      ingredients: recipe.ingredients || [],
+                      steps: recipe.steps || [],
+                      tips: recipe.tips || [],
+                      personalNotes: recipe.personalNotes,
+                      noRecipeFoundMessage: recipe.noRecipeFoundMessage
                     }
-                    localStorage.setItem('recipick_pending_recipe', JSON.stringify(previewData))
-                    window.location.href = '/temp-preview'
                   }
-                }}
-              >
-                <div className="flex flex-col md:flex-row p-4">
-                  <div className="w-full md:w-48 md:h-32 flex-shrink-0 md:mr-4 mb-4 md:mb-0">
-                    <AspectRatio ratio={16 / 9}>
-                      {recipe.videoThumbnail ? (
-                        <Image
-                          src={recipe.videoThumbnail}
-                          alt={recipe.recipeName || "레시피 썸네일"}
-                          fill
-                          className="object-cover rounded-md"
-                          priority
-                        />
-                      ) : (
-                        <div className="w-full h-full bg-gray-200 rounded-md flex items-center justify-center">
-                          <span className="text-gray-400">썸네일 없음</span>
-                        </div>
-                      )}
-                    </AspectRatio>
+                  localStorage.setItem('recipick_pending_recipe', JSON.stringify(previewData))
+                  window.location.href = '/temp-preview'
+                }
+              }}
+            >
+              <div className="relative w-32 h-24">
+                {recipe.videoThumbnail ? (
+                  <img
+                    src={recipe.videoThumbnail}
+                    alt={recipe.recipeName || "레시피 썸네일"}
+                    className="w-full h-full object-cover rounded"
+                    loading="lazy"
+                    decoding="async"
+                  />
+                ) : (
+                  <div className="w-full h-full bg-gray-200 rounded flex items-center justify-center">
+                    <span className="text-gray-400 text-xs">썸네일 없음</span>
                   </div>
-                  <div className="flex-1">
-                    <h3 className="font-medium text-gray-900 mb-1 line-clamp-2">
-                      {recipe.recipeName || "제목 없음"}
-                    </h3>
-                    <p className="text-sm text-gray-600 mb-1">{recipe.channelName}</p>
-                    <p className="text-sm text-gray-500 line-clamp-2">{recipe.summary}</p>
-                  </div>
-                </div>
+                )}
               </div>
-            </Card>
+              <div className="flex-1">
+                <h3 className="font-medium text-gray-900 line-clamp-2">
+                  {recipe.recipeName || "제목 없음"}
+                </h3>
+                <p className="text-sm text-gray-600 mt-1">{recipe.channelName}</p>
+                <p className="text-sm text-gray-500 line-clamp-2 mt-1">{recipe.summary}</p>
+              </div>
+            </div>
           ))}
         </div>
       )}
