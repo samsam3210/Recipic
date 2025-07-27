@@ -1,11 +1,10 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
 import { Play, Clock, User, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useToast } from '@/hooks/use-toast'
-import LoadingOverlay from '@/components/loading-overlay'
+import { useExtraction } from '@/contexts/extraction-context'
 
 interface SearchResult {
   videoId: string
@@ -26,10 +25,8 @@ export default function SearchResults({ query }: SearchResultsProps) {
   const [results, setResults] = useState<SearchResult[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [isProcessing, setIsProcessing] = useState(false)
-  const [showLoadingOverlay, setShowLoadingOverlay] = useState(false)
   const { toast } = useToast()
-  const router = useRouter()
+  const { startExtraction, isExtracting } = useExtraction()
 
   useEffect(() => {
     if (query) {
@@ -78,91 +75,25 @@ export default function SearchResults({ query }: SearchResultsProps) {
     }
   }
 
-  const checkDailyUsage = async () => {
-    try {
-      const response = await fetch('/api/usage/check', {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      })
-      
-      if (!response.ok) {
-        throw new Error('사용량 확인 실패')
-      }
-      
-      const data = await response.json()
-      return {
-        isAllowed: data.isAllowed,
-        currentCount: data.currentCount,
-        isAdmin: data.isAdmin
-      }
-    } catch (error) {
-      console.error('Usage check error:', error)
-      return { isAllowed: true, currentCount: 0, isAdmin: false }
-    }
-  }
-
   const handleVideoSelect = async (video: SearchResult) => {
-    setIsProcessing(true)
-    setShowLoadingOverlay(true)
+    if (isExtracting) {
+      toast({
+        title: "알림",
+        description: "이전 레시피 추출이 완료된 후 시작 가능합니다.",
+        variant: "default"
+      })
+      return
+    }
 
     try {
-      // 사용량 제한 체크 (로그인한 사용자만)
-      const usageCheckResult = await checkDailyUsage()
-      
-      if (!usageCheckResult.isAllowed) {
-        toast({
-          title: "일일 사용 제한",
-          description: "오늘의 무료 사용 횟수를 모두 사용했습니다. 내일 다시 이용해주세요.",
-          variant: "destructive"
-        })
-        setIsProcessing(false)
-        setShowLoadingOverlay(false)
-        return
-      }
-
-      // 레시피 추출 API 호출
-      const response = await fetch('/api/gemini', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          youtubeUrl: video.youtubeUrl,
-          forceReExtract: false
-        })
-      })
-
-      if (!response.ok) {
-        throw new Error('레시피 추출 요청이 실패했습니다.')
-      }
-
-      const data = await response.json()
-
-      if (data.error) {
-        throw new Error(data.error)
-      }
-
-      if (data.recipeId) {
-        // 레시피 상세 페이지로 이동
-        router.push(`/recipe/${data.recipeId}`)
-      } else if (data.tempId) {
-        // 임시 미리보기 페이지로 이동
-        router.push(`/temp-preview?id=${data.tempId}`)
-      } else {
-        throw new Error('레시피 추출에 실패했습니다.')
-      }
-    } catch (err: any) {
-      console.error('Recipe extraction error:', err)
+      await startExtraction(video.youtubeUrl)
+    } catch (error: any) {
+      console.error("Recipe extraction error:", error)
       toast({
-        title: "오류",
-        description: err.message || "레시피 추출 중 오류가 발생했습니다.",
+        title: "레시피 추출 실패",
+        description: error.message || "레시피 추출 중 오류가 발생했습니다.",
         variant: "destructive"
       })
-    } finally {
-      setIsProcessing(false)
-      setShowLoadingOverlay(false)
     }
   }
 
@@ -203,21 +134,7 @@ export default function SearchResults({ query }: SearchResultsProps) {
   }
 
   return (
-    <>
-      {/* 로딩 오버레이 */}
-      {showLoadingOverlay && (
-        <LoadingOverlay
-          isVisible={showLoadingOverlay}
-          currentStep={1}
-          steps={[
-            "YouTube 영상 정보 가져오는 중...",
-            "AI가 레시피를 추출하고 있습니다...",
-            "레시피 저장 중..."
-          ]}
-        />
-      )}
-
-      <div className="space-y-6">
+    <div className="space-y-6">
         {/* 검색 결과 헤더 */}
         <div className="flex justify-between items-center">
           <h2 className="text-xl font-semibold text-gray-900">
@@ -234,7 +151,7 @@ export default function SearchResults({ query }: SearchResultsProps) {
             <div
               key={video.videoId}
               className="bg-white rounded-lg border border-gray-200 p-4 hover:shadow-md transition-shadow cursor-pointer group"
-              onClick={() => !isProcessing && handleVideoSelect(video)}
+              onClick={() => !isExtracting && handleVideoSelect(video)}
             >
               <div className="flex flex-col md:flex-row gap-4">
                 {/* 썸네일 */}
@@ -281,14 +198,14 @@ export default function SearchResults({ query }: SearchResultsProps) {
                   <div className="pt-2">
                     <Button
                       size="sm"
-                      disabled={isProcessing}
+                      disabled={isExtracting}
                       className="bg-black hover:bg-gray-800 text-white"
                       onClick={(e) => {
                         e.stopPropagation()
                         handleVideoSelect(video)
                       }}
                     >
-                      {isProcessing ? (
+                      {isExtracting ? (
                         <>
                           <Loader2 className="h-3 w-3 animate-spin mr-1" />
                           레시피 추출 중...
@@ -304,6 +221,5 @@ export default function SearchResults({ query }: SearchResultsProps) {
           ))}
         </div>
       </div>
-    </>
   )
 }
