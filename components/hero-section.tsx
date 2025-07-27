@@ -71,9 +71,10 @@ interface HeroSectionProps {
   user: User | null
   isDashboard?: boolean
   cachedUsageData?: { currentCount: number; isAdmin: boolean } | null
+  isLoading?: boolean
 }
 
-export function HeroSection({ user, isDashboard = false, cachedUsageData = null }: HeroSectionProps) {
+export function HeroSection({ user, isDashboard = false, cachedUsageData = null, isLoading = false }: HeroSectionProps) {
   const [youtubeUrl, setYoutubeUrl] = useState("")
   const [showDuplicateModal, setShowDuplicateModal] = useState(false)
   const [duplicateRecipeId, setDuplicateRecipeId] = useState<string | null>(null)
@@ -629,36 +630,42 @@ export function HeroSection({ user, isDashboard = false, cachedUsageData = null 
 
               {/* 검색 입력 필드 */}
               <div className="max-w-2xl mx-auto animate-fade-in-up" style={{ animationDelay: '0.4s' }}>
-                <div className="relative group">
-                  <div className="absolute -inset-0.5 bg-[#6BA368] rounded-2xl blur opacity-25 group-hover:opacity-50 transition duration-300"></div>
-                  <div className="relative flex items-center bg-white rounded-2xl border border-green-200 shadow-xl hover:shadow-2xl transition-all duration-300 focus-within:border-[#6BA368] focus-within:ring-2 focus-within:ring-[#6BA368]/20">
-                    <div className="flex items-center pl-4 md:pl-6">
-                      <Search className="w-4 h-4 md:w-5 md:h-5 text-[#6BA368]" />
-                    </div>
-                    <Input
-                      id="youtube-url"
-                      placeholder="요리 키워드 또는 URL 입력"
-                      value={youtubeUrl}
-                      onChange={(e) => setYoutubeUrl(e.target.value)}
-                      className="h-12 md:h-16 flex-grow px-3 md:px-4 border-none focus:outline-none focus:ring-0 focus-visible:ring-0 focus-visible:ring-offset-0 text-base md:text-lg placeholder:text-gray-400 bg-transparent rounded-2xl"
-                      disabled={isExtracting}
-                    />
-                    <Button
-                      onClick={handleDiscoverClick}
-                      disabled={!youtubeUrl || isExtracting}
-                      className="m-2 h-8 md:h-12 px-4 md:px-8 bg-[#6BA368] hover:bg-[#5a8f57] text-white rounded-xl font-semibold transition-all duration-300 hover:scale-105 shadow-lg hover:shadow-xl text-sm md:text-base"
-                    >
-                      {isExtracting ? (
-                        <Loader2 className="w-4 h-4 md:w-5 md:h-5 animate-spin" />
-                      ) : (
-                        <>
-                          <span>검색</span>
-                          <ArrowRight className="w-4 h-4 md:w-5 md:h-5 ml-1 md:ml-2" />
-                        </>
-                      )}
-                    </Button>
+                {isLoading ? (
+                  <div className="relative">
+                    <Skeleton className="h-12 md:h-16 w-full rounded-2xl" />
                   </div>
-                </div>
+                ) : (
+                  <div className="relative group">
+                    <div className="absolute -inset-0.5 bg-[#6BA368] rounded-2xl blur opacity-25 group-hover:opacity-50 transition duration-300"></div>
+                    <div className="relative flex items-center bg-white rounded-2xl border border-green-200 shadow-xl hover:shadow-2xl transition-all duration-300 focus-within:border-[#6BA368] focus-within:ring-2 focus-within:ring-[#6BA368]/20">
+                      <div className="flex items-center pl-4 md:pl-6">
+                        <Search className="w-4 h-4 md:w-5 md:h-5 text-[#6BA368]" />
+                      </div>
+                      <Input
+                        id="youtube-url"
+                        placeholder="요리 키워드 또는 URL 입력"
+                        value={youtubeUrl}
+                        onChange={(e) => setYoutubeUrl(e.target.value)}
+                        className="h-12 md:h-16 flex-grow px-3 md:px-4 border-none focus:outline-none focus:ring-0 focus-visible:ring-0 focus-visible:ring-offset-0 text-base md:text-lg placeholder:text-gray-400 bg-transparent rounded-2xl"
+                        disabled={isExtracting}
+                      />
+                      <Button
+                        onClick={handleDiscoverClick}
+                        disabled={!youtubeUrl || isExtracting}
+                        className="m-2 h-8 md:h-12 px-4 md:px-8 bg-[#6BA368] hover:bg-[#5a8f57] text-white rounded-xl font-semibold transition-all duration-300 hover:scale-105 shadow-lg hover:shadow-xl text-sm md:text-base"
+                      >
+                        {isExtracting ? (
+                          <Loader2 className="w-4 h-4 md:w-5 md:h-5 animate-spin" />
+                        ) : (
+                          <>
+                            <span>검색</span>
+                            <ArrowRight className="w-4 h-4 md:w-5 md:h-5 ml-1 md:ml-2" />
+                          </>
+                        )}
+                      </Button>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
 

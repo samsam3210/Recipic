@@ -69,7 +69,7 @@ export default function RecipeGridWrapper({
       console.log('[RecipeGridWrapper] 서버 초기 데이터를 캐시에 설정:', cacheKey)
       queryClient.setQueryData(cacheKey, initialRecipesData)
     }
-  }, []) // 빈 의존성 배열로 마운트 시에만 실행
+  }, [initialRecipesData, page, userId, selectedFolderId, initialLimit, queryClient]) // 필요한 의존성 모두 추가
 
   // 캐시가 있는지 확인
   const cacheKey = ['paginated-recipes', userId, selectedFolderId, page, initialLimit]
@@ -113,11 +113,11 @@ export default function RecipeGridWrapper({
     refetchInterval: false,
   })
 
-  // 데이터 우선순위: 캐시 > 쿼리 결과 > 초기 데이터
-  const finalData = cachedData || recipesData || (hasInitialData ? initialRecipesData : null)
+  // 데이터 우선순위: 캐시 > 초기 데이터 > 쿼리 결과 (캐시가 최우선)
+  const finalData = cachedData || (hasInitialData ? initialRecipesData : recipesData)
   
-  // 실제 로딩 상태 (캐시나 초기 데이터가 있으면 로딩 상태가 아님)
-  const actualIsLoading = (cachedData || hasInitialData) ? false : isLoadingRecipes
+  // 실제 로딩 상태 (캐시가 있으면 무조건 false, 없으면 초기 데이터나 쿼리 상태 확인)
+  const actualIsLoading = cachedData ? false : (hasInitialData ? false : isLoadingRecipes)
 
   console.log('[RecipeGridWrapper] 상태:', {
     originalIsLoading: isLoadingRecipes,

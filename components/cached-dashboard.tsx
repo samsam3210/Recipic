@@ -91,8 +91,8 @@ export function CachedDashboard({
     userId: user.id
   });
 
-  // 실제 로딩 상태 계산 - 핵심 데이터가 없으면 로딩 중
-  const isActuallyLoading = !userProfile || isLoading || isInitialLoading
+  // 실제 로딩 상태 계산 - 모든 필수 데이터가 로드될 때까지 로딩 중
+  const isActuallyLoading = !userProfile || !usageData || isLoading || isInitialLoading
 
   const cacheData: DashboardCacheData = {
     userProfile,

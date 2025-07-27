@@ -44,7 +44,7 @@ export function DashboardContent({ user }: { user: any }) {
             )}
           </div>
 
-          <HeroSection user={user} isDashboard={true} cachedUsageData={usageData} />
+          <HeroSection user={user} isDashboard={true} cachedUsageData={usageData} isLoading={isLoading} />
 
           <DashboardRecentRecipesServer recipes={cachedRecentRecipes} isLoading={isLoading} />
         </section>
