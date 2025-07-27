@@ -680,11 +680,10 @@ export function HeroSection({ user, isDashboard = false }: HeroSectionProps) {
 
           {isDashboard && (
             <div className="w-full max-w-2xl space-y-4">
-              <div className="relative group">
-                <div className="absolute -inset-0.5 bg-[#6BA368] rounded-2xl blur opacity-25 group-hover:opacity-50 transition duration-300"></div>
-                <div className="relative flex items-center bg-white rounded-2xl border border-green-200 shadow-xl hover:shadow-2xl transition-all duration-300 focus-within:border-[#6BA368] focus-within:ring-2 focus-within:ring-[#6BA368]/20">
+              <div className="relative">
+                <div className="flex items-center bg-white rounded-xl border border-gray-200 shadow-sm hover:shadow-md hover:border-gray-300 transition-all duration-200 focus-within:border-[#6BA368] focus-within:ring-2 focus-within:ring-[#6BA368]/10">
                   <div className="flex items-center pl-4 md:pl-6">
-                    <Search className="w-4 h-4 md:w-5 md:h-5 text-[#6BA368]" />
+                    <Search className="w-4 h-4 md:w-5 md:h-5 text-gray-400" />
                   </div>
                   <Input
                     type="text"
@@ -693,7 +692,7 @@ export function HeroSection({ user, isDashboard = false }: HeroSectionProps) {
                     onChange={(e) => setYoutubeUrl(e.target.value)}
                     onClick={handleInputClick}
                     readOnly
-                    className="h-12 md:h-16 flex-grow px-3 md:px-4 border-none focus:outline-none focus:ring-0 focus-visible:ring-0 focus-visible:ring-offset-0 text-base md:text-lg placeholder:text-gray-400 bg-transparent rounded-2xl cursor-pointer"
+                    className="h-12 md:h-14 flex-grow px-3 md:px-4 border-none focus:outline-none focus:ring-0 focus-visible:ring-0 focus-visible:ring-offset-0 text-base md:text-lg placeholder:text-gray-400 bg-transparent rounded-xl cursor-pointer"
                   />
                 </div>
               </div>

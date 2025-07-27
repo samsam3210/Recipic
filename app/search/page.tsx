@@ -107,7 +107,7 @@ function SearchPageContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const inputRef = useRef<HTMLInputElement>(null)
-  const { saveCache, getCache, saveScrollPosition, restoreScrollPosition, clearCache } = useSearchCache()
+  const { saveCache, getCache, getRecentCache, saveScrollPosition, restoreScrollPosition, clearCache } = useSearchCache()
 
   const [showErrorModal, setShowErrorModal] = useState(false)
   const [errorMessage, setErrorMessage] = useState("")
@@ -237,6 +237,7 @@ function SearchPageContent() {
     const urlSort = searchParams.get('sort') as SortType | null
     
     if (urlQuery) {
+      // URL에 검색 조건이 있는 경우
       setSearchQuery(urlQuery)
       const currentSort = urlSort || sortType
       setSortType(currentSort)
@@ -248,19 +249,34 @@ function SearchPageContent() {
       })
       
       if (cachedData) {
-        console.log('[Search] 캐시된 검색 결과 복원:', cachedData.results.length + '개')
+        console.log('[Search] URL 기반 캐시된 검색 결과 복원:', cachedData.results.length + '개')
         setSearchResults(cachedData.results)
         setLastSearchQuery(urlQuery)
-        
-        // 스크롤 위치 복원
         restoreScrollPosition()
       } else {
-        // 캐시가 없으면 검색 실행
-        console.log('[Search] 캐시 없음, 새로 검색 실행')
+        console.log('[Search] URL 기반 캐시 없음, 새로 검색 실행')
         handleYouTubeSearch(urlQuery, currentSort)
       }
+    } else {
+      // URL에 검색 조건이 없는 경우 (탭 간 이동 등)
+      const recentCache = getRecentCache()
+      if (recentCache) {
+        console.log('[Search] 탭 간 이동: 최근 검색 결과 복원:', recentCache.keyword, recentCache.results.length + '개')
+        setSearchQuery(recentCache.keyword)
+        setSortType(recentCache.filters.sortType)
+        setSearchResults(recentCache.results)
+        setLastSearchQuery(recentCache.keyword)
+        
+        // URL도 업데이트 (히스토리에 추가하지 않음)
+        const newUrl = new URL(window.location.href)
+        newUrl.searchParams.set('q', recentCache.keyword)
+        newUrl.searchParams.set('sort', recentCache.filters.sortType)
+        router.replace(newUrl.pathname + newUrl.search, { scroll: false })
+        
+        restoreScrollPosition()
+      }
     }
-  }, [searchParams, getCache, restoreScrollPosition])
+  }, [searchParams, getCache, getRecentCache, restoreScrollPosition, router])
 
   // 사용자 정보 가져오기
   useEffect(() => {
@@ -357,6 +373,7 @@ function SearchPageContent() {
   // 뒤로가기 시 검색 상태 복원 (개선된 버전)
   useEffect(() => {
     const handlePopState = () => {
+      console.log('[Search] 뒤로가기 이벤트 감지')
       // URL에서 검색 조건 읽어오기
       const urlQuery = searchParams.get('q')
       const urlSort = searchParams.get('sort') as SortType | null
@@ -372,9 +389,20 @@ function SearchPageContent() {
         })
         
         if (cachedData) {
-          console.log('[Search] 뒤로가기: 캐시된 결과 복원')
+          console.log('[Search] 뒤로가기: URL 기반 캐시된 결과 복원')
           setSearchResults(cachedData.results)
           setLastSearchQuery(urlQuery)
+          restoreScrollPosition()
+        }
+      } else {
+        // URL에 검색 조건이 없어도 최근 캐시 확인
+        const recentCache = getRecentCache()
+        if (recentCache) {
+          console.log('[Search] 뒤로가기: 최근 검색 결과 복원')
+          setSearchQuery(recentCache.keyword)
+          setSortType(recentCache.filters.sortType)
+          setSearchResults(recentCache.results)
+          setLastSearchQuery(recentCache.keyword)
           restoreScrollPosition()
         }
       }
@@ -382,7 +410,7 @@ function SearchPageContent() {
     
     window.addEventListener('popstate', handlePopState)
     return () => window.removeEventListener('popstate', handlePopState)
-  }, [searchParams, getCache, restoreScrollPosition])
+  }, [searchParams, getCache, getRecentCache, restoreScrollPosition])
 
   const isYouTubeUrl = (text: string): boolean => {
     const youtubeRegex = /(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/|youtube\.com\/v\/|m\.youtube\.com\/watch\?v=|youtube\.com\/\?v=|youtube\.com\/shorts\/)([a-zA-Z0-9_-]{11})/
@@ -556,44 +584,41 @@ function SearchPageContent() {
 
         <section className="flex-1 lg:w-4/5 space-y-8">
           <form onSubmit={handleSearch} className="w-full max-w-2xl mx-auto">
-            <div className="relative group">
-              <div className="absolute -inset-0.5 bg-[#6BA368] rounded-2xl blur opacity-25 group-hover:opacity-50 transition duration-300"></div>
-              <div className="relative flex items-center bg-white rounded-2xl border border-green-200 shadow-xl hover:shadow-2xl transition-all duration-300 focus-within:border-[#6BA368] focus-within:ring-2 focus-within:ring-[#6BA368]/20">
-                <div className="flex items-center pl-4 md:pl-6">
-                  <Search className="w-4 h-4 md:w-5 md:h-5 text-[#6BA368]" />
-                </div>
-                <Input
-                  ref={inputRef}
-                  type="text"
-                  placeholder="요리 키워드 또는 URL 입력"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="h-12 md:h-16 flex-grow px-3 md:px-4 border-none focus:outline-none focus:ring-0 focus-visible:ring-0 focus-visible:ring-offset-0 text-base md:text-lg placeholder:text-gray-400 bg-transparent rounded-2xl"
-                  disabled={isSearching}
-                  autoComplete="off"
-                  autoCorrect="off"
-                  autoCapitalize="off"
-                  spellCheck="false"
-                />
-                <Button
-                  type="submit"
-                  disabled={!searchQuery.trim() || isSearching}
-                  className={`m-2 h-8 md:h-12 px-4 md:px-8 ${
-                    !searchQuery.trim() || isSearching
-                      ? "bg-gray-400"
-                      : "bg-[#6BA368] hover:bg-[#5a8f57]"
-                  } text-white rounded-xl font-semibold transition-all duration-300 hover:scale-105 shadow-lg hover:shadow-xl text-sm md:text-base`}
-                >
-                  {isSearching ? (
-                    <Loader2 className="w-4 h-4 md:w-5 md:h-5 animate-spin" />
-                  ) : (
-                    <>
-                      <span>검색</span>
-                      <ArrowRight className="w-4 h-4 md:w-5 md:h-5 ml-1 md:ml-2" />
-                    </>
-                  )}
-                </Button>
+            <div className="flex items-center bg-white rounded-xl border border-gray-200 shadow-sm hover:shadow-md hover:border-gray-300 transition-all duration-200 focus-within:border-[#6BA368] focus-within:ring-2 focus-within:ring-[#6BA368]/10">
+              <div className="flex items-center pl-4 md:pl-6">
+                <Search className="w-4 h-4 md:w-5 md:h-5 text-gray-400" />
               </div>
+              <Input
+                ref={inputRef}
+                type="text"
+                placeholder="요리 키워드 또는 URL 입력"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="h-12 md:h-14 flex-grow px-3 md:px-4 border-none focus:outline-none focus:ring-0 focus-visible:ring-0 focus-visible:ring-offset-0 text-base md:text-lg placeholder:text-gray-400 bg-transparent rounded-xl"
+                disabled={isSearching}
+                autoComplete="off"
+                autoCorrect="off"
+                autoCapitalize="off"
+                spellCheck="false"
+              />
+              <Button
+                type="submit"
+                disabled={!searchQuery.trim() || isSearching}
+                className={`m-2 h-8 md:h-10 px-4 md:px-6 ${
+                  !searchQuery.trim() || isSearching
+                    ? "bg-gray-400"
+                    : "bg-[#6BA368] hover:bg-[#5a8f57]"
+                } text-white rounded-lg font-medium transition-colors duration-200 text-sm md:text-base`}
+              >
+                {isSearching ? (
+                  <Loader2 className="w-4 h-4 md:w-5 md:h-5 animate-spin" />
+                ) : (
+                  <>
+                    <span>검색</span>
+                    <ArrowRight className="w-4 h-4 md:w-5 md:h-5 ml-1 md:ml-2" />
+                  </>
+                )}
+              </Button>
             </div>
           </form>
 

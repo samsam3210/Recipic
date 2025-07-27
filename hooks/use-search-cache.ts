@@ -37,7 +37,7 @@ interface SearchParams {
 
 export function useSearchCache() {
   const CACHE_KEY = 'recipick_search_cache'
-  const CACHE_DURATION = 30 * 60 * 1000 // 30분
+  const CACHE_DURATION = 2 * 60 * 60 * 1000 // 2시간 (탭 간 이동 시 연속성 확보)
 
   // 캐시 저장
   const saveCache = useCallback((
@@ -153,9 +153,36 @@ export function useSearchCache() {
     return getCache(params) !== null
   }, [getCache])
 
+  // 최근 검색 결과 가져오기 (검색 조건 무관)
+  const getRecentCache = useCallback(): SearchCache | null => {
+    try {
+      const cached = sessionStorage.getItem(CACHE_KEY)
+      if (!cached) {
+        console.log('[SearchCache] 최근 캐시 없음')
+        return null
+      }
+      
+      const data: SearchCache = JSON.parse(cached)
+      
+      // 캐시 만료 확인만 (검색 조건은 무시)
+      if (Date.now() - data.timestamp > CACHE_DURATION) {
+        console.log('[SearchCache] 최근 캐시 만료')
+        clearCache()
+        return null
+      }
+      
+      console.log('[SearchCache] 최근 캐시 적중:', data.keyword, data.results.length + '개')
+      return data
+    } catch (error) {
+      console.warn('[SearchCache] 최근 캐시 조회 실패:', error)
+      return null
+    }
+  }, [clearCache])
+
   return {
     saveCache,
     getCache,
+    getRecentCache,
     saveScrollPosition,
     restoreScrollPosition,
     clearCache,
