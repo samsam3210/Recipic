@@ -100,14 +100,16 @@ export async function moveRecipeToFolder(recipeId: string, folderId: string | nu
 
     if (folderId) {
       // 새 폴더로 연결 추가
+      console.log('[moveRecipeToFolder] 폴더 연결 추가:', { recipeId, folderId })
       await db
         .insert(recipeFolders)
         .values({
-          recipeId: recipeId,
-          folderId: folderId,
+          recipeId,
+          folderId,
           createdAt: new Date(),
         })
         .execute()
+      console.log('[moveRecipeToFolder] 폴더 연결 추가 완료')
     }
 
     revalidatePath("/recipes")
