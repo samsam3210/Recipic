@@ -175,7 +175,7 @@ export default function RecipeGridWrapper({
     setIsDeleting(true)
     
     // 옵티미스틱 업데이트: UI에서 즉시 제거
-    const currentData = queryClient.getQueryData(['paginated-recipes', userId, selectedFolderId, page, limit])
+    const currentData = queryClient.getQueryData(['paginated-recipes', userId, selectedFolderId, page, initialLimit])
     console.log('[RecipeGridWrapper] 삭제 전 캐시 데이터:', {
       hasCurrentData: !!currentData,
       currentRecipeCount: currentData && typeof currentData === 'object' && 'recipes' in currentData ? (currentData.recipes as any[]).length : 0,
@@ -192,7 +192,7 @@ export default function RecipeGridWrapper({
         afterCount: updatedData.recipes.length,
         removedRecipeId: recipeToDelete.id
       })
-      queryClient.setQueryData(['paginated-recipes', userId, selectedFolderId, page, limit], updatedData)
+      queryClient.setQueryData(['paginated-recipes', userId, selectedFolderId, page, initialLimit], updatedData)
     }
     
     try {
@@ -204,12 +204,12 @@ export default function RecipeGridWrapper({
         queryClient.invalidateQueries({ queryKey: ['recipes-folders', userId] })
       } else {
         // 실패 시 옵티미스틱 업데이트 롤백
-        queryClient.invalidateQueries({ queryKey: ['paginated-recipes', userId, selectedFolderId, page, limit] })
+        queryClient.invalidateQueries({ queryKey: ['paginated-recipes', userId, selectedFolderId, page, initialLimit] })
         throw new Error(result.message)
       }
     } catch (error: any) {
       // 실패 시 옵티미스틱 업데이트 롤백
-      queryClient.invalidateQueries({ queryKey: ['paginated-recipes', userId, selectedFolderId, page, limit] })
+      queryClient.invalidateQueries({ queryKey: ['paginated-recipes', userId, selectedFolderId, page, initialLimit] })
       toast({
         title: "삭제 실패",
         description: error.message || "레시피 삭제 중 오류가 발생했습니다.",
@@ -245,7 +245,7 @@ export default function RecipeGridWrapper({
         toast({ title: "이동 완료", description: result.message })
         // 폴더 캐시만 무효화 (레시피 수 업데이트용)
         queryClient.invalidateQueries({ queryKey: ['recipes-folders', userId] })
-        queryClient.invalidateQueries({ queryKey: ['paginated-recipes', userId, selectedFolderId, page, limit] })
+        queryClient.invalidateQueries({ queryKey: ['paginated-recipes', userId, selectedFolderId, page, initialLimit] })
         setShowMoveToFolderDialog(false) // 🆕 다이얼로그 닫기
       } else {
         throw new Error(result.message)
