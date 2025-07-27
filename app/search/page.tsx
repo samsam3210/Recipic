@@ -404,13 +404,13 @@ export default function SearchPage() {
 
         <section className="flex-1 lg:w-4/5 space-y-8">
           <form onSubmit={handleSearch} className="w-full max-w-2xl mx-auto">
-            <div className="relative flex items-center w-full rounded-full shadow-lg border border-gray-200 bg-white overflow-hidden focus-within:border-gray-300 focus-within:shadow-xl transition-all">
+            <div className="relative flex items-center w-full rounded-full shadow-lg border border-green-200 bg-white overflow-hidden focus-within:border-[#6BA368] focus-within:shadow-xl focus-within:ring-2 focus-within:ring-[#6BA368]/20 transition-all">
             <Input
                 type="text"
                 placeholder="URL 또는 키워드 입력"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="flex-1 h-14 pl-8 pr-20 text-base border-none focus-visible:ring-0 focus-visible:ring-offset-0 rounded-l-full rounded-r-none placeholder:text-gray-400"
+                className="flex-1 h-12 md:h-14 pl-6 md:pl-8 pr-16 md:pr-20 text-sm md:text-base border-none focus-visible:ring-0 focus-visible:ring-offset-0 rounded-l-full rounded-r-none placeholder:text-gray-400"
                 disabled={isSearching}
               />
 
@@ -418,16 +418,16 @@ export default function SearchPage() {
                 type="submit"
                 disabled={!searchQuery.trim() || isSearching}
                 size="icon"
-                className={`absolute right-0 h-full w-14 ${
+                className={`absolute right-0 h-full w-12 md:w-14 ${
                   !searchQuery.trim() || isSearching
                     ? "bg-gray-400"
-                    : "bg-black hover:bg-gray-800"
+                    : "bg-[#6BA368] hover:bg-[#5a8f57]"
                 } text-white rounded-r-full rounded-l-none transition-colors duration-200`}
               >
                 {isSearching ? (
-                  <Loader2 className="h-5 w-5 animate-spin" />
+                  <Loader2 className="h-4 w-4 md:h-5 md:w-5 animate-spin" />
                 ) : (
-                  <Search className="h-5 w-5" />
+                  <Search className="h-4 w-4 md:h-5 md:w-5" />
                 )}
               </Button>
             </div>

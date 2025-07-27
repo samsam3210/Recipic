@@ -199,7 +199,7 @@ export default function SearchResults({ query }: SearchResultsProps) {
                     <Button
                       size="sm"
                       disabled={isExtracting}
-                      className="bg-black hover:bg-gray-800 text-white"
+                      className="bg-[#6BA368] hover:bg-[#5a8f57] text-white"
                       onClick={(e) => {
                         e.stopPropagation()
                         handleVideoSelect(video)
