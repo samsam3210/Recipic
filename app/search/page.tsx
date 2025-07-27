@@ -547,13 +547,19 @@ export default function SearchPage() {
         isOpen={showUsageLimitModal}
         onClose={() => setShowUsageLimitModal(false)}
         title="일일 사용량 제한"
-        description="하루에 최대 5회만 레시피 조회가 가능해요 🙏 서비스 개선이 될 때까지 잠시만 기다려주세요!"
-        hideCloseButton={true}
-        className="p-6 rounded-2xl bg-white shadow-xl border border-gray-100"
+        description={
+          <>
+            하루에 최대 5회만 레시피 조회가 가능해요 🙏
+            <br />
+            서비스 개선이 될 때까지 잠시만 기다려주세요!
+          </>
+        }
+        className="sm:max-w-[425px]"
+        footerClassName="flex justify-end mt-4"
         footer={
           <Button
             onClick={() => setShowUsageLimitModal(false)}
-            className="w-full py-3 px-4 text-sm font-semibold bg-gray-900 hover:bg-black text-white rounded-xl transition-all duration-300 shadow-lg"
+            className="py-3 px-4 text-sm font-semibold bg-gray-900 hover:bg-black text-white rounded-xl transition-all duration-300 shadow-lg"
           >
             확인
           </Button>

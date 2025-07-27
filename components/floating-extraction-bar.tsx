@@ -88,16 +88,34 @@ export function FloatingExtractionBar() {
               {error ? "추출 실패" : isCompleted ? "추출 완료!" : "레시피 추출 중"}
             </h3>
           </div>
-          <button
-            onClick={isCollapsed ? dismissExtraction : handleToggleCollapse}
-            className="p-1 rounded-full hover:bg-gray-100 transition-colors"
-          >
+          <div className="flex items-center gap-1">
             {isCollapsed ? (
-              <X className="w-4 h-4 text-gray-500" />
+              <>
+                <button
+                  onClick={handleToggleCollapse}
+                  className="p-1 rounded-full hover:bg-gray-100 transition-colors"
+                  title="펼치기"
+                >
+                  <ChevronUp className="w-4 h-4 text-gray-500" />
+                </button>
+                <button
+                  onClick={dismissExtraction}
+                  className="p-1 rounded-full hover:bg-gray-100 transition-colors"
+                  title="닫기"
+                >
+                  <X className="w-4 h-4 text-gray-500" />
+                </button>
+              </>
             ) : (
-              <ChevronDown className="w-4 h-4 text-gray-500" />
+              <button
+                onClick={handleToggleCollapse}
+                className="p-1 rounded-full hover:bg-gray-100 transition-colors"
+                title="접기"
+              >
+                <ChevronDown className="w-4 h-4 text-gray-500" />
+              </button>
             )}
-          </button>
+          </div>
         </div>
 
         {/* Collapsed State - 접힌 상태에서 표시할 내용 */}

@@ -274,12 +274,21 @@ export function ExtractionProvider({ children }: { children: React.ReactNode }) 
 
   const navigateToRecipe = useCallback(() => {
     if (completedRecipeId) {
-      if (completedRecipeId === 'temp-preview') {
-        router.push('/temp-preview')
-      } else {
-        router.push(`/recipe/${completedRecipeId}`)
-      }
-      resetExtraction()
+      // 페이지 이동 전에 플로팅 바를 즉시 숨김
+      setIsExtracting(false)
+      setIsCompleted(false)
+      setCompletedRecipeId(null)
+      
+      // 다음 프레임에서 페이지 이동 (플로팅 바가 사라진 후)
+      setTimeout(() => {
+        if (completedRecipeId === 'temp-preview') {
+          router.push('/temp-preview')
+        } else {
+          router.push(`/recipe/${completedRecipeId}`)
+        }
+        // 페이지 이동 후 나머지 상태 초기화
+        resetExtraction()
+      }, 50) // 50ms 후 이동 (애니메이션 시간 고려)
     }
   }, [completedRecipeId, router, resetExtraction])
 

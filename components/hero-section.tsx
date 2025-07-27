@@ -827,13 +827,13 @@ export function HeroSection({ user, isDashboard = false }: HeroSectionProps) {
             서비스 개선이 될 때까지 잠시만 기다려주세요!
           </>
         }
-        className="sm:max-w-[425px] p-6 flex flex-col items-center text-center"
-        headerClassName="mb-4 w-full"
-        titleClassName="text-2xl font-bold text-gray-900"
-        descriptionClassName="text-base text-gray-600 mt-2"
-        footerClassName="w-full mt-4"
+        className="sm:max-w-[425px]"
+        footerClassName="flex justify-end mt-4"
         footer={
-          <Button onClick={() => setShowUsageLimitModal(false)} className="w-full py-3 px-4 text-sm font-semibold bg-gray-900 hover:bg-black text-white rounded-xl transition-all duration-300 shadow-lg">
+          <Button 
+            onClick={() => setShowUsageLimitModal(false)} 
+            className="py-3 px-4 text-sm font-semibold bg-gray-900 hover:bg-black text-white rounded-xl transition-all duration-300 shadow-lg"
+          >
             확인
           </Button>
         }
