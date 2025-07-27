@@ -54,29 +54,22 @@ export function CachedRecipes({
     hasInitialProfile: !!initialUserProfile
   })
   
-  // 실제 캐시가 없으면 로딩 표시
-  const [shouldShowSkeleton, setShouldShowSkeleton] = useState(!foldersCache)
+  // 항상 초기에는 스켈레톤 표시, 그 후 실제 상태로 전환
+  const [shouldShowSkeleton, setShouldShowSkeleton] = useState(true)
   
-  console.log('[CachedRecipes] shouldShowSkeleton 초기값:', !foldersCache)
+  console.log('[CachedRecipes] shouldShowSkeleton 초기값:', true)
   
   useEffect(() => {
-    console.log('[CachedRecipes] useEffect 실행:', {
-      hasFoldersCache: !!foldersCache,
-      shouldShowSkeleton
-    })
+    console.log('[CachedRecipes] useEffect 실행 - 캐시 상태와 관계없이 최소 300ms 스켈레톤 표시')
     
-    if (!foldersCache) {
-      console.log('[CachedRecipes] 캐시 없음 - 200ms 스켈레톤 표시 시작')
-      const timer = setTimeout(() => {
-        console.log('[CachedRecipes] 200ms 후 스켈레톤 숨김')
-        setShouldShowSkeleton(false)
-      }, 200)
-      return () => clearTimeout(timer)
-    } else {
-      console.log('[CachedRecipes] 캐시 있음 - 즉시 스켈레톤 숨김')
+    // 캐시 유무와 관계없이 최소 300ms는 스켈레톤 표시
+    const timer = setTimeout(() => {
+      console.log('[CachedRecipes] 300ms 후 실제 로딩 상태로 전환')
       setShouldShowSkeleton(false)
-    }
-  }, [foldersCache])
+    }, 300)
+    
+    return () => clearTimeout(timer)
+  }, []) // 의존성 배열 비워서 마운트 시에만 실행
   // 사용자 프로필 쿼리 (긴 캐시)
   const { data: profileResult } = useQuery({
     queryKey: ['user-profile', user.id],

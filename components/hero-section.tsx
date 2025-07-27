@@ -568,7 +568,7 @@ export function HeroSection({ user, isDashboard = false, cachedUsageData = null,
 
           <div className="container px-4 md:px-6 max-w-6xl mx-auto">
             {/* 메인 히어로 섹션 */}
-            <div className="text-center space-y-12 pb-20">
+            <div className="text-center space-y-8 pb-20">
               {/* 서브헤딩 */}
               <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-green-50 to-emerald-50 border border-green-100/50 animate-fade-in-up">
                 <Sparkles className="w-4 h-4 text-[#6BA368]" />
