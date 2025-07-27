@@ -63,13 +63,21 @@ export default function RecipeGridWrapper({
   // 캐시가 있는지 확인
   const cacheKey = ['paginated-recipes', userId, selectedFolderId, page, initialLimit]
   const cachedData = queryClient.getQueryData(cacheKey)
+  const isQueryEnabled = !cachedData
+
+  console.log('[RecipeGridWrapper] 캐시 상태:', {
+    hasCachedData: !!cachedData,
+    isQueryEnabled,
+    cacheKey: JSON.stringify(cacheKey)
+  });
 
   // React Query로 레시피 데이터 관리 (캐시가 없을 때만 활성화)
   const { 
     data: recipesData, 
     isLoading: isLoadingRecipes, 
     isFetching,
-    error 
+    error,
+    status
   } = useQuery({
     queryKey: cacheKey,
     queryFn: () => {
@@ -81,7 +89,7 @@ export default function RecipeGridWrapper({
         folderId: selectedFolderId,
       });
     },
-    enabled: !cachedData, // 캐시가 없을 때만 쿼리 실행
+    enabled: isQueryEnabled, // 캐시가 없을 때만 쿼리 실행
     staleTime: 10 * 60 * 1000,
     gcTime: 20 * 60 * 1000,
     refetchOnWindowFocus: false,
@@ -92,15 +100,21 @@ export default function RecipeGridWrapper({
 
   // 캐시된 데이터가 있으면 사용, 없으면 쿼리 결과 사용
   const finalData = cachedData || recipesData
+  
+  // 실제 로딩 상태 (캐시가 있으면 로딩 상태가 아님)
+  const actualIsLoading = cachedData ? false : isLoadingRecipes
 
   console.log('[RecipeGridWrapper] 상태:', {
-    isLoadingRecipes,
+    originalIsLoading: isLoadingRecipes,
+    actualIsLoading,
     isFetching,
     hasCachedData: !!cachedData,
     hasRecipesData: !!finalData,
     recipesCount: finalData?.recipes?.length || 0,
     selectedFolderId,
-    page
+    page,
+    queryStatus: status,
+    isQueryEnabled
   });
 
   const allRecipes = finalData?.recipes || []
@@ -219,7 +233,7 @@ export default function RecipeGridWrapper({
 
   return (
     <>
-      {(isLoadingRecipes && !finalData) ? ( // 캐시된 데이터가 없을 때만 스켈레톤 표시
+      {(actualIsLoading && !finalData) ? ( // 실제 로딩 상태 및 캐시된 데이터가 없을 때만 스켈레톤 표시
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {Array.from({ length: initialLimit }).map((_, i) => (
             <RecipeCardSkeleton key={i} />
@@ -256,7 +270,7 @@ export default function RecipeGridWrapper({
               newSearchParams.set("page", (page + 1).toString())
               router.push(`/recipes?${newSearchParams.toString()}`)
             }}
-            disabled={isFetching || isLoadingRecipes}
+            disabled={isFetching || actualIsLoading}
           >
             {isFetching ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}더 불러오기
           </Button>
