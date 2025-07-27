@@ -41,7 +41,7 @@ export function CachedRecipes({
 }: CachedRecipesProps) {
   const queryClient = useQueryClient()
   
-  // 캐시 확인
+  // 캐시 확인 - 리액트 쿼리 캐시 상태로 판단
   const foldersCache = queryClient.getQueryData(['recipes-folders', user.id])
   const profileCache = queryClient.getQueryData(['user-profile', user.id])
   
@@ -55,31 +55,25 @@ export function CachedRecipes({
     hasInitialProfile: !!initialUserProfile
   })
   
-  // initialData가 있으면 캐시가 있다고 간주
+  // 캐시가 있으면 스켈레톤 표시하지 않음
   const [shouldShowSkeleton, setShouldShowSkeleton] = useState(() => {
-    const hasInitialData = initialFolders && initialFolders.length > 0
-    return !hasInitialData
+    const hasCachedData = !!foldersCache
+    return !hasCachedData
   })
   
-  console.log('[CachedRecipes] shouldShowSkeleton 초기값:', !initialFolders || initialFolders.length === 0)
+  console.log('[CachedRecipes] shouldShowSkeleton 초기값:', !foldersCache)
   
   useEffect(() => {
-    // 초기 데이터가 없을 때만 300ms 스켈레톤 표시
-    if (!initialFolders || initialFolders.length === 0) {
-      console.log('[CachedRecipes] 초기 데이터 없음 - 300ms 스켈레톤 표시')
-      
-      const timer = setTimeout(() => {
-        console.log('[CachedRecipes] 300ms 후 실제 로딩 상태로 전환')
-        setShouldShowSkeleton(false)
-      }, 300)
-      
-      return () => clearTimeout(timer)
+    // 캐시가 없을 때만 스켈레톤 표시
+    if (!foldersCache) {
+      console.log('[CachedRecipes] 캐시 없음 - 스켈레톤 표시')
+      setShouldShowSkeleton(true)
     } else {
-      // 초기 데이터가 있으면 즉시 false로 설정
-      console.log('[CachedRecipes] 초기 데이터 있음 - 스켈레톤 표시하지 않음')
+      // 캐시가 있으면 즉시 false로 설정
+      console.log('[CachedRecipes] 캐시 있음 - 스켈레톤 표시하지 않음')
       setShouldShowSkeleton(false)
     }
-  }, [initialFolders])
+  }, [foldersCache])
   // 사용자 프로필 쿼리 (긴 캐시)
   const { data: profileResult } = useQuery({
     queryKey: ['user-profile', user.id],
