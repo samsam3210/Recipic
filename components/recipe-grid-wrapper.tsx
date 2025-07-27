@@ -127,6 +127,7 @@ export default function RecipeGridWrapper({
     hasInitialData,
     hasRecipesData: !!finalData,
     recipesCount: finalData?.recipes?.length || 0,
+    allRecipesLength: allRecipes.length,
     selectedFolderId,
     page,
     queryStatus: status,
