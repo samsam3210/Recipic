@@ -75,7 +75,7 @@ export default function RecipeGridWrapper({
   const cacheKey = ['paginated-recipes', userId, selectedFolderId, page, initialLimit]
   const cachedData = queryClient.getQueryData(cacheKey)
   const hasInitialData = initialRecipesData && page === 1
-  const isQueryEnabled = !cachedData && !hasInitialData
+  const isQueryEnabled = !cachedData // 캐시만 체크, 초기 데이터는 initialData로 처리
 
   console.log('[RecipeGridWrapper] 캐시 상태:', {
     hasCachedData: !!cachedData,
@@ -113,11 +113,11 @@ export default function RecipeGridWrapper({
     refetchInterval: false,
   })
 
-  // 데이터 우선순위: 캐시 > 초기 데이터 > 쿼리 결과 (캐시가 최우선)
-  const finalData = cachedData || (hasInitialData ? initialRecipesData : recipesData)
+  // 데이터 우선순위: 캐시 > 쿼리 결과 (initialData로 처리됨)
+  const finalData = cachedData || recipesData
   
-  // 실제 로딩 상태 (캐시가 있으면 무조건 false, 없으면 초기 데이터나 쿼리 상태 확인)
-  const actualIsLoading = cachedData ? false : (hasInitialData ? false : isLoadingRecipes)
+  // 실제 로딩 상태 - 캐시가 있으면 false, 없으면 React Query 로딩 상태
+  const actualIsLoading = cachedData ? false : isLoadingRecipes
 
   console.log('[RecipeGridWrapper] 상태:', {
     originalIsLoading: isLoadingRecipes,
@@ -132,7 +132,7 @@ export default function RecipeGridWrapper({
     queryStatus: status,
     isQueryEnabled,
     cachedDataType: cachedData ? 'cached' : 'none',
-    finalDataSource: cachedData ? 'cache' : recipesData ? 'query' : hasInitialData ? 'initial' : 'none'
+    finalDataSource: cachedData ? 'cache' : recipesData ? 'query+initial' : 'none'
   });
 
   const allRecipes = finalData?.recipes || []

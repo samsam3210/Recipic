@@ -88,6 +88,7 @@ export function CachedDashboard({
     isLoadingRecentRecipes: isLoading,
     isFetchingRecentRecipes: isFetching,
     isInitialLoadingRecentRecipes: isInitialLoading,
+    isActuallyLoading: isActuallyLoading, // 이게 핵심!
     userId: user.id
   });
 

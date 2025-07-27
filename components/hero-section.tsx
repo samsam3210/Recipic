@@ -671,38 +671,59 @@ export function HeroSection({ user, isDashboard = false, cachedUsageData = null,
 
             {/* 통계 섹션 */}
             <div className="animate-fade-in-up" style={{ animationDelay: '0.6s' }}>
-              <div className="text-center mb-12">
-                <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-                  이미 많은 분들이 <span className="text-[#6BA368]">사용해요</span>
-                </h2>
-                <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-                  매일 수많은 영상들이 레시피로 변하고 있어요.
-                </p>
-              </div>
+              {isLoading ? (
+                <div className="text-center mb-12">
+                  <Skeleton className="h-10 w-80 mx-auto mb-4" />
+                  <Skeleton className="h-6 w-96 mx-auto" />
+                </div>
+              ) : (
+                <div className="text-center mb-12">
+                  <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+                    이미 많은 분들이 <span className="text-[#6BA368]">사용해요</span>
+                  </h2>
+                  <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+                    매일 수많은 영상들이 레시피로 변하고 있어요.
+                  </p>
+                </div>
+              )}
               
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
-                <StatCard
-                  icon={ChefHat}
-                  end={12847}
-                  suffix="+"
-                  title="추출된 레시피"
-                  description="다양한 요리 장르의 레시피를 정확하게 추출했습니다"
-                />
-                <StatCard
-                  icon={Clock}
-                  end={30}
-                  suffix="초"
-                  title="평균 처리 시간"
-                  description="AI가 영상을 꼼꼼히 분석해서 정확한 레시피를 만들어드려요"
-                />
-                <StatCard
-                  icon={Target}
-                  end={97}
-                  suffix="%"
-                  title="정확도"
-                  description="검증된 AI 모델로 높은 품질의 레시피를 보장합니다"
-                />
-              </div>
+              {isLoading ? (
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+                  {Array.from({ length: 3 }).map((_, i) => (
+                    <div key={i} className="text-center p-6 bg-white rounded-xl shadow-sm border border-gray-100">
+                      <Skeleton className="w-12 h-12 mx-auto mb-4 rounded-full" />
+                      <Skeleton className="h-8 w-20 mx-auto mb-2" />
+                      <Skeleton className="h-5 w-32 mx-auto mb-3" />
+                      <Skeleton className="h-4 w-full mb-1" />
+                      <Skeleton className="h-4 w-3/4 mx-auto" />
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+                  <StatCard
+                    icon={ChefHat}
+                    end={12847}
+                    suffix="+"
+                    title="추출된 레시피"
+                    description="다양한 요리 장르의 레시피를 정확하게 추출했습니다"
+                  />
+                  <StatCard
+                    icon={Clock}
+                    end={30}
+                    suffix="초"
+                    title="평균 처리 시간"
+                    description="AI가 영상을 꼼꼼히 분석해서 정확한 레시피를 만들어드려요"
+                  />
+                  <StatCard
+                    icon={Target}
+                    end={97}
+                    suffix="%"
+                    title="정확도"
+                    description="검증된 AI 모델로 높은 품질의 레시피를 보장합니다"
+                  />
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -710,25 +731,34 @@ export function HeroSection({ user, isDashboard = false, cachedUsageData = null,
 
           {isDashboard && (
             <div className="w-full max-w-2xl space-y-4">
-              <div className="relative">
-                <div className="flex items-center bg-white rounded-xl border border-gray-200 shadow-sm hover:shadow-md hover:border-gray-300 transition-all duration-200 focus-within:border-[#6BA368] focus-within:ring-2 focus-within:ring-[#6BA368]/10">
-                  <div className="flex items-center pl-4 md:pl-6">
-                    <Search className="w-4 h-4 md:w-5 md:h-5 text-gray-400" />
+              {isLoading ? (
+                <>
+                  <Skeleton className="h-12 md:h-14 w-full rounded-xl" />
+                  <Skeleton className="h-4 w-64" />
+                </>
+              ) : (
+                <>
+                  <div className="relative">
+                    <div className="flex items-center bg-white rounded-xl border border-gray-200 shadow-sm hover:shadow-md hover:border-gray-300 transition-all duration-200 focus-within:border-[#6BA368] focus-within:ring-2 focus-within:ring-[#6BA368]/10">
+                      <div className="flex items-center pl-4 md:pl-6">
+                        <Search className="w-4 h-4 md:w-5 md:h-5 text-gray-400" />
+                      </div>
+                      <Input
+                        type="text"
+                        placeholder="요리 키워드 또는 URL 입력"
+                        value={youtubeUrl}
+                        onChange={(e) => setYoutubeUrl(e.target.value)}
+                        onClick={handleInputClick}
+                        readOnly
+                        className="h-12 md:h-14 flex-grow px-3 md:px-4 border-none focus:outline-none focus:ring-0 focus-visible:ring-0 focus-visible:ring-offset-0 text-base md:text-lg placeholder:text-gray-400 bg-transparent rounded-xl cursor-pointer"
+                      />
+                    </div>
                   </div>
-                  <Input
-                    type="text"
-                    placeholder="요리 키워드 또는 URL 입력"
-                    value={youtubeUrl}
-                    onChange={(e) => setYoutubeUrl(e.target.value)}
-                    onClick={handleInputClick}
-                    readOnly
-                    className="h-12 md:h-14 flex-grow px-3 md:px-4 border-none focus:outline-none focus:ring-0 focus-visible:ring-0 focus-visible:ring-offset-0 text-base md:text-lg placeholder:text-gray-400 bg-transparent rounded-xl cursor-pointer"
-                  />
-                </div>
-              </div>
-              <p className="text-sm text-gray-600 leading-relaxed">
-                Recipick AI가 레시피 추출을 도와드려요.
-              </p>
+                  <p className="text-sm text-gray-600 leading-relaxed">
+                    Recipick AI가 레시피 추출을 도와드려요.
+                  </p>
+                </>
+              )}
               
               {/* 사용량 표시 - 스켈레톤 포함 */}
               {user && (
