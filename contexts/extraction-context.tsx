@@ -112,6 +112,11 @@ export function ExtractionProvider({ children }: { children: React.ReactNode }) 
     
     // Create abort controller
     abortControllerRef.current = new AbortController()
+    if (!abortControllerRef.current) {
+      throw new Error("AbortController 생성에 실패했습니다.")
+    }
+
+    const signal = abortControllerRef.current.signal
 
     try {
       // Step 1: 사용량 체크 - 더 상세한 검증
@@ -133,7 +138,7 @@ export function ExtractionProvider({ children }: { children: React.ReactNode }) 
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ youtubeUrl: url }),
-        signal: abortControllerRef.current.signal
+        signal: signal
       })
 
       if (!metadataResponse.ok) {
@@ -168,7 +173,7 @@ export function ExtractionProvider({ children }: { children: React.ReactNode }) 
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ youtubeUrl: url }),
-        signal: abortControllerRef.current.signal
+        signal: signal
       })
 
       if (!videoResponse.ok) {
@@ -195,7 +200,7 @@ export function ExtractionProvider({ children }: { children: React.ReactNode }) 
           structuredTranscript: videoInfo.structuredTranscript,
           videoDescription: videoInfo.videoDescription,
         }),
-        signal: abortControllerRef.current.signal
+        signal: signal
       })
 
       if (!geminiResponse.ok) {
@@ -280,10 +285,13 @@ export function ExtractionProvider({ children }: { children: React.ReactNode }) 
 
     } catch (error: any) {
       if (error.name === 'AbortError') {
-        return // 사용자가 취소한 경우
+        // 사용자가 의도적으로 중지한 경우 - 에러로 처리하지 않음
+        console.log('[ExtractionContext] 사용자가 추출을 중지했습니다.')
+        return // 에러 상태로 설정하지 않고 조용히 종료
       }
       
-      console.error("Recipe extraction error:", error)
+      // 실제 에러인 경우에만 에러 상태 설정
+      console.error("[ExtractionContext] Recipe extraction error:", error)
       setError(error.message || "레시피 추출 중 오류가 발생했습니다.")
       
       if (currentStep > 0) {
@@ -330,14 +338,17 @@ export function ExtractionProvider({ children }: { children: React.ReactNode }) 
       abortControllerRef.current.abort()
     }
     
-    toast({
-      title: "레시피 추출 중지",
-      description: "레시피 추출이 중지되었습니다.",
-      variant: "default",
-    })
+    // 토스트는 실제로 추출 중인 경우에만 표시
+    if (isExtracting) {
+      toast({
+        title: "레시피 추출 중지",
+        description: "레시피 추출이 중지되었습니다.",
+        variant: "default",
+      })
+    }
     
     resetExtraction()
-  }, [resetExtraction, toast])
+  }, [isExtracting, resetExtraction, toast])
 
   const handleDuplicateConfirm = useCallback(() => {
     if (duplicateInfo.type === 'saved' && duplicateInfo.recipeId) {
