@@ -109,7 +109,19 @@ function SearchPageContent() {
   const { toast } = useToast()
   const router = useRouter()
   const searchParams = useSearchParams()
-  
+  const inputRef = useRef<HTMLInputElement>(null)
+  const { saveCache, getCache, getRecentCache, saveScrollPosition, restoreScrollPosition, clearCache } = useSearchCache(user?.id)
+
+  const [showErrorModal, setShowErrorModal] = useState(false)
+  const [errorMessage, setErrorMessage] = useState("")
+
+  const [showDuplicateModal, setShowDuplicateModal] = useState(false)
+  const [duplicateRecipeId, setDuplicateRecipeId] = useState<string | null>(null)
+  const [showRecipeUnavailableModal, setShowRecipeUnavailableModal] = useState(false)
+  const [recipeUnavailableMessage, setRecipeUnavailableMessage] = useState("")
+
+  const [lastSearchQuery, setLastSearchQuery] = useState("")
+
   // 로그인 체크
   useEffect(() => {
     if (!isUserLoading && !user) {
@@ -124,18 +136,6 @@ function SearchPageContent() {
   if (!user) {
     return null // 리다이렉트 중
   }
-  const inputRef = useRef<HTMLInputElement>(null)
-  const { saveCache, getCache, getRecentCache, saveScrollPosition, restoreScrollPosition, clearCache } = useSearchCache(user?.id)
-
-  const [showErrorModal, setShowErrorModal] = useState(false)
-  const [errorMessage, setErrorMessage] = useState("")
-
-  const [showDuplicateModal, setShowDuplicateModal] = useState(false)
-  const [duplicateRecipeId, setDuplicateRecipeId] = useState<string | null>(null)
-  const [showRecipeUnavailableModal, setShowRecipeUnavailableModal] = useState(false)
-  const [recipeUnavailableMessage, setRecipeUnavailableMessage] = useState("")
-
-  const [lastSearchQuery, setLastSearchQuery] = useState("")
 
   // 드롭다운 옵션 정의
   const sortOptions = [
