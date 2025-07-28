@@ -41,8 +41,19 @@ export function UserProvider({ children }: { children: ReactNode }) {
       }, 5000)
 
       try {
-        const { data: { user } } = await supabase.auth.getUser()
+        console.log("Loading initial session...")
+        const { data: { session }, error } = await supabase.auth.getSession()
         clearTimeout(timeoutId) // 정상 로드 시 타임아웃 취소
+        
+        if (error) {
+          console.error("Session error:", error)
+          setUser(null)
+          setIsLoading(false)
+          return
+        }
+        
+        const user = session?.user ?? null
+        console.log("Session loaded:", { hasUser: !!user, hasSession: !!session })
         setUser(user)
         
         if (user) {
@@ -68,6 +79,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
     // 인증 상태 변경 리스너
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
+        console.log("Auth state changed:", { event, hasSession: !!session, hasUser: !!session?.user })
         const newUser = session?.user ?? null
         setUser(newUser)
         
