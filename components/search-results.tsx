@@ -5,6 +5,7 @@ import { Play, Clock, User, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useToast } from '@/hooks/use-toast'
 import { useExtraction } from '@/contexts/extraction-context'
+import { FloatingVideoPlayer } from '@/components/floating-video-player'
 
 interface SearchResult {
   videoId: string
@@ -25,6 +26,8 @@ export default function SearchResults({ query }: SearchResultsProps) {
   const [results, setResults] = useState<SearchResult[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [selectedVideo, setSelectedVideo] = useState<SearchResult | null>(null)
+  const [isPlayerVisible, setIsPlayerVisible] = useState(false)
   const { toast } = useToast()
   const { startExtraction, isExtracting } = useExtraction()
 
@@ -92,6 +95,17 @@ export default function SearchResults({ query }: SearchResultsProps) {
     }
   }
 
+  const handleThumbnailClick = (video: SearchResult, event: React.MouseEvent) => {
+    event.stopPropagation()
+    setSelectedVideo(video)
+    setIsPlayerVisible(true)
+  }
+
+  const handleClosePlayer = () => {
+    setIsPlayerVisible(false)
+    setSelectedVideo(null)
+  }
+
   if (isLoading) {
     return (
       <div className="flex justify-center py-12">
@@ -145,20 +159,24 @@ export default function SearchResults({ query }: SearchResultsProps) {
           {results.map((video) => (
             <div
               key={video.videoId}
-              className="bg-white rounded-lg border border-gray-200 p-4 hover:shadow-md transition-shadow cursor-pointer group"
-              onClick={() => !isExtracting && handleVideoSelect(video)}
+              className="bg-white rounded-lg border border-gray-200 p-4 hover:shadow-md transition-shadow group"
             >
               <div className="flex flex-col md:flex-row gap-4">
                 {/* 썸네일 */}
                 <div className="w-full md:w-48 md:h-32 flex-shrink-0">
-                  <div className="relative aspect-video">
+                  <div 
+                    className="relative aspect-video cursor-pointer"
+                    onClick={(e) => handleThumbnailClick(video, e)}
+                  >
                     <img
                       src={video.thumbnail}
                       alt={video.title}
                       className="h-full w-full object-cover rounded-md"
                     />
-                    <div className="absolute inset-0 bg-black/20 rounded-md group-hover:bg-black/10 transition-colors flex items-center justify-center">
-                      <Play className="h-6 w-6 text-white opacity-80" />
+                    <div className="absolute inset-0 bg-black/20 rounded-md hover:bg-black/30 transition-colors flex items-center justify-center">
+                      <div className="bg-red-600 rounded-full p-2 hover:bg-red-700 transition-colors">
+                        <Play className="h-4 w-4 text-white fill-white" />
+                      </div>
                     </div>
                     {video.duration && (
                       <div className="absolute bottom-2 right-2 bg-black/80 text-white text-xs px-2 py-1 rounded">
@@ -215,6 +233,13 @@ export default function SearchResults({ query }: SearchResultsProps) {
             </div>
           ))}
         </div>
+
+        {/* 플로팅 비디오 플레이어 */}
+        <FloatingVideoPlayer
+          isVisible={isPlayerVisible}
+          video={selectedVideo}
+          onClose={handleClosePlayer}
+        />
       </div>
   )
 }
