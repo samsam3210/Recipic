@@ -11,18 +11,21 @@ interface UserContextType {
   user: User | null
   userProfile: UserProfile | null
   isLoading: boolean
+  authError: boolean
 }
 
 const UserContext = createContext<UserContextType>({
   user: null,
   userProfile: null,
-  isLoading: true
+  isLoading: true,
+  authError: false
 })
 
 export function UserProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null)
   const [isLoading, setIsLoading] = useState(true)
+  const [authError, setAuthError] = useState(false)
   const { invalidateAll } = useCacheInvalidation()
 
   useEffect(() => {
@@ -30,19 +33,34 @@ export function UserProvider({ children }: { children: ReactNode }) {
 
     // 초기 사용자 로드
     const loadUser = async () => {
-      const { data: { user } } = await supabase.auth.getUser()
-      setUser(user)
-      
-      if (user) {
-        try {
-          const profile = await getOrCreateUserProfile(user)
-          setUserProfile(profile)
-        } catch (error) {
-          console.error("Failed to load user profile:", error)
+      // 5초 타임아웃 설정
+      const timeoutId = setTimeout(() => {
+        console.log("User authentication timeout - 5 seconds elapsed")
+        setIsLoading(false)
+        setAuthError(true)
+      }, 5000)
+
+      try {
+        const { data: { user } } = await supabase.auth.getUser()
+        clearTimeout(timeoutId) // 정상 로드 시 타임아웃 취소
+        setUser(user)
+        
+        if (user) {
+          try {
+            const profile = await getOrCreateUserProfile(user)
+            setUserProfile(profile)
+          } catch (error) {
+            console.error("Failed to load user profile:", error)
+          }
         }
+        
+        setIsLoading(false)
+      } catch (error) {
+        clearTimeout(timeoutId)
+        console.error("Error loading user:", error)
+        setIsLoading(false)
+        setAuthError(true)
       }
-      
-      setIsLoading(false)
     }
 
     loadUser()
@@ -75,7 +93,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
   }, [])
 
   return (
-    <UserContext.Provider value={{ user, userProfile, isLoading }}>
+    <UserContext.Provider value={{ user, userProfile, isLoading, authError }}>
       {children}
     </UserContext.Provider>
   )
