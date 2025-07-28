@@ -103,7 +103,7 @@ export function CachedRecipes({
     // initialData 제거 - 서버에서 실제 데이터를 가져오도록 함
     staleTime: 10 * 60 * 1000, // 10분 - 원래대로 복구
     gcTime: 20 * 60 * 1000, // 20분
-    refetchOnWindowFocus: false,
+    refetchOnWindowFocus: true, // false -> true로 변경
     refetchOnMount: true, // 마운트 시 쿼리 실행 허용
     refetchOnReconnect: false,
     refetchInterval: false,

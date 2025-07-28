@@ -61,7 +61,7 @@ export function useCacheInvalidation() {
 
   // === 복잡한 케이스: 액션 기반 무효화 (여러 캐시 동시 무효화) ===
   
-  const invalidateByAction = useCallback((actionType: keyof typeof COMPLEX_INVALIDATION_MAP, userId: string) => {
+  const invalidateByAction = useCallback(async (actionType: keyof typeof COMPLEX_INVALIDATION_MAP, userId: string) => {
     const cachesToInvalidate = COMPLEX_INVALIDATION_MAP[actionType]
     
     console.log(`[Cache] 캐시 무효화 시작 - ${actionType}:`, {
@@ -70,24 +70,39 @@ export function useCacheInvalidation() {
       timestamp: new Date().toISOString()
     })
     
-    cachesToInvalidate.forEach(cacheType => {
+    // 무효화할 캐시들을 Promise 배열로 만들어 병렬 처리
+    const invalidationPromises = cachesToInvalidate.map(async (cacheType) => {
       const beforeInvalidation = queryClient.getQueryData([cacheType, userId])
       console.log(`[Cache] ${cacheType} 무효화 전 데이터:`, beforeInvalidation)
       
       if (cacheType === 'paginated-recipes') {
         // 페이지네이션된 레시피 캐시는 모든 페이지와 폴더 조합을 무효화
-        queryClient.invalidateQueries({
+        await queryClient.invalidateQueries({
           queryKey: [cacheType, userId],
           exact: false // 부분 매칭으로 모든 페이지네이션 캐시 무효화
         })
       } else {
-        queryClient.invalidateQueries({
+        // 나머지 캐시들은 정확히 매칭되는 것만 무효화
+        await queryClient.invalidateQueries({
           queryKey: [cacheType, userId]
         })
       }
       
       console.log(`[Cache] ${cacheType} 무효화 완료`)
+      
+      // recipes-folders 캐시를 무효화한 경우, 즉시 리페치 트리거
+      if (cacheType === 'recipes-folders' && actionType === 'RECIPE_SAVED') {
+        console.log(`[Cache] ${cacheType} 리페치 트리거`)
+        await queryClient.refetchQueries({
+          queryKey: [cacheType, userId],
+          exact: true
+        })
+        console.log(`[Cache] ${cacheType} 리페치 완료`)
+      }
     })
+    
+    // 모든 무효화 작업이 완료될 때까지 대기
+    await Promise.all(invalidationPromises)
     
     console.log(`[Cache] 전체 캐시 무효화 완료 - ${actionType}`)
   }, [queryClient])

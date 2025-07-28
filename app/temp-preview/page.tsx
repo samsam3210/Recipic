@@ -12,10 +12,12 @@ import { incrementDailyUsage } from "@/lib/actions/usage"
 import { useYoutubePlayer } from "@/hooks/use-youtube-player"
 import { useCacheInvalidation } from "@/hooks/use-cache-invalidation"
 import { Card, CardContent } from "@/components/ui/card"
-import { Loader2, Bookmark } from "lucide-react"
+import { Loader2, Bookmark, BookmarkCheck } from "lucide-react"
 import { Header } from "@/components/header"
 import type { User } from "@supabase/supabase-js"
 import { CustomDialog } from "@/components/custom-dialog"
+import { deleteRecipe } from "@/lib/actions/recipe"
+import { cn } from "@/lib/utils"
 
 interface RecipeData {
   id?: string
@@ -72,6 +74,8 @@ export default function RecipePreviewPage() {
   const [isSaving, setIsSaving] = useState(false)
   const [showDuplicateModal, setShowDuplicateModal] = useState(false)
   const [duplicateRecipeId, setDuplicateRecipeId] = useState<string | null>(null)
+  const [savedRecipeId, setSavedRecipeId] = useState<string | null>(null)
+  const [isRecipeSaved, setIsRecipeSaved] = useState(false)
 
   useEffect(() => {
     console.log("[RecipePreviewPage] useEffect started.")
@@ -173,6 +177,89 @@ export default function RecipePreviewPage() {
       invalidateRecentlyViewed(user.id)
     }
   }, [user, previewData, invalidateRecentlyViewed])
+
+  // 저장 상태 체크
+  useEffect(() => {
+    async function checkIfSaved() {
+      if (!user || !previewData) return
+      
+      const result = await checkAndSaveRecipe(
+        previewData.youtubeUrl,
+        previewData.videoInfo,
+        null, // extractedRecipe를 null로 전달하여 중복 체크만 수행
+        false
+      )
+      
+      if (result.isDuplicate && result.recipeId) {
+        setSavedRecipeId(result.recipeId)
+        setIsRecipeSaved(true)
+      }
+    }
+    
+    checkIfSaved()
+  }, [user, previewData])
+
+  const handleToggleSave = async () => {
+    if (!previewData) return
+    
+    setIsSaving(true)
+    
+    try {
+      if (isRecipeSaved && savedRecipeId) {
+        // 레시피 삭제
+        const deleteResult = await deleteRecipe(savedRecipeId)
+        
+        if (deleteResult.success) {
+          setIsRecipeSaved(false)
+          setSavedRecipeId(null)
+          showToast({
+            title: "레시피 삭제 완료",
+            description: "레시피가 나의 레시피에서 삭제되었습니다.",
+          })
+          
+          // 캐시 무효화
+          if (user) {
+            await invalidateByAction('RECIPE_DELETED', user.id)
+          }
+        } else {
+          throw new Error(deleteResult.message || "레시피 삭제에 실패했습니다.")
+        }
+      } else {
+        // 레시피 저장
+        const saveResult = await checkAndSaveRecipe(
+          previewData.youtubeUrl,
+          previewData.videoInfo,
+          previewData.extractedRecipe,
+          false
+        )
+        
+        if (saveResult.success && saveResult.recipeId) {
+          setSavedRecipeId(saveResult.recipeId)
+          setIsRecipeSaved(true)
+          showToast({
+            title: "레시피 저장 완료!",
+            description: "나의 레시피에서 확인 가능합니다.",
+          })
+          
+          // 캐시 무효화
+          if (user) {
+            await invalidateByAction('RECIPE_SAVED', user.id)
+          }
+        } else {
+          throw new Error(saveResult.message || "레시피 저장에 실패했습니다.")
+        }
+      }
+    } catch (error: any) {
+      console.error("[RecipePreviewPage] Toggle save error:", error)
+      showToast({
+        title: isRecipeSaved ? "삭제 실패" : "저장 실패",
+        description: error.message || "작업 중 오류가 발생했습니다.",
+        variant: "destructive",
+      })
+    } finally {
+      setIsSaving(false)
+    }
+  }
 
   const handleSaveRecipe = async (forceReExtract = false) => {
     if (!previewData) {
@@ -349,25 +436,51 @@ export default function RecipePreviewPage() {
           ) : (
             <RecipeDisplay 
               recipe={previewData.extractedRecipe} 
-              isSavedRecipe={false}
+              isSavedRecipe={isRecipeSaved}
               handleSeekVideo={handleSeekVideo}
               handlePauseVideo={handlePauseVideo}
               isPlayerReady={isPlayerReady}
-              onSaveRecipe={user ? () => handleSaveRecipe(false) : undefined}
+              onSaveRecipe={user ? handleToggleSave : undefined}
               isSaving={isSaving}
+              saveButtonContent={
+                isSaving ? (
+                  <>
+                    <Loader2 className="h-5 w-5 animate-spin mr-2" />
+                    처리 중...
+                  </>
+                ) : isRecipeSaved ? (
+                  <>
+                    <BookmarkCheck className="h-5 w-5 mr-2" />
+                    저장됨
+                  </>
+                ) : (
+                  <>
+                    <Bookmark className="h-5 w-5 mr-2" />
+                    저장하기
+                  </>
+                )
+              }
             />
           )}
 
           {!user && (
             <div className="flex justify-center mt-8">
-              <Button onClick={() => handleSaveRecipe(false)} disabled={isSaving} size="lg">
+              <Button 
+                onClick={() => handleSaveRecipe(false)} 
+                disabled={isSaving} 
+                size="lg"
+                className="gap-2"
+              >
                 {isSaving ? (
                   <>
-                    <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                    <Loader2 className="h-5 w-5 animate-spin" />
                     저장 중...
                   </>
                 ) : (
-                  "내 레시피 북에 저장"
+                  <>
+                    <Bookmark className="h-5 w-5" />
+                    내 레시피 북에 저장
+                  </>
                 )}
               </Button>
             </div>
