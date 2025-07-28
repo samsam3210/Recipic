@@ -54,7 +54,7 @@ export function RecipesContent({ userId, selectedFolderId, page, limit, initialR
       {/* 헤더 - 네비게이션 메뉴 없음 */}
       <Header />
       
-      <main className="flex-1 w-full px-4 sm:px-6 lg:px-8 py-4 sm:py-8">
+      <main className="flex-1 pt-6 md:pt-8 w-full px-4 sm:px-6 lg:px-8 py-4 sm:py-8">
         <div className="max-w-7xl mx-auto">
           <div className="flex flex-col lg:flex-row gap-8 pb-20 lg:pb-8">
         {/* 왼쪽 사이드바 (데스크톱만) */}

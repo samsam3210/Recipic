@@ -20,6 +20,7 @@ import { useExtraction } from '@/contexts/extraction-context'
 import { useSearchCache } from '@/hooks/use-search-cache'
 import { useUser } from '@/contexts/user-context'
 import { FloatingVideoPlayer } from '@/components/floating-video-player'
+import type { User } from '@supabase/supabase-js'
 
 interface SearchResult {
   videoId: string
@@ -94,48 +95,51 @@ function formatDuration(duration: string): string {
 
 type SortType = 'uploadDate' | 'viewCount'
 
-function SearchPageContent() {
+// 검색 페이지 래퍼 - 사용자 인증 처리
+function SearchPageWrapper() {
+  const { user, isLoading } = useUser()
+  const router = useRouter()
+
+  useEffect(() => {
+    if (!isLoading && !user) {
+      router.push("/")
+    }
+  }, [user, isLoading, router])
+
+  if (isLoading || !user) {
+    return null
+  }
+
+  return <SearchPageContent user={user} />
+}
+
+// 메인 검색 페이지 컴포넌트
+function SearchPageContent({ user }: { user: User }) {
+  // 모든 Hook을 최상단에 선언
+  const router = useRouter()
+  const searchParams = useSearchParams()
+  const inputRef = useRef<HTMLInputElement>(null)
+  const { saveCache, getCache, getRecentCache, saveScrollPosition, restoreScrollPosition, clearCache } = useSearchCache(user?.id)
+  const { startExtraction, isExtracting } = useExtraction()
+  const { toast } = useToast()
+
+  // 모든 상태 Hook들
   const [searchQuery, setSearchQuery] = useState("")
   const [searchResults, setSearchResults] = useState<SearchResult[]>([])
   const [isSearching, setIsSearching] = useState(false)
   const [selectedVideo, setSelectedVideo] = useState<SearchResult | null>(null)
   const [isPlayerVisible, setIsPlayerVisible] = useState(false)
-  const { user, isLoading: isUserLoading } = useUser()
   const [showClipboardToast, setShowClipboardToast] = useState(false)
   const [showUsageLimitModal, setShowUsageLimitModal] = useState(false)
   const [sortType, setSortType] = useState<SortType>('uploadDate')
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
-  const { startExtraction, isExtracting } = useExtraction()
-  const { toast } = useToast()
-  const router = useRouter()
-  const searchParams = useSearchParams()
-  const inputRef = useRef<HTMLInputElement>(null)
-  const { saveCache, getCache, getRecentCache, saveScrollPosition, restoreScrollPosition, clearCache } = useSearchCache(user?.id)
-
   const [showErrorModal, setShowErrorModal] = useState(false)
   const [errorMessage, setErrorMessage] = useState("")
-
   const [showDuplicateModal, setShowDuplicateModal] = useState(false)
   const [duplicateRecipeId, setDuplicateRecipeId] = useState<string | null>(null)
   const [showRecipeUnavailableModal, setShowRecipeUnavailableModal] = useState(false)
   const [recipeUnavailableMessage, setRecipeUnavailableMessage] = useState("")
-
   const [lastSearchQuery, setLastSearchQuery] = useState("")
-
-  // 로그인 체크
-  useEffect(() => {
-    if (!isUserLoading && !user) {
-      router.push("/")
-    }
-  }, [user, isUserLoading, router])
-  
-  if (isUserLoading) {
-    return null // UserProvider가 로딩 중
-  }
-  
-  if (!user) {
-    return null // 리다이렉트 중
-  }
 
   // 드롭다운 옵션 정의
   const sortOptions = [
@@ -332,9 +336,6 @@ function SearchPageContent() {
     }
   }, [searchParams, searchResults.length, getRecentCache])
 
-  // 사용자 정보는 UserContext에서 관리됨
-
-
   // 클립보드에서 YouTube URL 자동 감지
   useEffect(() => {
     const checkClipboard = async () => {
@@ -425,16 +426,6 @@ function SearchPageContent() {
   }
 
   const handleRecipeExtraction = async (url: string) => {
-    if (isUserLoading) {
-      toast({
-        title: "잠시만 기다려주세요",
-        description: "사용자 정보를 확인 중입니다.",
-        variant: "default",
-        duration: 1000,
-      })
-      return
-    }
-
     if (!user) {
       toast({
         title: "로그인 필요",
@@ -603,7 +594,7 @@ function SearchPageContent() {
     <div className="flex flex-col min-h-screen">
       <Header />
 
-      <main className="flex-1 w-full px-4 sm:px-6 lg:px-8 py-4 sm:py-8">
+      <main className="flex-1 pt-6 md:pt-8 w-full px-4 sm:px-6 lg:px-8 py-4 sm:py-8">
         <div className="max-w-7xl mx-auto">
           <div className="flex flex-col lg:flex-row gap-8 pb-20 lg:pb-8">
             <aside className="hidden lg:block lg:w-1/5 lg:min-w-[200px] lg:border-r lg:pr-8">
@@ -719,7 +710,7 @@ function SearchPageContent() {
                     onClick={() => handleVideoSelect(video)}
                     >
                     <div 
-                      className="relative w-32 h-24 cursor-pointer"
+                      className="relative w-32 h-24 cursor-pointer group"
                       onClick={(e) => handleThumbnailClick(video, e)}
                     >
                       <img
@@ -730,9 +721,9 @@ function SearchPageContent() {
                           decoding="async"
                       />
                       {/* Play 버튼 오버레이 - 유튜브 스타일 */}
-                      <div className="absolute inset-0 bg-black/20 rounded hover:bg-black/30 transition-colors flex items-center justify-center">
-                        <div className="bg-black/60 rounded-full p-3 hover:bg-black/80 transition-colors shadow-lg backdrop-blur-sm">
-                          <Play className="h-5 w-5 text-white fill-white ml-0.5" />
+                      <div className="absolute inset-0 bg-black/20 rounded opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                        <div className="bg-black/80 hover:bg-black/90 rounded-full p-3 shadow-xl transition-all transform hover:scale-110">
+                          <Play className="h-6 w-6 text-white fill-white" />
                         </div>
                       </div>
                       {/* 재생시간 오버레이 */}
@@ -778,6 +769,11 @@ function SearchPageContent() {
         isVisible={isPlayerVisible}
         video={selectedVideo}
         onClose={handleClosePlayer}
+        onExtractRecipe={() => {
+          if (selectedVideo) {
+            handleVideoSelect(selectedVideo)
+          }
+        }}
       />
 
       {/* 사용량 제한 모달 */}
@@ -882,7 +878,7 @@ function SearchPageContent() {
 export default function SearchPage() {
   return (
     <Suspense fallback={<div>Loading...</div>}>
-      <SearchPageContent />
+      <SearchPageWrapper />
     </Suspense>
   )
 }

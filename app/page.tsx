@@ -74,7 +74,7 @@ export default function Index() {
     return (
       <div className="flex flex-col min-h-screen">
         <Header user={user} userProfile={null} />
-        <main className="flex-1 flex items-center justify-center">
+        <main className="flex-1 pt-6 md:pt-8 flex items-center justify-center">
           <HeroSection user={user} />
         </main>
         <footer className="border-t bg-background py-4 text-center text-sm text-muted-foreground">
