@@ -98,6 +98,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
         }
         
         setIsLoading(false)
+        setAuthError(false) // 로그아웃/로그인 시 에러 상태 초기화
       }
     )
 
