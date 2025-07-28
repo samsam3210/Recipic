@@ -106,6 +106,21 @@ function SearchPageContent() {
   const { toast } = useToast()
   const router = useRouter()
   const searchParams = useSearchParams()
+  
+  // 로그인 체크
+  useEffect(() => {
+    if (!isUserLoading && !user) {
+      router.push("/")
+    }
+  }, [user, isUserLoading, router])
+  
+  if (isUserLoading) {
+    return null // UserProvider가 로딩 중
+  }
+  
+  if (!user) {
+    return null // 리다이렉트 중
+  }
   const inputRef = useRef<HTMLInputElement>(null)
   const { saveCache, getCache, getRecentCache, saveScrollPosition, restoreScrollPosition, clearCache } = useSearchCache(user?.id)
 
