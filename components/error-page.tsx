@@ -6,7 +6,7 @@ import { AlertCircle, RefreshCw } from "lucide-react"
 
 export default function ErrorPage() {
   const handleRetryLogin = () => {
-    window.location.href = '/'
+    window.location.reload()
   }
 
   return (
@@ -35,7 +35,7 @@ export default function ErrorPage() {
             size="lg"
           >
             <RefreshCw className="w-4 h-4 mr-2" />
-            다시 로그인하기
+            다시 시도하기
           </Button>
         </CardContent>
       </Card>
