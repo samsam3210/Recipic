@@ -66,7 +66,7 @@ export function CachedDashboard({
     queryFn: () => checkDailyUsage(),
     staleTime: 10 * 60 * 1000, // 10분으로 연장
     gcTime: 20 * 60 * 1000, // 20분으로 연장
-    refetchOnWindowFocus: false,
+    refetchOnWindowFocus: true, // false -> true로 변경
     refetchOnMount: false,
     refetchOnReconnect: false,
     refetchInterval: false,

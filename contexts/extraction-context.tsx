@@ -5,6 +5,8 @@ import { useRouter } from 'next/navigation'
 import { useToast } from '@/hooks/use-toast'
 import { checkDailyUsage, incrementDailyUsage } from '@/lib/actions/usage'
 import { checkAllDuplicates, checkAndSaveRecipe } from '@/lib/actions/recipe'
+import { useQueryClient } from '@tanstack/react-query'
+import { createClient } from '@/lib/supabase/client'
 
 export interface ExtractionStep {
   id: number
@@ -47,6 +49,7 @@ const defaultSteps: ExtractionStep[] = [
 ]
 
 export function ExtractionProvider({ children }: { children: React.ReactNode }) {
+  const queryClient = useQueryClient()
   const [isExtracting, setIsExtracting] = useState(false)
   const [steps, setSteps] = useState<ExtractionStep[]>(defaultSteps)
   const [currentStep, setCurrentStep] = useState(0)
@@ -242,7 +245,29 @@ export function ExtractionProvider({ children }: { children: React.ReactNode }) 
 
       // 사용량 증가 (레시피 추출 성공시)
       try {
-        await incrementDailyUsage()
+        const incrementResult = await incrementDailyUsage()
+        console.log('[ExtractionContext] 사용량 증가 결과:', incrementResult)
+        
+        // 사용량 캐시 무효화 - 홈화면에 즉시 반영
+        const supabase = createClient()
+        const { data: { user } } = await supabase.auth.getUser()
+        
+        if (user) {
+          console.log('[ExtractionContext] 사용량 캐시 무효화 시작:', user.id)
+          
+          // daily-usage 캐시 무효화
+          await queryClient.invalidateQueries({
+            queryKey: ['daily-usage', user.id]
+          })
+          
+          // 즉시 새로운 데이터 가져오기
+          await queryClient.refetchQueries({
+            queryKey: ['daily-usage', user.id],
+            exact: true
+          })
+          
+          console.log('[ExtractionContext] 사용량 캐시 무효화 완료')
+        }
       } catch (usageError) {
         console.error("Failed to increment daily usage:", usageError)
         // 사용량 증가 실패해도 레시피 추출은 완료로 처리
