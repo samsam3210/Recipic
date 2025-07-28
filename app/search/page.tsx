@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef, Suspense } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
-import { Search, Loader2, ArrowUpDown, ChevronDown, Clock, Eye, ArrowRight } from "lucide-react"
+import { Search, Loader2, ArrowUpDown, ChevronDown, Clock, Eye, ArrowRight, Play } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Header } from "@/components/header"
@@ -19,6 +19,7 @@ import { SearchGuide } from '@/components/search-guide'
 import { useExtraction } from '@/contexts/extraction-context'
 import { useSearchCache } from '@/hooks/use-search-cache'
 import { useUser } from '@/contexts/user-context'
+import { FloatingVideoPlayer } from '@/components/floating-video-player'
 
 interface SearchResult {
   videoId: string
@@ -97,6 +98,8 @@ function SearchPageContent() {
   const [searchQuery, setSearchQuery] = useState("")
   const [searchResults, setSearchResults] = useState<SearchResult[]>([])
   const [isSearching, setIsSearching] = useState(false)
+  const [selectedVideo, setSelectedVideo] = useState<SearchResult | null>(null)
+  const [isPlayerVisible, setIsPlayerVisible] = useState(false)
   const { user, isLoading: isUserLoading } = useUser()
   const [showClipboardToast, setShowClipboardToast] = useState(false)
   const [showUsageLimitModal, setShowUsageLimitModal] = useState(false)
@@ -584,6 +587,18 @@ function SearchPageContent() {
     await handleRecipeExtraction(video.youtubeUrl)
   }
 
+  const handleThumbnailClick = (video: SearchResult, event: React.MouseEvent) => {
+    console.log('[Search] handleThumbnailClick 호출:', video.title)
+    event.stopPropagation()
+    setSelectedVideo(video)
+    setIsPlayerVisible(true)
+  }
+
+  const handleClosePlayer = () => {
+    setIsPlayerVisible(false)
+    setSelectedVideo(null)
+  }
+
   return (
     <div className="flex flex-col min-h-screen">
       <Header />
@@ -703,7 +718,10 @@ function SearchPageContent() {
                     className="flex gap-4 p-4 border rounded-lg hover:bg-gray-50 cursor-pointer transition-colors"
                     onClick={() => handleVideoSelect(video)}
                     >
-                    <div className="relative w-32 h-24">
+                    <div 
+                      className="relative w-32 h-24 cursor-pointer"
+                      onClick={(e) => handleThumbnailClick(video, e)}
+                    >
                       <img
                           src={video.thumbnail}
                           alt={video.title}
@@ -711,6 +729,12 @@ function SearchPageContent() {
                           loading="lazy"
                           decoding="async"
                       />
+                      {/* Play 버튼 오버레이 */}
+                      <div className="absolute inset-0 bg-black/20 rounded hover:bg-black/30 transition-colors flex items-center justify-center">
+                        <div className="bg-red-600 rounded-full p-2 hover:bg-red-700 transition-colors">
+                          <Play className="h-4 w-4 text-white fill-white" />
+                        </div>
+                      </div>
                       {/* 재생시간 오버레이 */}
                       {video.duration && (
                         <div className="absolute bottom-1 right-1 bg-black bg-opacity-80 text-white text-xs px-1.5 py-0.5 rounded font-medium">
@@ -749,6 +773,12 @@ function SearchPageContent() {
 
       <BottomNavigation />
 
+      {/* 플로팅 비디오 플레이어 */}
+      <FloatingVideoPlayer
+        isVisible={isPlayerVisible}
+        video={selectedVideo}
+        onClose={handleClosePlayer}
+      />
 
       {/* 사용량 제한 모달 */}
       <CustomDialog
