@@ -96,6 +96,7 @@ export default function SearchResults({ query }: SearchResultsProps) {
   }
 
   const handleThumbnailClick = (video: SearchResult, event: React.MouseEvent) => {
+    console.log('[SearchResults] handleThumbnailClick 호출:', video.title)
     event.stopPropagation()
     setSelectedVideo(video)
     setIsPlayerVisible(true)
