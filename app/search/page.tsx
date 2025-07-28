@@ -729,10 +729,10 @@ function SearchPageContent() {
                           loading="lazy"
                           decoding="async"
                       />
-                      {/* Play 버튼 오버레이 */}
+                      {/* Play 버튼 오버레이 - 유튜브 스타일 */}
                       <div className="absolute inset-0 bg-black/20 rounded hover:bg-black/30 transition-colors flex items-center justify-center">
-                        <div className="bg-red-600 rounded-full p-2 hover:bg-red-700 transition-colors">
-                          <Play className="h-4 w-4 text-white fill-white" />
+                        <div className="bg-black/60 rounded-full p-3 hover:bg-black/80 transition-colors shadow-lg backdrop-blur-sm">
+                          <Play className="h-5 w-5 text-white fill-white ml-0.5" />
                         </div>
                       </div>
                       {/* 재생시간 오버레이 */}
