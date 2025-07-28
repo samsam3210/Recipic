@@ -18,7 +18,7 @@ export default function ErrorPage() {
           </div>
           <div>
             <CardTitle className="text-2xl font-bold text-gray-900">
-              레시픽
+              Recipick
             </CardTitle>
             <CardDescription className="text-lg mt-2">
               잠시 연결이 원활하지 않아요
@@ -31,7 +31,7 @@ export default function ErrorPage() {
           </p>
           <Button 
             onClick={handleRetryLogin}
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3"
+            className="w-full bg-green-600 hover:bg-green-700 text-white py-3"
             size="lg"
           >
             <RefreshCw className="w-4 h-4 mr-2" />
