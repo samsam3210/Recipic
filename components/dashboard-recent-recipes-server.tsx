@@ -17,6 +17,7 @@ interface RecentlyViewedRecipeProps {
   viewedAt: Date
   difficulty?: string
   cookingTimeMinutes?: number
+  videoTitle?: string
   ingredients?: Array<{ name: string; quantity: number | string; unit: string; notes: string }>
   steps?: Array<{
     stepNumber: number
@@ -86,7 +87,7 @@ export function DashboardRecentRecipesServer({ recipes, isLoading = false }: Das
                     youtubeUrl: recipe.youtubeUrl,
                     videoInfo: {
                       videoId: '',
-                      videoTitle: recipe.recipeName,
+                      videoTitle: recipe.videoTitle || recipe.recipeName,
                       videoThumbnail: recipe.videoThumbnail || '',
                       channelName: recipe.channelName || '',
                       videoDurationSeconds: recipe.videoDurationSeconds || 0,
