@@ -30,66 +30,103 @@ interface FloatingVideoPlayerProps {
 }
 
 export function FloatingVideoPlayer({ isVisible, video, onClose, onExtractRecipe }: FloatingVideoPlayerProps) {
-  const [position, setPosition] = useState<'top' | 'bottom'>('top')
+  const [position, setPosition] = useState({ x: null as number | null, y: 4 }) // x: null은 오른쪽 정렬 유지
   const [isDragging, setIsDragging] = useState(false)
-  const [dragStartY, setDragStartY] = useState(0)
-
-  // 로컬스토리지에서 위치 불러오기
-  useEffect(() => {
-    const savedPosition = localStorage.getItem('floatingPlayerPosition') as 'top' | 'bottom'
-    if (savedPosition) {
-      setPosition(savedPosition)
-    }
-  }, [])
-
-  // 위치 변경 시 저장
-  useEffect(() => {
-    localStorage.setItem('floatingPlayerPosition', position)
-  }, [position])
+  const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 })
+  const playerRef = useRef<HTMLDivElement>(null)
 
   if (!isVisible || !video) return null
 
   const videoId = getVideoId(video.youtubeUrl)
   if (!videoId) return null
 
-  // 더블클릭/더블탭 핸들러
-  const handleDoubleClick = () => {
-    setPosition(prev => prev === 'top' ? 'bottom' : 'top')
-  }
-
   // 드래그 시작
   const handleDragStart = (e: React.MouseEvent | React.TouchEvent) => {
+    e.preventDefault()
     setIsDragging(true)
+    
+    const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX
     const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY
-    setDragStartY(clientY)
+    
+    if (playerRef.current) {
+      const rect = playerRef.current.getBoundingClientRect()
+      setDragOffset({
+        x: clientX - rect.left,
+        y: clientY - rect.top
+      })
+    }
   }
 
-  // 드래그 종료
-  const handleDragEnd = (e: React.MouseEvent | React.TouchEvent) => {
+  // 드래그 중
+  useEffect(() => {
     if (!isDragging) return
     
-    const clientY = 'changedTouches' in e ? e.changedTouches[0].clientY : e.clientY
-    const dragDistance = clientY - dragStartY
-    
-    // 50px 이상 드래그하면 위치 변경
-    if (Math.abs(dragDistance) > 50) {
-      setPosition(dragDistance > 0 ? 'bottom' : 'top')
+    const handleDragMove = (e: MouseEvent | TouchEvent) => {
+      e.preventDefault()
+      
+      const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX
+      const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY
+      
+      // 새 위치 계산
+      const newX = clientX - dragOffset.x
+      const newY = clientY - dragOffset.y
+      
+      // 화면 경계 체크
+      const maxX = window.innerWidth - (playerRef.current?.offsetWidth || 0)
+      const maxY = window.innerHeight - (playerRef.current?.offsetHeight || 0)
+      
+      setPosition({
+        x: Math.max(0, Math.min(newX, maxX)),
+        y: Math.max(0, Math.min(newY, maxY))
+      })
     }
     
-    setIsDragging(false)
+    const handleDragEnd = () => {
+      setIsDragging(false)
+    }
+    
+    document.addEventListener('mousemove', handleDragMove)
+    document.addEventListener('touchmove', handleDragMove)
+    document.addEventListener('mouseup', handleDragEnd)
+    document.addEventListener('touchend', handleDragEnd)
+    
+    return () => {
+      document.removeEventListener('mousemove', handleDragMove)
+      document.removeEventListener('touchmove', handleDragMove)
+      document.removeEventListener('mouseup', handleDragEnd)
+      document.removeEventListener('touchend', handleDragEnd)
+    }
+  }, [isDragging, dragOffset])
+
+  // 더블클릭/더블탭으로 상단/하단 전환
+  const handleDoubleClick = () => {
+    const isTop = position.y < window.innerHeight / 2
+    setPosition({
+      x: position.x,
+      y: isTop ? window.innerHeight - (playerRef.current?.offsetHeight || 0) - 16 : 16
+    })
   }
 
-  const positionClass = position === 'top' ? 'top-4' : 'bottom-4'
-
   return (
-    <div className={`fixed ${positionClass} left-4 right-4 md:left-auto md:right-4 md:w-96 z-50 bg-black rounded-lg shadow-2xl transition-all ${isDragging ? '' : 'transition-all'}`}>
+    <div 
+      ref={playerRef}
+      className={`fixed z-50 bg-black rounded-lg shadow-2xl ${
+        position.x === null 
+          ? 'right-4 w-[calc(100%-32px)] md:w-96' 
+          : 'w-[calc(100%-32px)] md:w-96'
+      } ${!isDragging && 'transition-all duration-300'}`}
+      style={{
+        top: `${position.y}px`,
+        left: position.x !== null ? `${position.x}px` : 'auto',
+        cursor: isDragging ? 'grabbing' : 'grab'
+      }}
+    >
       {/* 레시피 추출 버튼 */}
       {onExtractRecipe && (
         <button
           onClick={onExtractRecipe}
           className="absolute -top-2 -right-14 z-10 bg-[#6BA368] hover:bg-[#5a8f57] text-white rounded-full p-1.5 shadow-lg transition-colors"
           title="레시피 추출하기"
-          aria-label="레시피 추출하기"
         >
           <BookOpen className="w-4 h-4" />
         </button>
@@ -99,13 +136,12 @@ export function FloatingVideoPlayer({ isVisible, video, onClose, onExtractRecipe
       <button
         onClick={onClose}
         className="absolute -top-2 -right-2 z-10 bg-gray-800 hover:bg-gray-700 text-white rounded-full p-1.5 shadow-lg transition-colors"
-        aria-label="플레이어 닫기"
       >
         <X className="w-4 h-4" />
       </button>
       
-      {/* YouTube 플레이어 영역 */}
-      <div className="aspect-video rounded-lg overflow-hidden">
+      {/* YouTube 플레이어 */}
+      <div className="aspect-video rounded-t-lg overflow-hidden">
         <iframe
           src={`https://www.youtube.com/embed/${videoId}?autoplay=1`}
           className="w-full h-full"
@@ -119,12 +155,8 @@ export function FloatingVideoPlayer({ isVisible, video, onClose, onExtractRecipe
       <div 
         className="p-3 bg-gray-900 rounded-b-lg cursor-move select-none"
         onMouseDown={handleDragStart}
-        onMouseUp={handleDragEnd}
-        onMouseLeave={handleDragEnd}
         onTouchStart={handleDragStart}
-        onTouchEnd={handleDragEnd}
         onDoubleClick={handleDoubleClick}
-        title="더블클릭으로 위치 변경"
       >
         <h3 className="text-white text-sm font-medium line-clamp-2">
           {video.title}
