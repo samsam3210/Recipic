@@ -31,7 +31,7 @@ interface FloatingVideoPlayerProps {
 
 export function FloatingVideoPlayer({ isVisible, video, onClose, onExtractRecipe }: FloatingVideoPlayerProps) {
   // 상태 관리 단순화 - 상하 이동만 가능하도록
-  const [positionY, setPositionY] = useState(4) // Y 위치만 관리 (상단에서부터의 거리)
+  const [positionY, setPositionY] = useState(16) // Y 위치만 관리 (상단에서부터의 거리)
   const [isDragging, setIsDragging] = useState(false)
   const [dragStartY, setDragStartY] = useState(0)
   const playerRef = useRef<HTMLDivElement>(null)
@@ -40,7 +40,7 @@ export function FloatingVideoPlayer({ isVisible, video, onClose, onExtractRecipe
   const handleDoubleClick = () => {
     const isTop = positionY < window.innerHeight / 2
     const bottomPosition = window.innerHeight - (playerRef.current?.offsetHeight || 0) - 20
-    setPositionY(isTop ? bottomPosition : 4)
+    setPositionY(isTop ? bottomPosition : 16)
   }
 
   // 드래그 핸들러 수정 - 상하 이동만 처리
@@ -69,7 +69,7 @@ export function FloatingVideoPlayer({ isVisible, video, onClose, onExtractRecipe
       
       // 화면 경계 체크 (상하만)
       const maxY = window.innerHeight - (playerRef.current?.offsetHeight || 0) - 20
-      setPositionY(Math.max(4, Math.min(newY, maxY)))
+      setPositionY(Math.max(16, Math.min(newY, maxY)))
     }
     
     const handleDragEnd = () => {
@@ -103,7 +103,7 @@ export function FloatingVideoPlayer({ isVisible, video, onClose, onExtractRecipe
   return (
     <div 
       ref={playerRef}
-      className={`fixed left-1/2 transform -translate-x-1/2 z-50 bg-black rounded-lg shadow-2xl w-[calc(100%-32px)] md:w-[450px] ${!isDragging && 'transition-all duration-300'}`}
+      className={`fixed left-1/2 transform -translate-x-1/2 z-[60] bg-black rounded-lg shadow-2xl w-[calc(100%-32px)] md:w-[450px] ${!isDragging && 'transition-all duration-300'}`}
       style={{
         top: `${positionY}px`,
         cursor: isDragging ? 'grabbing' : 'auto',
