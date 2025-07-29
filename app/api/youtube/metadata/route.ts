@@ -32,6 +32,13 @@ const videoIdMatch = youtubeUrl.match(
     const videoDuration = video.contentDetails.duration // PT#M#S format
     const videoViews = video.statistics.viewCount
     const videoDescription = video.snippet.description
+    
+    // 만개의레시피 채널 차단
+    if (channelName === '만개의레시피' || channelName === '10K Recipe' || channelName.includes('만개의레시피')) {
+      return NextResponse.json({ 
+        error: "죄송합니다. 해당 채널의 콘텐츠는 레시피 추출이 지원되지 않습니다." 
+      }, { status: 400 })
+    }
 
     // Convert duration to seconds (simplified for common formats)
     const parseDuration = (duration: string) => {

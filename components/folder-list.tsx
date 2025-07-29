@@ -304,7 +304,7 @@ export function FolderList({ folders, selectedFolderId }: FolderListProps) {
             <DialogDescription className="text-sm text-gray-600 mt-2">
               정말로 &quot;{folderToDelete?.name}&quot; 폴더를 삭제하시겠습니까?
               <br />
-              폴더 안의 레시피들은 &quot;모든 레시피&quot;로 이동됩니다.
+              폴더 안의 레시피들은 &quot;전체&quot;로 이동됩니다.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="flex flex-col gap-2 mt-6">

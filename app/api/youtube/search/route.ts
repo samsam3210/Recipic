@@ -70,6 +70,12 @@ export async function POST(req: Request) {
     // --- 3. 조회수 및 영상 길이 필터링 + 포맷팅 ---
     const results = videosData.items
       .filter((video: any) => {
+        // 만개의레시피 채널 제외
+        const channelName = video.snippet.channelTitle
+        if (channelName === '만개의레시피' || channelName === '10K Recipe' || channelName.includes('만개의레시피')) {
+          return false
+        }
+        
         // 기존 필터링 유지
         const viewCount = parseInt(video.statistics.viewCount, 10)
         const durationInSeconds = getDurationInSeconds(video.contentDetails.duration)
