@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { AspectRatio } from "@/components/ui/aspect-ratio"
 import { Skeleton } from "@/components/ui/skeleton"
+import { BookOpen } from "lucide-react"
 import Image from "next/image"
 
 interface RecentlyViewedRecipeProps {
@@ -68,7 +69,13 @@ export function DashboardRecentRecipesServer({ recipes, isLoading = false }: Das
         </div>
       ) : recipes.length === 0 ? (
         <div className="border-dashed border-2 p-8 text-center text-muted-foreground rounded-lg">
-          <p className="text-lg mb-4">최근 본 레시피가 없습니다.</p>
+          <div className="flex flex-col items-center justify-center space-y-3">
+            <div className="bg-gray-100 p-3 rounded-full">
+              <BookOpen className="w-8 h-8 text-gray-400" />
+            </div>
+            <p className="text-lg font-medium text-gray-600">최근 본 레시피가 없습니다</p>
+            <p className="text-sm text-gray-500">YouTube 요리 영상에서 레시피를 추출해보세요!</p>
+          </div>
         </div>
       ) : (
         <div className="grid gap-4">

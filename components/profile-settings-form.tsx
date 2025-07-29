@@ -6,12 +6,13 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { useToast } from "@/hooks/use-toast"
-import { Loader2, Edit, Save, X } from "lucide-react"
+import { Loader2, Edit2, Check, X, UserX } from "lucide-react"
 import { updateUserName, getUserProfile } from "@/lib/actions/user"
 import { signOut } from "@/lib/actions/auth"
 import { createClient } from "@/lib/supabase/client"
 import { useRouter } from "next/navigation"
 import { useCacheInvalidation } from "@/hooks/use-cache-invalidation"
+import { AccountDeletionModal } from "@/components/account-deletion-modal"
 
 interface UserProfile {
   userId: string
@@ -30,6 +31,7 @@ export function ProfileSettingsForm({ user, userProfile: initialProfile }: Profi
   const [editedName, setEditedName] = useState(initialProfile?.nickname || "")
   const [isSaving, setIsSaving] = useState(false)
   const [isSigningOut, setIsSigningOut] = useState(false)
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
   const { toast } = useToast()
   const router = useRouter()
   const supabase = createClient()
@@ -170,6 +172,40 @@ export function ProfileSettingsForm({ user, userProfile: initialProfile }: Profi
     }
   }
 
+  const handleAccountDeletion = async () => {
+    try {
+      const response = await fetch('/api/users/account', {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      })
+
+      const result = await response.json()
+
+      if (result.success) {
+        toast({
+          title: "계정 삭제 완료",
+          description: result.message,
+        })
+        // 홈페이지로 리다이렉트
+        window.location.href = '/'
+      } else {
+        throw new Error(result.message)
+      }
+    } catch (error: any) {
+      console.error('[ProfileSettingsForm] Account deletion failed:', error)
+      toast({
+        title: "계정 삭제 실패",
+        description: error.message || "계정을 삭제하는 데 실패했습니다.",
+        variant: "destructive",
+      })
+      throw error // Modal에서 로딩 상태 해제를 위해 에러 재발생
+    } finally {
+      setIsDeleteModalOpen(false)
+    }
+  }
+
   return (
     <Card className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
       <CardHeader className="px-0 pt-0 pb-4">
@@ -192,19 +228,16 @@ export function ProfileSettingsForm({ user, userProfile: initialProfile }: Profi
           </div>
           {isEditing ? (
             <div className="flex space-x-2">
-              <Button onClick={handleSave} disabled={isSaving} size="sm">
-                {isSaving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
-                저장
+              <Button onClick={handleSave} disabled={isSaving} size="sm" variant="default">
+                {isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
               </Button>
               <Button onClick={handleCancel} variant="outline" size="sm" disabled={isSaving}>
-                <X className="mr-2 h-4 w-4" />
-                취소
+                <X className="h-4 w-4" />
               </Button>
             </div>
           ) : (
             <Button onClick={() => setIsEditing(true)} variant="outline" size="sm">
-              <Edit className="mr-2 h-4 w-4" />
-              수정
+              <Edit2 className="h-4 w-4" />
             </Button>
           )}
         </div>
@@ -214,8 +247,8 @@ export function ProfileSettingsForm({ user, userProfile: initialProfile }: Profi
           <p className="text-lg font-semibold text-gray-900">{user.email}</p>
         </div>
 
-        {/* 로그아웃 버튼 */}
-        <div className="pt-4 border-t border-gray-200">
+        {/* 로그아웃 및 계정 삭제 버튼 */}
+        <div className="pt-4 border-t border-gray-200 space-y-3">
           <Button 
             onClick={handleSignOut} 
             disabled={isSigningOut || isEditing}
@@ -231,7 +264,25 @@ export function ProfileSettingsForm({ user, userProfile: initialProfile }: Profi
               "로그아웃"
             )}
           </Button>
+          
+          <Button 
+            onClick={() => setIsDeleteModalOpen(true)} 
+            disabled={isSigningOut || isEditing}
+            variant="outline"
+            className="w-full text-red-600 border-red-200 hover:bg-red-50 hover:border-red-300"
+          >
+            <UserX className="mr-2 h-4 w-4" />
+            탈퇴하기
+          </Button>
         </div>
+
+        {/* 계정 삭제 모달 */}
+        <AccountDeletionModal
+          isOpen={isDeleteModalOpen}
+          onClose={() => setIsDeleteModalOpen(false)}
+          userEmail={user.email || ""}
+          onConfirm={handleAccountDeletion}
+        />
       </CardContent>
     </Card>
   )
