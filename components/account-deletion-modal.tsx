@@ -67,7 +67,7 @@ export function AccountDeletionModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-md mx-4">
+      <DialogContent className="sm:max-w-md w-[calc(100%-2rem)] max-w-[425px] rounded-lg">
         <DialogHeader>
           <DialogTitle className="text-xl font-semibold text-gray-900">
             계정 삭제

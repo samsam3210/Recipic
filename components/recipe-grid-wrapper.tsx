@@ -5,7 +5,7 @@ import { useSearchParams, useRouter } from "next/navigation"
 import { useQuery, useQueryClient } from "@tanstack/react-query"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
-import { Plus, Loader2, Folder } from "lucide-react"
+import { Plus, Loader2, Folder, FolderOpen } from "lucide-react"
 import { RecipeGrid } from "@/components/recipe-grid"
 import { useToast } from "@/hooks/use-toast"
 import { deleteRecipe } from "@/lib/actions/recipe"
@@ -302,15 +302,17 @@ export default function RecipeGridWrapper({
           ))}
         </div>
       ) : allRecipes.length === 0 ? (
-        <div className="border-dashed border-2 p-8 text-center text-muted-foreground rounded-lg">
-          <p className="text-lg mb-4">
-            {selectedFolderId ? "이 폴더에 저장된 레시피가 없습니다." : "아직 저장된 레시피가 없습니다."}
+        <div className="text-center py-12">
+          <div className="mb-6">
+            <FolderOpen className="w-16 h-16 mx-auto text-gray-300" />
+          </div>
+          <p className="text-gray-500 mb-2">아직 저장된 레시피가 없어요</p>
+          <p className="text-sm text-gray-400 mb-6">
+            마음에 드는 레시피를 저장해보세요!
           </p>
-          <Button asChild>
-            <Link href="/dashboard">
-              <Plus className="mr-2 h-4 w-4" />
-              새로운 레시피 추출하기
-            </Link>
+          <Button variant="outline" onClick={() => router.push('/search')}>
+            <Plus className="w-4 h-4 mr-2" />
+            새로운 레시피 추출하기
           </Button>
         </div>
       ) : (
