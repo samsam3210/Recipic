@@ -30,17 +30,22 @@ interface FloatingVideoPlayerProps {
 }
 
 export function FloatingVideoPlayer({ isVisible, video, onClose, onExtractRecipe }: FloatingVideoPlayerProps) {
-  const [position, setPosition] = useState({ x: null as number | null, y: 4 }) // x: null은 오른쪽 정렬 유지
+  // 1. 모든 상태와 ref 선언
+  const [position, setPosition] = useState({ x: null as number | null, y: 4 })
   const [isDragging, setIsDragging] = useState(false)
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 })
   const playerRef = useRef<HTMLDivElement>(null)
 
-  if (!isVisible || !video) return null
+  // 2. 더블클릭 핸들러 (useEffect 밖으로 이동)
+  const handleDoubleClick = () => {
+    const isTop = position.y < window.innerHeight / 2
+    setPosition({
+      x: position.x,
+      y: isTop ? window.innerHeight - (playerRef.current?.offsetHeight || 0) - 16 : 16
+    })
+  }
 
-  const videoId = getVideoId(video.youtubeUrl)
-  if (!videoId) return null
-
-  // 드래그 시작
+  // 3. 드래그 시작 핸들러
   const handleDragStart = (e: React.MouseEvent | React.TouchEvent) => {
     e.preventDefault()
     setIsDragging(true)
@@ -57,7 +62,7 @@ export function FloatingVideoPlayer({ isVisible, video, onClose, onExtractRecipe
     }
   }
 
-  // 드래그 중
+  // 4. useEffect는 조건부 return 이전에 위치
   useEffect(() => {
     if (!isDragging) return
     
@@ -67,11 +72,9 @@ export function FloatingVideoPlayer({ isVisible, video, onClose, onExtractRecipe
       const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX
       const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY
       
-      // 새 위치 계산
       const newX = clientX - dragOffset.x
       const newY = clientY - dragOffset.y
       
-      // 화면 경계 체크
       const maxX = window.innerWidth - (playerRef.current?.offsetWidth || 0)
       const maxY = window.innerHeight - (playerRef.current?.offsetHeight || 0)
       
@@ -98,34 +101,32 @@ export function FloatingVideoPlayer({ isVisible, video, onClose, onExtractRecipe
     }
   }, [isDragging, dragOffset])
 
-  // 더블클릭/더블탭으로 상단/하단 전환
-  const handleDoubleClick = () => {
-    const isTop = position.y < window.innerHeight / 2
-    setPosition({
-      x: position.x,
-      y: isTop ? window.innerHeight - (playerRef.current?.offsetHeight || 0) - 16 : 16
-    })
-  }
+  // 5. 조건부 렌더링은 모든 Hook 이후에
+  if (!isVisible || !video) return null
 
+  const videoId = getVideoId(video.youtubeUrl)
+  if (!videoId) return null
+
+  // 6. JSX 렌더링
   return (
     <div 
       ref={playerRef}
       className={`fixed z-50 bg-black rounded-lg shadow-2xl ${
         position.x === null 
-          ? 'right-4 w-[calc(100%-32px)] md:w-96' 
-          : 'w-[calc(100%-32px)] md:w-96'
+          ? 'left-4 right-4 md:left-auto md:right-4 md:w-96' 
+          : ''
       } ${!isDragging && 'transition-all duration-300'}`}
       style={{
         top: `${position.y}px`,
         left: position.x !== null ? `${position.x}px` : 'auto',
-        cursor: isDragging ? 'grabbing' : 'grab'
+        width: position.x !== null ? (window.innerWidth < 768 ? 'calc(100% - 32px)' : '384px') : 'auto',
       }}
     >
       {/* 레시피 추출 버튼 */}
       {onExtractRecipe && (
         <button
           onClick={onExtractRecipe}
-          className="absolute -top-2 -right-14 z-10 bg-[#6BA368] hover:bg-[#5a8f57] text-white rounded-full p-1.5 shadow-lg transition-colors"
+          className="absolute -top-2 right-8 z-10 bg-[#6BA368] hover:bg-[#5a8f57] text-white rounded-full p-1.5 shadow-lg transition-colors"
           title="레시피 추출하기"
         >
           <BookOpen className="w-4 h-4" />
