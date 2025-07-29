@@ -30,66 +30,58 @@ interface FloatingVideoPlayerProps {
 }
 
 export function FloatingVideoPlayer({ isVisible, video, onClose, onExtractRecipe }: FloatingVideoPlayerProps) {
-  // 1. 모든 상태와 ref 선언
-  const [position, setPosition] = useState({ x: null as number | null, y: 4 })
+  // 상태 관리 단순화 - 상하 이동만 가능하도록
+  const [positionY, setPositionY] = useState(4) // Y 위치만 관리 (상단에서부터의 거리)
   const [isDragging, setIsDragging] = useState(false)
-  const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 })
+  const [dragStartY, setDragStartY] = useState(0)
   const playerRef = useRef<HTMLDivElement>(null)
 
-  // 2. 더블클릭 핸들러 (useEffect 밖으로 이동)
+  // 더블클릭 핸들러 수정
   const handleDoubleClick = () => {
-    const isTop = position.y < window.innerHeight / 2
-    setPosition({
-      x: position.x,
-      y: isTop ? window.innerHeight - (playerRef.current?.offsetHeight || 0) - 16 : 16
-    })
+    const isTop = positionY < window.innerHeight / 2
+    const bottomPosition = window.innerHeight - (playerRef.current?.offsetHeight || 0) - 20
+    setPositionY(isTop ? bottomPosition : 4)
   }
 
-  // 3. 드래그 시작 핸들러
+  // 드래그 핸들러 수정 - 상하 이동만 처리
   const handleDragStart = (e: React.MouseEvent | React.TouchEvent) => {
     e.preventDefault()
+    e.stopPropagation() // 배경 페이지 간섭 방지
     setIsDragging(true)
     
-    const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX
     const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY
+    setDragStartY(clientY - positionY)
     
-    if (playerRef.current) {
-      const rect = playerRef.current.getBoundingClientRect()
-      setDragOffset({
-        x: clientX - rect.left,
-        y: clientY - rect.top
-      })
-    }
+    // 드래그 중 텍스트 선택 방지
+    document.body.style.userSelect = 'none'
+    document.body.style.webkitUserSelect = 'none'
   }
 
-  // 4. useEffect는 조건부 return 이전에 위치
   useEffect(() => {
     if (!isDragging) return
     
     const handleDragMove = (e: MouseEvent | TouchEvent) => {
       e.preventDefault()
+      e.stopPropagation()
       
-      const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX
       const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY
+      const newY = clientY - dragStartY
       
-      const newX = clientX - dragOffset.x
-      const newY = clientY - dragOffset.y
-      
-      const maxX = window.innerWidth - (playerRef.current?.offsetWidth || 0)
-      const maxY = window.innerHeight - (playerRef.current?.offsetHeight || 0)
-      
-      setPosition({
-        x: Math.max(0, Math.min(newX, maxX)),
-        y: Math.max(0, Math.min(newY, maxY))
-      })
+      // 화면 경계 체크 (상하만)
+      const maxY = window.innerHeight - (playerRef.current?.offsetHeight || 0) - 20
+      setPositionY(Math.max(4, Math.min(newY, maxY)))
     }
     
     const handleDragEnd = () => {
       setIsDragging(false)
+      // 텍스트 선택 복원
+      document.body.style.userSelect = ''
+      document.body.style.webkitUserSelect = ''
     }
     
-    document.addEventListener('mousemove', handleDragMove)
-    document.addEventListener('touchmove', handleDragMove)
+    // 이벤트 리스너에 passive: false 추가하여 preventDefault 작동 보장
+    document.addEventListener('mousemove', handleDragMove, { passive: false })
+    document.addEventListener('touchmove', handleDragMove, { passive: false })
     document.addEventListener('mouseup', handleDragEnd)
     document.addEventListener('touchend', handleDragEnd)
     
@@ -99,44 +91,40 @@ export function FloatingVideoPlayer({ isVisible, video, onClose, onExtractRecipe
       document.removeEventListener('mouseup', handleDragEnd)
       document.removeEventListener('touchend', handleDragEnd)
     }
-  }, [isDragging, dragOffset])
+  }, [isDragging, dragStartY])
 
-  // 5. 조건부 렌더링은 모든 Hook 이후에
+  // 조건부 렌더링은 모든 Hook 이후에
   if (!isVisible || !video) return null
 
   const videoId = getVideoId(video.youtubeUrl)
   if (!videoId) return null
 
-  // 6. JSX 렌더링
+  // 컴포넌트 렌더링 수정 - 항상 중앙 정렬
   return (
     <div 
       ref={playerRef}
-      className={`fixed z-50 bg-black rounded-lg shadow-2xl ${
-        position.x === null 
-          ? 'left-4 right-4 md:left-auto md:right-4 md:w-96' 
-          : ''
-      } ${!isDragging && 'transition-all duration-300'}`}
+      className={`fixed left-1/2 transform -translate-x-1/2 z-50 bg-black rounded-lg shadow-2xl w-[calc(100%-32px)] md:w-[450px] ${!isDragging && 'transition-all duration-300'}`}
       style={{
-        top: `${position.y}px`,
-        left: position.x !== null ? `${position.x}px` : 'auto',
-        width: position.x !== null ? (window.innerWidth < 768 ? 'calc(100% - 32px)' : '384px') : 'auto',
+        top: `${positionY}px`,
+        cursor: isDragging ? 'grabbing' : 'auto',
+        touchAction: 'none' // 터치 스크롤 방지
       }}
     >
-      {/* 레시피 추출 버튼 */}
+      {/* 레시피 추출 버튼 - 위치 조정 */}
       {onExtractRecipe && (
         <button
           onClick={onExtractRecipe}
-          className="absolute -top-2 right-8 z-10 bg-[#6BA368] hover:bg-[#5a8f57] text-white rounded-full p-1.5 shadow-lg transition-colors"
+          className="absolute -top-3 right-10 z-10 bg-[#6BA368] hover:bg-[#5a8f57] text-white rounded-full p-1.5 shadow-lg transition-colors"
           title="레시피 추출하기"
         >
           <BookOpen className="w-4 h-4" />
         </button>
       )}
       
-      {/* 닫기 버튼 */}
+      {/* 닫기 버튼 - 위치 조정 */}
       <button
         onClick={onClose}
-        className="absolute -top-2 -right-2 z-10 bg-gray-800 hover:bg-gray-700 text-white rounded-full p-1.5 shadow-lg transition-colors"
+        className="absolute -top-3 -right-2 z-10 bg-gray-800 hover:bg-gray-700 text-white rounded-full p-1.5 shadow-lg transition-colors"
       >
         <X className="w-4 h-4" />
       </button>

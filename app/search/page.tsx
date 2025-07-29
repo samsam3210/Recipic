@@ -720,10 +720,10 @@ function SearchPageContent({ user }: { user: User }) {
                           loading="lazy"
                           decoding="async"
                       />
-                      {/* Play 버튼 오버레이 - 항상 표시, 크기 30% 축소 */}
-                      <div className="absolute inset-0 bg-black/10 rounded flex items-center justify-center">
-                        <div className="bg-black/60 hover:bg-black/70 rounded-full p-2 shadow-lg transition-all transform hover:scale-110">
-                          <Play className="h-4 w-4 text-white fill-white" />
+                      {/* Play 버튼 오버레이 - 항상 표시, 크기 조정 */}
+                      <div className="absolute inset-0 bg-black/5 rounded flex items-center justify-center">
+                        <div className="bg-black/50 hover:bg-black/70 rounded-full p-2.5 shadow-lg transition-all transform hover:scale-110">
+                          <Play className="h-5 w-5 text-white fill-white" />
                         </div>
                       </div>
                       {/* 재생시간 오버레이 */}
@@ -771,8 +771,8 @@ function SearchPageContent({ user }: { user: User }) {
         onClose={handleClosePlayer}
         onExtractRecipe={() => {
           if (selectedVideo) {
-            handleClosePlayer()  // 플레이어 닫기
-            handleVideoSelect(selectedVideo)  // 레시피 추출
+            // handleClosePlayer() 제거 - 플레이어를 닫지 않음
+            handleVideoSelect(selectedVideo)  // 레시피 추출만 실행
           }
         }}
       />
