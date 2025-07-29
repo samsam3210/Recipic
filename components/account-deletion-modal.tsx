@@ -67,28 +67,21 @@ export function AccountDeletionModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-md mx-4">
         <DialogHeader>
-          <div className="flex items-center gap-3">
-            <div className="bg-red-100 p-2 rounded-full">
-              <AlertTriangle className="w-6 h-6 text-red-600" />
-            </div>
-            <div>
-              <DialogTitle className="text-xl font-semibold text-gray-900">
-                계정 삭제
-              </DialogTitle>
-              <DialogDescription className="text-gray-600 mt-1">
-                {step === 1 ? "정말로 계정을 삭제하시겠습니까?" : "삭제를 확인해주세요"}
-              </DialogDescription>
-            </div>
-          </div>
+          <DialogTitle className="text-xl font-semibold text-gray-900">
+            계정 삭제
+          </DialogTitle>
+          <DialogDescription className="text-gray-600 mt-1">
+            {step === 1 ? "정말로 계정을 삭제하시겠습니까?" : "삭제를 확인해주세요"}
+          </DialogDescription>
         </DialogHeader>
 
         {step === 1 && (
           <div className="py-4">
-            <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
-              <h4 className="font-medium text-red-800 mb-2">⚠️ 주의사항</h4>
-              <ul className="text-sm text-red-700 space-y-1">
+            <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 mb-4">
+              <h4 className="font-medium text-gray-800 mb-2">주의사항</h4>
+              <ul className="text-sm text-gray-700 space-y-1">
                 <li>• 저장된 모든 레시피가 영구 삭제됩니다</li>
                 <li>• 생성한 폴더와 설정이 모두 사라집니다</li>
                 <li>• 이 작업은 되돌릴 수 없습니다</li>
@@ -112,12 +105,12 @@ export function AccountDeletionModal({
               value={confirmText}
               onChange={(e) => setConfirmText(e.target.value)}
               placeholder="위 텍스트를 정확히 입력하세요"
-              className={`w-full ${confirmText && !isConfirmTextValid ? 'border-red-300 focus:border-red-500' : ''}`}
+              className={`w-full ${confirmText && !isConfirmTextValid ? 'border-gray-400 focus:border-gray-500' : ''}`}
               disabled={isDeleting}
               autoComplete="off"
             />
             {confirmText && !isConfirmTextValid && (
-              <p className="text-sm text-red-600 mt-2">텍스트가 일치하지 않습니다.</p>
+              <p className="text-sm text-gray-600 mt-2">텍스트가 일치하지 않습니다.</p>
             )}
           </div>
         )}
@@ -132,7 +125,7 @@ export function AccountDeletionModal({
           </Button>
           {step === 1 && (
             <Button
-              variant="destructive"
+              variant="default"
               onClick={handleNextStep}
             >
               다음 단계
@@ -140,7 +133,7 @@ export function AccountDeletionModal({
           )}
           {step === 2 && (
             <Button
-              variant="destructive"
+              variant="default"
               onClick={handleConfirmDeletion}
               disabled={!isConfirmTextValid || isDeleting}
             >

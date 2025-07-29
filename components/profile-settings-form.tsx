@@ -212,34 +212,37 @@ export function ProfileSettingsForm({ user, userProfile: initialProfile }: Profi
         <CardTitle className="text-2xl font-bold text-gray-800">프로필</CardTitle>
       </CardHeader>
       <CardContent className="px-0 py-0 space-y-6">
-        <div className="flex items-center justify-between">
-          <div className="flex-1">
+        <div className="space-y-3">
+          <div>
             <p className="text-sm font-medium text-gray-700 mb-1">이름</p>
-            {isEditing ? (
-              <Input
-                value={editedName}
-                onChange={(e) => setEditedName(e.target.value)}
-                className="w-full max-w-md"
-                disabled={isSaving}
-              />
-            ) : (
-              <p className="text-lg font-semibold text-gray-900">{userProfile.nickname || "이름 없음"}</p>
-            )}
-          </div>
-          {isEditing ? (
-            <div className="flex space-x-2">
-              <Button onClick={handleSave} disabled={isSaving} size="sm" variant="default">
-                {isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
-              </Button>
-              <Button onClick={handleCancel} variant="outline" size="sm" disabled={isSaving}>
-                <X className="h-4 w-4" />
-              </Button>
+            <div className="flex items-center gap-2">
+              {isEditing ? (
+                <>
+                  <Input
+                    value={editedName}
+                    onChange={(e) => setEditedName(e.target.value)}
+                    className="flex-1"
+                    disabled={isSaving}
+                  />
+                  <Button onClick={handleSave} disabled={isSaving} size="icon" variant="ghost">
+                    {isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
+                  </Button>
+                  <Button onClick={handleCancel} variant="ghost" size="icon" disabled={isSaving}>
+                    <X className="h-4 w-4" />
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <p className="text-lg font-semibold text-gray-900 flex-1">
+                    {userProfile.nickname || "이름 없음"}
+                  </p>
+                  <Button onClick={() => setIsEditing(true)} variant="ghost" size="icon">
+                    <Edit2 className="h-4 w-4" />
+                  </Button>
+                </>
+              )}
             </div>
-          ) : (
-            <Button onClick={() => setIsEditing(true)} variant="outline" size="sm">
-              <Edit2 className="h-4 w-4" />
-            </Button>
-          )}
+          </div>
         </div>
 
         <div>

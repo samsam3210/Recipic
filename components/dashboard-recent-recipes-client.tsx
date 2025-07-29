@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button"
 import { DashboardRecentRecipes } from "@/components/dashboard-recent-recipes"
 import { fetchRecentRecipes } from "@/lib/actions/recipe-fetch"
 import { useToast } from "@/hooks/use-toast"
+import { BookOpen } from "lucide-react"
 
 interface RecipeListItemProps {
   id: string
@@ -80,9 +81,14 @@ export function DashboardRecentRecipesClient({ userId }: DashboardRecentRecipesC
           ))}
         </div>
       ) : recentRecipes.length === 0 ? (
-        <div className="border-dashed border-2 p-8 text-center text-muted-foreground rounded-lg">
-          <p className="text-lg mb-4">최근 조회한 레시피가 없습니다.</p>
-          {/* "새로운 레시피 추출하기" 버튼 제거 */}
+        <div className="text-center py-12">
+          <div className="mb-6">
+            <BookOpen className="w-16 h-16 mx-auto text-gray-300" />
+          </div>
+          <p className="text-gray-500 mb-2">아직 조회한 레시피가 없어요</p>
+          <p className="text-sm text-gray-400">
+            유튜브에서 맛있는 레시피를 찾아보세요!
+          </p>
         </div>
       ) : (
         <DashboardRecentRecipes recipes={recentRecipes} />

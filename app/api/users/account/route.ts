@@ -25,21 +25,27 @@ export async function DELETE(request: NextRequest) {
 
     const userId = user.id
 
-    // 트랜잭션으로 모든 데이터 삭제 (외래키 cascade 설정으로 순서가 중요)
+    // 트랜잭션으로 모든 데이터 삭제 (외래키 제약 오류 방지를 위한 올바른 순서)
     await db.transaction(async (tx) => {
-      // 1. recipes 삭제 (cascade로 recipeFolders 자동 삭제됨)
-      await tx.delete(recipes).where(eq(recipes.userId, userId))
-
-      // 2. folders 삭제
-      await tx.delete(folders).where(eq(folders.userId, userId))
-
-      // 3. dailyUsage 삭제
-      await tx.delete(dailyUsage).where(eq(dailyUsage.userId, userId))
-
-      // 4. recentlyViewedRecipes 삭제
+      // 1. recentlyViewedRecipes 먼저 삭제
       await tx.delete(recentlyViewedRecipes).where(eq(recentlyViewedRecipes.userId, userId))
-
-      // 5. profiles 삭제 (마지막에)
+      
+      // 2. recipeFolders 삭제 (recipes 삭제 전에)
+      const userRecipes = await tx.select({ id: recipes.id }).from(recipes).where(eq(recipes.userId, userId))
+      for (const recipe of userRecipes) {
+        await tx.delete(recipeFolders).where(eq(recipeFolders.recipeId, recipe.id))
+      }
+      
+      // 3. recipes 삭제
+      await tx.delete(recipes).where(eq(recipes.userId, userId))
+      
+      // 4. folders 삭제
+      await tx.delete(folders).where(eq(folders.userId, userId))
+      
+      // 5. dailyUsage 삭제
+      await tx.delete(dailyUsage).where(eq(dailyUsage.userId, userId))
+      
+      // 6. profiles 삭제 (마지막)
       await tx.delete(profiles).where(eq(profiles.userId, userId))
     })
 
