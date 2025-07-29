@@ -79,7 +79,7 @@ export async function POST(req: Request) {
         // 기존 필터링 유지
         const viewCount = parseInt(video.statistics.viewCount, 10)
         const durationInSeconds = getDurationInSeconds(video.contentDetails.duration)
-        if (viewCount < 1000 || durationInSeconds < 60) return false
+        if (viewCount < 1000 || durationInSeconds < 120) return false
         
         const title = video.snippet.title.toLowerCase()
         
