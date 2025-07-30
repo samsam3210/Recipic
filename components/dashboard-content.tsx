@@ -40,7 +40,7 @@ export function DashboardContent({ user }: { user: any }) {
               </>
             ) : (
               <>
-                <h1 className="text-2xl font-bold text-gray-900 my-0">{userName}님,<br />오늘은 어떤 요리를 해볼까요?</h1>
+                <h1 className="text-3xl font-bold text-gray-900 my-0">{userName}님,<br />어떤 요리를 해볼까요?</h1>
               </>
             )}
           </div>

@@ -52,7 +52,7 @@ export function DashboardRecentRecipesServer({ recipes, isLoading = false }: Das
       
       {isLoading ? (
         <div 
-          className="flex gap-4 pb-2 pl-6" 
+          className="flex gap-4 pb-2 pl-3" 
           style={{ 
             overflowX: 'auto',
             scrollbarWidth: 'none',
@@ -93,11 +93,13 @@ export function DashboardRecentRecipesServer({ recipes, isLoading = false }: Das
         </div>
       ) : (
         <div 
-          className="flex gap-4 pb-2 pl-6"
+          className="flex gap-4 pb-2"
           style={{ 
             overflowX: 'auto',
             scrollbarWidth: 'none',
-            msOverflowStyle: 'none'
+            msOverflowStyle: 'none',
+            marginLeft: '12px',
+            marginRight: '-16px'
           }}
         >
           <style jsx>{`
@@ -117,15 +119,15 @@ export function DashboardRecentRecipesServer({ recipes, isLoading = false }: Das
                   />
                 </div>
                   <div className="flex justify-between items-start mb-2">
-                    <h3 className="text-sm font-semibold text-gray-900 line-clamp-1 flex-1">
+                    <h3 className="text-base font-semibold text-gray-900 line-clamp-1 flex-1">
                       {recipe.recipeName || "제목 없음"}
                     </h3>
                     <Bookmark className="w-4 h-4 text-gray-400 flex-none ml-2" />
                   </div>
-                  <div className="text-xs text-gray-500 mb-2 h-4">
+                  <div className="text-sm text-gray-500 mb-2 h-4">
                     {recipe.channelName || ''}
                   </div>
-                  <div className="flex items-center gap-3 text-xs text-gray-400 mb-2 h-4">
+                  <div className="flex items-center gap-3 text-sm text-gray-400 mb-2 h-4">
                     {recipe.cookingTimeMinutes ? (
                       <div className="flex items-center gap-1">
                         <Clock className="w-3 h-3" />
@@ -139,7 +141,7 @@ export function DashboardRecentRecipesServer({ recipes, isLoading = false }: Das
                       </div>
                     ) : <div></div>}
                   </div>
-                  <div className="text-xs text-gray-600 line-clamp-2 mb-2 h-8">
+                  <div className="text-sm text-gray-600 line-clamp-2 mb-2 h-8">
                     {recipe.summary || ''}
                   </div>
                 </div>

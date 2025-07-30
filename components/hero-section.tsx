@@ -706,7 +706,7 @@ export function HeroSection({ user, isDashboard = false, cachedUsageData = null,
               ) : (
                 <>
                   <div className="relative">
-                    <div className="flex items-center bg-white rounded-xl border border-gray-200 shadow-sm hover:shadow-md hover:border-gray-300 transition-all duration-200 focus-within:border-[#6BA368] focus-within:ring-2 focus-within:ring-[#6BA368]/10">
+                    <div className="flex items-center bg-white rounded-full border border-gray-200 shadow-sm hover:shadow-md hover:border-gray-300 transition-all duration-200 focus-within:border-[#6BA368] focus-within:ring-2 focus-within:ring-[#6BA368]/10">
                       <div className="flex items-center pl-4 md:pl-6">
                         <Search className="w-4 h-4 md:w-5 md:h-5 text-gray-400" />
                       </div>
@@ -717,7 +717,7 @@ export function HeroSection({ user, isDashboard = false, cachedUsageData = null,
                         onChange={(e) => setYoutubeUrl(e.target.value)}
                         onClick={handleInputClick}
                         readOnly
-                        className="h-12 md:h-14 flex-grow px-3 md:px-4 border-none focus:outline-none focus:ring-0 focus-visible:ring-0 focus-visible:ring-offset-0 text-base md:text-lg placeholder:text-gray-400 bg-transparent rounded-xl cursor-pointer"
+                        className="h-12 md:h-14 flex-grow px-3 md:px-4 border-none focus:outline-none focus:ring-0 focus-visible:ring-0 focus-visible:ring-offset-0 text-base md:text-lg placeholder:text-gray-400 bg-transparent rounded-full cursor-pointer"
                       />
                     </div>
                   </div>
