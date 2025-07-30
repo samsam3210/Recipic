@@ -1,16 +1,13 @@
 "use client"
 
 import { Skeleton } from "@/components/ui/skeleton"
-
 import { useEffect, useState } from "react"
-import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
 import Image from "next/image"
-import { Clock, BarChart3, Bookmark } from "lucide-react"
+import { Clock, BarChart3, Bookmark, BookOpen } from "lucide-react"
 import { fetchRecentRecipes } from "@/lib/actions/recipe-fetch"
 import { useToast } from "@/hooks/use-toast"
-import { BookOpen } from "lucide-react"
 
 interface RecipeListItemProps {
   id: string
@@ -62,19 +59,33 @@ export function DashboardRecentRecipesClient({ userId }: DashboardRecentRecipesC
     <div className="p-6" style={{ backgroundColor: '#FAFAFA' }}>
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-2xl font-bold text-gray-800">최근 본 레시피</h2>
-        {/* 최근 레시피가 있을 때만 "모두 보기" 버튼 표시 */}
         {!isLoading && recentRecipes.length > 0 && (
           <Button variant="link" asChild className="underline">
             <Link href="/recipes">모두 보기</Link>
           </Button>
         )}
       </div>
+      
       {isLoading ? (
-        <div className="flex gap-4 overflow-x-auto pb-2">
+        <div 
+          className="flex gap-4 pb-2" 
+          style={{ 
+            overflowX: 'auto',
+            scrollbarWidth: 'none',
+            msOverflowStyle: 'none'
+          }}
+        >
+          <style jsx>{`
+            div::-webkit-scrollbar {
+              display: none;
+            }
+          `}</style>
           {Array.from({ length: 3 }).map((_, i) => (
-            <div key={i} className="flex-none w-56">
+            <div key={i} className="flex-none" style={{ width: '224px' }}>
               <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
-                <Skeleton className="w-full" style={{ paddingBottom: '56.25%' }} />
+                <div className="relative w-full" style={{ paddingBottom: '56.25%' }}>
+                  <Skeleton className="absolute inset-0 w-full h-full" />
+                </div>
                 <div className="p-4 space-y-2">
                   <Skeleton className="h-4 w-3/4" />
                   <Skeleton className="h-3 w-1/2" />
@@ -96,20 +107,23 @@ export function DashboardRecentRecipesClient({ userId }: DashboardRecentRecipesC
           </p>
         </div>
       ) : (
-        <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide">
+        <div 
+          className="flex gap-4 pb-2"
+          style={{ 
+            overflowX: 'auto',
+            scrollbarWidth: 'none',
+            msOverflowStyle: 'none'
+          }}
+        >
           <style jsx>{`
-            .scrollbar-hide::-webkit-scrollbar {
+            div::-webkit-scrollbar {
               display: none;
-            }
-            .scrollbar-hide {
-              -ms-overflow-style: none;
-              scrollbar-width: none;
             }
           `}</style>
           {recentRecipes.map((recipe) => (
-            <div key={recipe.id} className="flex-none w-56">
+            <div key={recipe.id} className="flex-none" style={{ width: '224px' }}>
               <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
-                <div className="relative" style={{ paddingBottom: '56.25%' }}>
+                <div className="relative w-full" style={{ paddingBottom: '56.25%' }}>
                   <Image
                     src={recipe.videoThumbnail || "/placeholder.svg?height=192&width=256&text=No+Thumbnail"}
                     alt={recipe.recipeName || "레시피 썸네일"}
