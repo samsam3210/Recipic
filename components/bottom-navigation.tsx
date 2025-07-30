@@ -60,17 +60,17 @@ export function BottomNavigation({ className }: BottomNavigationProps) {
               className={cn(
                 "flex flex-col items-center justify-center flex-1 h-full space-y-1 text-xs transition-colors",
                 isActive 
-                  ? "text-black font-medium" 
+                  ? "text-orange-400 font-medium" 
                   : "text-gray-500 hover:text-gray-700"
               )}
             >
               <Icon className={cn(
                 "h-5 w-5",
-                isActive ? "text-black" : "text-gray-500"
+                isActive ? "text-orange-400" : "text-gray-500"
               )} />
               <span className={cn(
                 "text-xs",
-                isActive ? "text-black font-medium" : "text-gray-500"
+                isActive ? "text-orange-400 font-medium" : "text-gray-500"
               )}>
                 {item.label}
               </span>

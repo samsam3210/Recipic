@@ -610,7 +610,7 @@ export function HeroSection({ user, isDashboard = false, cachedUsageData = null,
                       </div>
                       <Input
                         id="youtube-url"
-                        placeholder="요리 키워드 또는 URL 입력"
+                        placeholder="유튜브 영상 검색"
                         value={youtubeUrl}
                         onChange={(e) => setYoutubeUrl(e.target.value)}
                         className="h-12 md:h-16 flex-grow px-3 md:px-4 border-none focus:outline-none focus:ring-0 focus-visible:ring-0 focus-visible:ring-offset-0 text-base md:text-lg placeholder:text-gray-400 bg-transparent rounded-2xl"
@@ -712,7 +712,7 @@ export function HeroSection({ user, isDashboard = false, cachedUsageData = null,
                       </div>
                       <Input
                         type="text"
-                        placeholder="요리 키워드 또는 URL 입력"
+                        placeholder="유튜브 영상 검색"
                         value={youtubeUrl}
                         onChange={(e) => setYoutubeUrl(e.target.value)}
                         onClick={handleInputClick}
