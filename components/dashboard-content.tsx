@@ -19,7 +19,7 @@ export function DashboardContent({ user }: { user: any }) {
       {/* 헤더 - 네비게이션 메뉴 없음 */}
       <Header />
       
-      <main className="flex-1 pt-6 md:pt-8 w-full px-4 sm:px-6 lg:px-8 py-4 sm:py-8">
+      <main className="flex-1 pt-6 md:pt-8 w-full py-4 sm:py-8">
         <div className="max-w-7xl mx-auto">
           <div className="flex flex-col lg:flex-row gap-8 pb-20 lg:pb-8">
         <HandlePendingRecipe user={user} />
@@ -30,7 +30,7 @@ export function DashboardContent({ user }: { user: any }) {
           <SidebarNav items={dashboardSidebarNavItems} />
         </aside>
 
-        <section className="flex-1 lg:w-4/5 space-y-6">
+        <section className="flex-1 lg:w-4/5 space-y-6 px-4">
           {/* 인사말과 캐치프레이즈 문구 */}
           <div className="space-y-0">
             {isLoading ? (

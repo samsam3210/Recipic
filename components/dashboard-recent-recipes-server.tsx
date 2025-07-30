@@ -141,7 +141,7 @@ export function DashboardRecentRecipesServer({ recipes, isLoading = false }: Das
                       </div>
                     ) : <div></div>}
                   </div>
-                  <div className="text-sm text-gray-600 line-clamp-2 mb-2 h-8">
+                  <div className="text-sm text-gray-600 line-clamp-2 mb-2 min-h-[3rem] leading-6">
                     {recipe.summary || ''}
                   </div>
                 </div>
