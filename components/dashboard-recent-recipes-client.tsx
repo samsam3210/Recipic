@@ -16,6 +16,8 @@ interface RecipeListItemProps {
   videoThumbnail: string | null
   channelName: string | null
   summary: string | null
+  cookingTimeMinutes?: number | null
+  difficulty?: string | null
 }
 
 interface DashboardRecentRecipesClientProps {
@@ -31,7 +33,7 @@ export function DashboardRecentRecipesClient({ userId }: DashboardRecentRecipesC
     const loadRecentRecipes = async () => {
       setIsLoading(true)
       try {
-        const { recipes: fetchedRecipes, error } = await fetchRecentRecipes(userId, 3)
+        const { recipes: fetchedRecipes, error } = await fetchRecentRecipes(userId, 10)
         if (error) {
           throw new Error(error)
         }
@@ -55,9 +57,9 @@ export function DashboardRecentRecipesClient({ userId }: DashboardRecentRecipesC
   }, [userId, toast])
 
   return (
-    <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+    <div className="p-6" style={{ backgroundColor: '#FAFAFA' }}>
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-bold text-gray-800">최근 조회한 레시피</h2>
+        <h2 className="text-2xl font-bold text-gray-800">최근 본 레시피</h2>
         {/* 최근 레시피가 있을 때만 "모두 보기" 버튼 표시 */}
         {!isLoading && recentRecipes.length > 0 && (
           <Button variant="link" asChild className="underline">

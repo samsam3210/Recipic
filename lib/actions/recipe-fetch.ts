@@ -125,7 +125,15 @@ export async function fetchRecentRecipes(userId: string, limit = 3) {
 
   try {
     const recentRecipes = await db
-      .select()
+      .select({
+        id: recipes.id,
+        recipeName: recipes.recipeName,
+        videoThumbnail: recipes.videoThumbnail,
+        channelName: recipes.channelName,
+        summary: recipes.summary,
+        cookingTimeMinutes: recipes.cookingTimeMinutes,
+        difficulty: recipes.difficulty,
+      })
       .from(recipes)
       .where(eq(recipes.userId, userId))
       .orderBy(desc(recipes.createdAt))
