@@ -46,7 +46,7 @@ export function DashboardRecentRecipesServer({ recipes, isLoading = false }: Das
         {isLoading ? (
           <Skeleton className="h-7 w-40" />
         ) : (
-          <h2 className="text-2xl font-bold text-gray-800">최근 본 레시피</h2>
+          <h2 className="text-base font-bold text-gray-800">최근 본 레시피</h2>
         )}
       </div>
       
@@ -65,18 +65,19 @@ export function DashboardRecentRecipesServer({ recipes, isLoading = false }: Das
             }
           `}</style>
           {Array.from({ length: 3 }).map((_, i) => (
-            <div key={i} className="flex-none" style={{ width: '224px' }}>
-              <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
-                <div className="relative w-full" style={{ paddingBottom: '56.25%' }}>
+            <div key={i} className="flex-none" style={{ width: '256px' }}>
+              <div className="bg-white rounded-2xl shadow-sm p-4">
+                <div className="relative w-full rounded-xl overflow-hidden mb-3" style={{ paddingBottom: '56.25%' }}>
                   <Skeleton className="absolute inset-0 w-full h-full" />
                 </div>
-                <div className="p-4 space-y-2">
+                <div className="space-y-2">
                   <Skeleton className="h-4 w-3/4" />
                   <Skeleton className="h-3 w-1/2" />
                   <Skeleton className="h-3 w-full" />
-                  <Skeleton className="h-10 w-full rounded-full mt-4" />
+                  <Skeleton className="h-12 w-full min-h-[3.6rem]" />
                 </div>
               </div>
+              <Skeleton className="h-10 w-full rounded-full mt-2.5" />
             </div>
           ))}
         </div>
@@ -105,9 +106,9 @@ export function DashboardRecentRecipesServer({ recipes, isLoading = false }: Das
             }
           `}</style>
           {recipes.map((recipe) => (
-            <div key={recipe.id} className="flex-none" style={{ width: '224px' }}>
-              <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
-                <div className="relative w-full" style={{ paddingBottom: '56.25%' }}>
+            <div key={recipe.id} className="flex-none" style={{ width: '256px' }}>
+              <div className="bg-white rounded-2xl shadow-sm p-4">
+                <div className="relative w-full rounded-xl overflow-hidden mb-3" style={{ paddingBottom: '56.25%' }}>
                   <Image
                     src={recipe.videoThumbnail || "/placeholder.svg?height=192&width=256&text=No+Thumbnail"}
                     alt={recipe.recipeName || "레시피 썸네일"}
@@ -115,7 +116,6 @@ export function DashboardRecentRecipesServer({ recipes, isLoading = false }: Das
                     className="object-cover"
                   />
                 </div>
-                <div className="p-4">
                   <div className="flex justify-between items-start mb-2">
                     <h3 className="text-sm font-semibold text-gray-900 line-clamp-1 flex-1">
                       {recipe.recipeName || "제목 없음"}
@@ -140,11 +140,12 @@ export function DashboardRecentRecipesServer({ recipes, isLoading = false }: Das
                     )}
                   </div>
                   {recipe.summary && (
-                    <p className="text-xs text-gray-600 line-clamp-2 mb-2">
+                    <p className="text-xs text-gray-600 line-clamp-3 mb-2 min-h-[3.6rem]">
                       {recipe.summary}
                     </p>
                   )}
-                  <button
+                </div>
+              <button
                     onClick={() => {
                       // savedRecipeId가 있으면 레시피 상세 페이지로, 없으면 프리뷰 페이지로
                       if (recipe.savedRecipeId) {
@@ -190,8 +191,6 @@ export function DashboardRecentRecipesServer({ recipes, isLoading = false }: Das
                   >
                     레시피 보기
                   </button>
-                </div>
-              </div>
             </div>
           ))}
         </div>
