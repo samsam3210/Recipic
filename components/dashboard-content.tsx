@@ -15,7 +15,7 @@ export function DashboardContent({ user }: { user: any }) {
   const userName = cachedUserProfile?.nickname
   
   return (
-    <div className="flex flex-col min-h-screen">
+    <div className="flex flex-col min-h-screen" style={{ backgroundColor: '#FAFAFA' }}>
       {/* 헤더 - 네비게이션 메뉴 없음 */}
       <Header />
       
@@ -40,8 +40,7 @@ export function DashboardContent({ user }: { user: any }) {
               </>
             ) : (
               <>
-                <h1 className="text-3xl md:text-4xl font-extrabold text-gray-900 my-0">안녕하세요, {userName}님! 👋</h1>
-                <h2 className="text-3xl md:text-4xl font-bold text-gray-800 my-0">어떤 레시피를 알려드릴까요?</h2>
+                <h1 className="text-2xl font-bold text-gray-900 my-0">{userName}님,<br />오늘은 어떤 요리를 해볼까요?</h1>
               </>
             )}
           </div>
