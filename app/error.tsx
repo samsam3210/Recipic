@@ -11,74 +11,47 @@ export default function Error({
   reset: () => void
 }) {
   const [retryCount, setRetryCount] = useState(0)
-  const [errorLog, setErrorLog] = useState<any>({})
+  
+  // 리프레시 토큰 에러 감지
+  const isRefreshTokenError = 
+    error.message?.includes('refresh_token_not_found') || 
+    error.message?.includes('Invalid Refresh Token') ||
+    error.message?.includes('Refresh Token Not Found')
 
   useEffect(() => {
-    // 에러 발생 원인 추적을 위한 상세 정보 수집
-    const errorData = {
-      // 에러 핵심 정보
-      errorMessage: error.message,
-      errorStack: error.stack,
-      errorDigest: error.digest,
+    // 리프레시 토큰 에러인 경우 로컬 스토리지 정리
+    if (isRefreshTokenError) {
+      console.log('Refresh token error detected, clearing local storage')
       
-      // URL 및 네비게이션 정보
-      currentUrl: window.location.href,
-      previousUrl: document.referrer,
+      // Supabase 관련 스토리지 모두 제거
+      const keysToRemove = []
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i)
+        if (key && (key.includes('supabase') || key.includes('auth'))) {
+          keysToRemove.push(key)
+        }
+      }
+      keysToRemove.forEach(key => localStorage.removeItem(key))
       
-      // 디바이스 정보
-      userAgent: navigator.userAgent,
-      isMobile: /iPhone|iPad|iPod|Android/i.test(navigator.userAgent),
-      platform: navigator.platform,
-      screenSize: `${window.innerWidth}x${window.innerHeight}`,
+      // 세션 스토리지도 클리어
+      sessionStorage.clear()
       
-      // 세션 및 스토리지 상태
-      hasLocalStorage: !!window.localStorage,
-      hasSessionStorage: !!window.sessionStorage,
-      cookiesEnabled: navigator.cookieEnabled,
-      cookieLength: document.cookie.length,
-      
-      // 타이밍 정보
-      timestamp: new Date().toISOString(),
-      retryCount: retryCount,
-      
-      // 메모리 정보 (Chrome only)
-      memory: (performance as any).memory ? {
-        usedJSHeapSize: (performance as any).memory.usedJSHeapSize,
-        totalJSHeapSize: (performance as any).memory.totalJSHeapSize,
-        jsHeapSizeLimit: (performance as any).memory.jsHeapSizeLimit
-      } : null,
-      
-      // 네트워크 및 페이지 상태
-      online: navigator.onLine,
-      readyState: document.readyState,
-      visibilityState: document.visibilityState,
-      
-      // React/Next.js 관련
-      isHydrationError: error.message.includes('Hydration') || error.message.includes('hydrat'),
-      isChunkError: error.message.includes('ChunkLoadError') || error.message.includes('Loading chunk'),
+      // 쿠키도 클리어 (가능한 범위에서)
+      document.cookie.split(";").forEach(c => {
+        document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/")
+      })
     }
-
-    setErrorLog(errorData)
-    
-    // Vercel 로그로 전송
-    fetch('/api/log-error', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(errorData),
-    }).catch(err => {
-      console.error('Failed to send error log:', err)
-    })
-
-    // 콘솔에도 출력
-    console.error('=== CLIENT ERROR DETAILS ===')
-    console.error(errorData)
-    console.error('===========================')
-  }, [error, retryCount])
+  }, [isRefreshTokenError])
 
   const handleRetry = () => {
-    setRetryCount(prev => prev + 1)
+    if (isRefreshTokenError) {
+      // 리프레시 토큰 에러는 홈으로 강제 이동
+      window.location.href = '/'
+      return
+    }
     
-    // 3번 이상 재시도한 경우 홈으로 리다이렉트
+    // 다른 에러는 재시도
+    setRetryCount(prev => prev + 1)
     if (retryCount >= 2) {
       window.location.href = '/'
     } else {
@@ -103,39 +76,54 @@ export default function Error({
           </div>
 
           <h1 className="text-2xl font-bold text-gray-800 mb-2">
-            앗, 문제가 발생했어요!
+            {isRefreshTokenError ? '다시 로그인이 필요해요' : '앗, 문제가 발생했어요!'}
           </h1>
           
-          <p className="text-gray-600 mb-4 leading-relaxed">
-            잠시 연결이 원활하지 않아요.<br />
-            {retryCount > 0 && <span className="text-sm text-gray-500">(재시도: {retryCount}회)</span>}
+          <p className="text-gray-600 mb-8 leading-relaxed">
+            {isRefreshTokenError 
+              ? '세션이 만료되었습니다. 다시 로그인해주세요.'
+              : '잠시 연결이 원활하지 않아요.\n네트워크 연결을 확인하고 다시 시도해주세요.'
+            }
           </p>
 
-          {/* 디버그 정보 표시 (개발/디버깅용) */}
-          <div className="mb-6 p-3 bg-gray-100 rounded-lg text-left text-xs overflow-auto max-h-32">
-            <p><strong>URL:</strong> {errorLog.currentUrl}</p>
-            <p><strong>이전 페이지:</strong> {errorLog.previousUrl || '없음'}</p>
-            <p><strong>모바일:</strong> {errorLog.isMobile ? '예' : '아니오'}</p>
-            <p><strong>온라인:</strong> {errorLog.online ? '예' : '아니오'}</p>
-            <p><strong>에러:</strong> {error.message}</p>
-          </div>
+          {/* Safari/PWA 안내 (리프레시 토큰 에러인 경우만) */}
+          {isRefreshTokenError && (
+            <div className="mb-6 p-4 bg-blue-50 rounded-lg text-left">
+              <p className="text-sm text-blue-800 font-medium mb-1">💡 알고 계셨나요?</p>
+              <p className="text-sm text-blue-700">
+                Safari 브라우저와 홈 화면에 추가한 앱은 별도로 로그인이 필요해요. 
+                한 곳에서만 사용하시는 것을 권장합니다.
+              </p>
+            </div>
+          )}
 
           <div className="space-y-3">
             <button 
               onClick={handleRetry}
               className="w-full bg-gradient-to-r from-green-500 to-green-600 text-white font-medium py-4 px-6 rounded-2xl hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-200 flex items-center justify-center gap-2"
             >
-              <RefreshCw className="w-5 h-5" />
-              {retryCount >= 2 ? '홈으로 가기' : '다시 시도하기'}
+              {isRefreshTokenError ? (
+                <>
+                  <Home className="w-5 h-5" />
+                  로그인 화면으로
+                </>
+              ) : (
+                <>
+                  <RefreshCw className="w-5 h-5" />
+                  다시 시도하기
+                </>
+              )}
             </button>
 
-            <button 
-              onClick={() => window.location.href = '/'}
-              className="w-full bg-gray-100 text-gray-700 font-medium py-4 px-6 rounded-2xl hover:bg-gray-200 transition-colors duration-200 flex items-center justify-center gap-2"
-            >
-              <Home className="w-5 h-5" />
-              홈으로 돌아가기
-            </button>
+            {!isRefreshTokenError && (
+              <button 
+                onClick={() => window.location.href = '/'}
+                className="w-full bg-gray-100 text-gray-700 font-medium py-4 px-6 rounded-2xl hover:bg-gray-200 transition-colors duration-200 flex items-center justify-center gap-2"
+              >
+                <Home className="w-5 h-5" />
+                홈으로 돌아가기
+              </button>
+            )}
           </div>
 
           <div className="mt-8 flex items-center justify-center gap-2 text-gray-400">
