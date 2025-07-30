@@ -68,16 +68,17 @@ export function DashboardRecentRecipesClient({ userId }: DashboardRecentRecipesC
         )}
       </div>
       {isLoading ? (
-        <div className="space-y-4">
+        <div className="flex gap-4 overflow-x-auto pb-2">
           {Array.from({ length: 3 }).map((_, i) => (
-            <div key={i} className="flex items-center p-4">
-              <div className="w-24 h-16 flex-shrink-0 mr-4">
-                <Skeleton className="h-full w-full rounded-md" />
-              </div>
-              <div className="flex-1 space-y-2">
-                <Skeleton className="h-4 w-3/4" />
-                <Skeleton className="h-3 w-1/2" />
-                <Skeleton className="h-3 w-full" />
+            <div key={i} className="flex-none w-56">
+              <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
+                <Skeleton className="w-full" style={{ paddingBottom: '56.25%' }} />
+                <div className="p-4 space-y-2">
+                  <Skeleton className="h-4 w-3/4" />
+                  <Skeleton className="h-3 w-1/2" />
+                  <Skeleton className="h-3 w-full" />
+                  <Skeleton className="h-10 w-full rounded-full mt-4" />
+                </div>
               </div>
             </div>
           ))}
