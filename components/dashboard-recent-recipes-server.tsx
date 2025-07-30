@@ -41,8 +41,8 @@ interface DashboardRecentRecipesServerProps {
 
 export function DashboardRecentRecipesServer({ recipes, isLoading = false }: DashboardRecentRecipesServerProps) {
   return (
-    <div className="p-6" style={{ backgroundColor: '#FAFAFA' }}>
-      <div className="flex items-center justify-between mb-6">
+    <div>
+      <div className="px-6 mb-6">
         {isLoading ? (
           <Skeleton className="h-7 w-40" />
         ) : (
@@ -52,7 +52,7 @@ export function DashboardRecentRecipesServer({ recipes, isLoading = false }: Das
       
       {isLoading ? (
         <div 
-          className="flex gap-4 pb-2" 
+          className="flex gap-4 pb-2 pl-6" 
           style={{ 
             overflowX: 'auto',
             scrollbarWidth: 'none',
@@ -72,9 +72,9 @@ export function DashboardRecentRecipesServer({ recipes, isLoading = false }: Das
                 </div>
                 <div className="space-y-2">
                   <Skeleton className="h-4 w-3/4" />
-                  <Skeleton className="h-3 w-1/2" />
-                  <Skeleton className="h-3 w-full" />
-                  <Skeleton className="h-12 w-full min-h-[3.6rem]" />
+                  <Skeleton className="h-4 w-1/2" />
+                  <Skeleton className="h-4 w-full" />
+                  <Skeleton className="h-8 w-full" />
                 </div>
               </div>
               <Skeleton className="h-10 w-full rounded-full mt-2.5" />
@@ -82,7 +82,7 @@ export function DashboardRecentRecipesServer({ recipes, isLoading = false }: Das
           ))}
         </div>
       ) : recipes.length === 0 ? (
-        <div className="text-center py-12">
+        <div className="text-center py-12 px-6">
           <div className="mb-6">
             <BookOpen className="w-16 h-16 mx-auto text-gray-300" />
           </div>
@@ -93,7 +93,7 @@ export function DashboardRecentRecipesServer({ recipes, isLoading = false }: Das
         </div>
       ) : (
         <div 
-          className="flex gap-4 pb-2"
+          className="flex gap-4 pb-2 pl-6"
           style={{ 
             overflowX: 'auto',
             scrollbarWidth: 'none',
@@ -122,28 +122,26 @@ export function DashboardRecentRecipesServer({ recipes, isLoading = false }: Das
                     </h3>
                     <Bookmark className="w-4 h-4 text-gray-400 flex-none ml-2" />
                   </div>
-                  {recipe.channelName && (
-                    <p className="text-xs text-gray-500 mb-2">{recipe.channelName}</p>
-                  )}
-                  <div className="flex items-center gap-3 text-xs text-gray-400 mb-2">
-                    {recipe.cookingTimeMinutes && (
+                  <div className="text-xs text-gray-500 mb-2 h-4">
+                    {recipe.channelName || ''}
+                  </div>
+                  <div className="flex items-center gap-3 text-xs text-gray-400 mb-2 h-4">
+                    {recipe.cookingTimeMinutes ? (
                       <div className="flex items-center gap-1">
                         <Clock className="w-3 h-3" />
                         <span>{recipe.cookingTimeMinutes}분</span>
                       </div>
-                    )}
-                    {recipe.difficulty && (
+                    ) : <div></div>}
+                    {recipe.difficulty ? (
                       <div className="flex items-center gap-1">
                         <BarChart3 className="w-3 h-3" />
                         <span>{recipe.difficulty}</span>
                       </div>
-                    )}
+                    ) : <div></div>}
                   </div>
-                  {recipe.summary && (
-                    <p className="text-xs text-gray-600 line-clamp-3 mb-2 min-h-[3.6rem]">
-                      {recipe.summary}
-                    </p>
-                  )}
+                  <div className="text-xs text-gray-600 line-clamp-2 mb-2 h-8">
+                    {recipe.summary || ''}
+                  </div>
                 </div>
               <button
                     onClick={() => {
