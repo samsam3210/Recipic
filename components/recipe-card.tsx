@@ -95,10 +95,10 @@ export function RecipeCard({
       </Link>
 
       {/* 액션 버튼 드롭다운 */}
-      <div className="absolute top-2 right-2 z-10">
+      <div className="absolute top-3 right-3 z-10">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full bg-white/80 hover:bg-white">
+            <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full bg-white/80 md:hover:bg-white">
               <MoreVertical className="h-4 w-4" />
               <span className="sr-only">레시피 옵션</span>
             </Button>

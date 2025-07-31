@@ -22,6 +22,7 @@ export function RecipesContent({ userId, selectedFolderId, page, limit, initialR
   forceInitialSkeleton?: boolean
 }) {
   const { folders: cachedFolders, userProfile: cachedUserProfile, isLoading } = useRecipesCache()
+  const [recipeCount, setRecipeCount] = useState<number | undefined>(undefined)
   
   // 강제 초기 스켈레톤 표시
   const [showInitialSkeleton, setShowInitialSkeleton] = useState(forceInitialSkeleton)
@@ -54,7 +55,7 @@ export function RecipesContent({ userId, selectedFolderId, page, limit, initialR
       {/* 헤더 - 네비게이션 메뉴 없음 */}
       <Header />
       
-      <main className="flex-1 pt-6 md:pt-8 w-full px-4 sm:px-6 lg:px-8 py-4 sm:py-8">
+      <main className="flex-1 pt-6 md:pt-8 w-full py-4 sm:py-8">
         <div className="max-w-7xl mx-auto">
           <div className="flex flex-col lg:flex-row gap-8 pb-20 lg:pb-8">
         {/* 왼쪽 사이드바 (데스크톱만) */}
@@ -68,43 +69,46 @@ export function RecipesContent({ userId, selectedFolderId, page, limit, initialR
           )}
         </aside>
 
-        <section className="flex-1 lg:w-4/5 space-y-10 min-h-screen">
+        <section className="flex-1 lg:w-4/5 space-y-4 min-h-screen">
           {actualIsLoading ? (
-            <div className="space-y-10">
-              {/* 모바일 전용 로고 스켈레톤 */}
-              <div className="lg:hidden px-6">
-                <div className="h-8 w-32 bg-gray-200 rounded animate-pulse"></div>
-              </div>
-              
+            <div className="space-y-4">
               {/* 모바일 폴더 선택기 스켈레톤 */}
               <div className="lg:hidden">
                 <div className="h-10 w-full bg-gray-200 rounded animate-pulse"></div>
               </div>
               
               {/* 현재 폴더 제목 스켈레톤 */}
-              <div className="h-8 w-48 bg-gray-200 rounded animate-pulse"></div>
+              <div className="px-6">
+                <div className="h-8 w-48 bg-gray-200 rounded animate-pulse"></div>
+              </div>
               
               {/* 레시피 그리드 스켈레톤 */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {Array.from({ length: limit }).map((_, i) => (
-                  <RecipeCardSkeleton key={i} />
-                ))}
+              <div className="px-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {Array.from({ length: limit }).map((_, i) => (
+                    <RecipeCardSkeleton key={i} />
+                  ))}
+                </div>
               </div>
             </div>
           ) : (
             <>
               <MobileFolderSelector folders={cachedFolders} selectedFolderId={selectedFolderId} />
               
-              <CurrentFolderTitle folders={cachedFolders} />
+              <div className="px-6">
+                <CurrentFolderTitle folders={cachedFolders} />
+              </div>
 
-              <RecipeGridWrapper
-                userId={userId}
-                initialSelectedFolderId={selectedFolderId}
-                initialPage={page}
-                initialLimit={limit}
-                initialFolders={cachedFolders}
-                initialRecipesData={initialRecipesData}
-              />
+              <div className="px-6">
+                <RecipeGridWrapper
+                  userId={userId}
+                  initialSelectedFolderId={selectedFolderId}
+                  initialPage={page}
+                  initialLimit={limit}
+                  initialFolders={cachedFolders}
+                  initialRecipesData={initialRecipesData}
+                />
+              </div>
             </>
           )}
             </section>
