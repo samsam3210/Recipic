@@ -12,6 +12,7 @@ import { signOut } from "@/lib/actions/auth"
 import { createClient } from "@/lib/supabase/client"
 import { useRouter } from "next/navigation"
 import { useCacheInvalidation } from "@/hooks/use-cache-invalidation"
+import { useUser } from "@/contexts/user-context"
 import { AccountDeletionModal } from "@/components/account-deletion-modal"
 
 interface UserProfile {

@@ -2,7 +2,6 @@
 
 import { useState } from "react"
 import Link from "next/link"
-import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import {
@@ -44,13 +43,7 @@ export function Header({ hideAuthButton = false }: HeaderProps) {
         <div className="container flex h-16 items-center">
           <div className="mr-6 flex items-center">
             <div className="flex items-center">
-              <Image
-                src="/recipick-logo.png"
-                alt="Recipick"
-                width={140}
-                height={36}
-                className="h-9 w-auto"
-              />
+              <span className="text-2xl font-bold text-gray-900">Recipick</span>
             </div>
           </div>
           <div className="ml-auto flex items-center">
@@ -137,13 +130,7 @@ export function Header({ hideAuthButton = false }: HeaderProps) {
           {/* 로고 */}
           <div className="mr-6 flex items-center">
             <div className="flex items-center">
-              <Image
-                src="/recipick-logo.png"
-                alt="Recipick"
-                width={140}
-                height={36}
-                className="h-9 w-auto"
-              />
+              <span className="text-2xl font-bold text-gray-900">Recipick</span>
             </div>
           </div>
 

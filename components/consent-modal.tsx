@@ -10,7 +10,6 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
-import Image from "next/image"
 import { Loader2 } from "lucide-react"
 import { signInWithGoogle } from "@/lib/actions/auth"
 import { useRouter } from "next/navigation"
@@ -64,14 +63,8 @@ export function ConsentModal({ isOpen, onClose }: ConsentModalProps) {
       <DialogContent className="max-w-[calc(100vw-2rem)] w-full sm:max-w-md mx-auto bg-white rounded-2xl border border-gray-200 shadow-xl backdrop-blur-sm p-6 overflow-hidden flex flex-col items-center">
         {/* DialogContent는 전체 콘텐츠를 중앙 정렬합니다. */}
         <DialogHeader className="mb-6 text-center w-full">
-          <DialogTitle className="text-2xl sm:text-3xl font-bold text-gray-900">
-            <Image
-              src="/recipick-logo.png"
-              alt="Recipick"
-              width={200}
-              height={50}
-              className="h-12 w-auto mx-auto"
-            />
+          <DialogTitle className="text-3xl sm:text-4xl font-bold text-gray-900">
+            Recipick
           </DialogTitle>
           <DialogDescription className="text-base sm:text-lg text-gray-600 mt-2 text-center">
             <span className="block sm:inline">5초 만에 로그인하고</span>

@@ -2,7 +2,6 @@
 
 import { Header } from "@/components/header"
 import { HandlePendingRecipe } from "@/components/handle-pending-recipe"
-import Image from "next/image"
 import { HeroSection } from "@/components/hero-section"
 import { DashboardRecentRecipesServer } from "@/components/dashboard-recent-recipes-server"
 import { BottomNavigation } from "@/components/bottom-navigation"
@@ -39,13 +38,7 @@ export function DashboardContent({ user }: { user: any }) {
         <section className="flex-1 lg:w-4/5 space-y-6">
           {/* 모바일 전용 로고 */}
           <div className="lg:hidden px-6">
-            <Image
-              src="/recipick-logo.png"
-              alt="Recipick"
-              width={180}
-              height={45}
-              className="h-11 w-auto mb-6"
-            />
+            <h1 className="text-3xl font-bold text-gray-900 mb-6">Recipick</h1>
           </div>
           
           {/* 인사말과 캐치프레이즈 문구 */}
