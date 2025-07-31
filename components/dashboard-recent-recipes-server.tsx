@@ -3,7 +3,7 @@
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
-import { BookOpen, Clock, BarChart3, Bookmark, BookmarkCheck, ArrowRight } from "lucide-react"
+import { BookOpen, Clock, BarChart3, Bookmark, BookmarkCheck } from "lucide-react"
 import Image from "next/image"
 import { deleteRecipe, saveRecipeFromRecentlyViewed } from "@/lib/actions/recipe"
 import { useState, useEffect } from "react"
@@ -288,10 +288,7 @@ export function DashboardRecentRecipesServer({ recipes, isLoading = false }: Das
                         boxShadow: '0 3px 12px rgba(255, 87, 34, 0.3)'
                       }}
                     >
-                      <span>레시피 보기</span>
-                      <div className="w-5 h-5 bg-white rounded-full flex items-center justify-center ml-2">
-                        <ArrowRight className="w-3 h-3 text-orange-500" />
-                      </div>
+                      <span>자세히 보기</span>
                     </button>
                     <button
                       className={`w-12 h-12 flex items-center justify-center rounded-full border transition-colors ${
