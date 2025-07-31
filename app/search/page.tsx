@@ -606,7 +606,7 @@ function SearchPageContent({ user }: { user: User }) {
               {/* 검색 폼 컨테이너 */}
               <div className="px-6">
                 <form onSubmit={handleSearch} className="mb-8">
-                  <div className="flex items-center bg-white rounded-full border border-gray-200 shadow-sm hover:shadow-md hover:border-gray-300 transition-all duration-200 focus-within:border-[#6BA368] focus-within:ring-2 focus-within:ring-[#6BA368]/10">
+                  <div className="flex items-center bg-white rounded-full border border-gray-200 shadow-sm hover:shadow-md hover:border-gray-300 transition-all duration-200 focus-within:border-orange-400 focus-within:ring-2 focus-within:ring-orange-400/10">
                     <div className="flex items-center pl-4 md:pl-6">
                       <Search className="w-4 h-4 md:w-5 md:h-5 text-gray-400" />
                     </div>
@@ -629,7 +629,7 @@ function SearchPageContent({ user }: { user: User }) {
                       className={`m-2 h-8 md:h-10 px-4 md:px-6 ${
                         !searchQuery.trim() || isSearching
                           ? "bg-gray-400"
-                          : "bg-[#6BA368] hover:bg-[#5a8f57]"
+                          : "bg-orange-400 hover:bg-orange-500"
                       } text-white rounded-full font-semibold transition-all duration-200 text-sm md:text-base hover:scale-105`}
                     >
                       {isSearching ? (
@@ -704,18 +704,18 @@ function SearchPageContent({ user }: { user: User }) {
                   )}
                 </div>
               </div>
-                <div className="grid gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {searchResults.map((video) => (
                     <div
                     key={video.videoId}
-                    className="flex gap-4 p-4 bg-white rounded-2xl shadow-sm hover:shadow-md cursor-pointer transition-all duration-200 border border-gray-100"
+                    className="bg-white rounded-2xl shadow-sm hover:shadow-md cursor-pointer transition-all duration-200 border border-gray-100 p-4"
                     onClick={() => handleVideoSelect(video)}
                     >
+                    {/* 썸네일 - 상단 전체 너비 */}
                     <div 
-                      className="relative w-40 flex-shrink-0 cursor-pointer group"
+                      className="relative w-full cursor-pointer group mb-3"
                       onClick={(e) => handleThumbnailClick(video, e)}
                     >
-                      {/* Fixed aspect ratio container */}
                       <div className="relative w-full aspect-video rounded-xl overflow-hidden">
                         <img
                             src={video.thumbnail}
@@ -738,7 +738,9 @@ function SearchPageContent({ user }: { user: User }) {
                         )}
                       </div>
                     </div>
-                    <div className="flex-1 min-w-0">
+                    
+                    {/* 정보 영역 - 하단 */}
+                    <div>
                         <h3 className="font-semibold text-gray-900 line-clamp-2 text-base mb-2 min-h-[3rem] leading-6">{video.title}</h3>
                         <p className="text-sm text-gray-600 line-clamp-1 mb-2">{video.channelName}</p>
 
@@ -750,24 +752,6 @@ function SearchPageContent({ user }: { user: User }) {
 
                         {/* 조회수 */}
                         {video.viewCountFormatted && <span>조회수 {video.viewCountFormatted}</span>}
-                        </div>
-                        
-                        {/* 레시피 추출 버튼 */}
-                        <div className="mt-3">
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation()
-                              handleVideoSelect(video)
-                            }}
-                            className="inline-flex items-center px-4 py-2 text-sm font-semibold text-white rounded-full transition-all hover:opacity-90"
-                            style={{
-                              background: 'linear-gradient(120deg, #FF9057 0%, #FF5722 100%)',
-                              boxShadow: '0 3px 12px rgba(255, 87, 34, 0.3)'
-                            }}
-                          >
-                            레시피 추출
-                            <ArrowRight className="w-4 h-4 ml-1" />
-                          </button>
                         </div>
                     </div>
                     </div>
