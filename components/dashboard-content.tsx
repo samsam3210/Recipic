@@ -30,9 +30,9 @@ export function DashboardContent({ user }: { user: any }) {
           <SidebarNav items={dashboardSidebarNavItems} />
         </aside>
 
-        <section className="flex-1 lg:w-4/5 space-y-6 px-4">
+        <section className="flex-1 lg:w-4/5 space-y-6">
           {/* 인사말과 캐치프레이즈 문구 */}
-          <div className="space-y-0">
+          <div className="space-y-0 px-6">
             {isLoading ? (
               <>
                 <Skeleton className="h-10 w-80 mb-2" />
@@ -45,7 +45,9 @@ export function DashboardContent({ user }: { user: any }) {
             )}
           </div>
 
-          <HeroSection user={user} isDashboard={true} cachedUsageData={usageData} isLoading={isLoading} />
+          <div className="px-6">
+            <HeroSection user={user} isDashboard={true} cachedUsageData={usageData} isLoading={isLoading} />
+          </div>
 
           <DashboardRecentRecipesServer recipes={cachedRecentRecipes} isLoading={isLoading} />
           </section>

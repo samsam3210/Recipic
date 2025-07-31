@@ -3,7 +3,7 @@
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
-import { BookOpen, Clock, BarChart3, Bookmark } from "lucide-react"
+import { BookOpen, Clock, BarChart3, Bookmark, BookmarkCheck } from "lucide-react"
 import Image from "next/image"
 
 interface RecentlyViewedRecipeProps {
@@ -46,7 +46,7 @@ export function DashboardRecentRecipesServer({ recipes, isLoading = false }: Das
         {isLoading ? (
           <Skeleton className="h-7 w-40" />
         ) : (
-          <h2 className="text-base font-bold text-gray-800">최근 본 레시피</h2>
+          <h2 className="text-xl font-bold text-gray-800">최근 본 레시피</h2>
         )}
       </div>
       
@@ -118,13 +118,12 @@ export function DashboardRecentRecipesServer({ recipes, isLoading = false }: Das
                     className="object-cover"
                   />
                 </div>
-                  <div className="flex justify-between items-start mb-2">
-                    <h3 className="text-base font-semibold text-gray-900 line-clamp-1 flex-1">
+                  <div className="mb-2">
+                    <h3 className="text-base font-semibold text-gray-900 line-clamp-1">
                       {recipe.recipeName || "제목 없음"}
                     </h3>
-                    <Bookmark className="w-4 h-4 text-gray-400 flex-none ml-2" />
                   </div>
-                  <div className="text-sm text-gray-500 mb-2 h-4">
+                  <div className="text-sm text-gray-500 mb-2 h-4 truncate">
                     {recipe.channelName || ''}
                   </div>
                   <div className="flex items-center gap-3 text-sm text-gray-400 mb-2 h-4">
@@ -145,52 +144,67 @@ export function DashboardRecentRecipesServer({ recipes, isLoading = false }: Das
                     {recipe.summary || ''}
                   </div>
                 </div>
-              <button
-                    onClick={() => {
-                      // savedRecipeId가 있으면 레시피 상세 페이지로, 없으면 프리뷰 페이지로
-                      if (recipe.savedRecipeId) {
-                        // 저장된 레시피 → 레시피 상세 페이지
-                        window.location.href = `/recipe/${recipe.savedRecipeId}`
-                      } else {
-                        // 프리뷰만 본 레시피 → 프리뷰 페이지 (완전한 레시피 데이터 사용)
-                        const previewData = {
-                          youtubeUrl: recipe.youtubeUrl,
-                          videoInfo: {
-                            videoId: '',
-                            videoTitle: recipe.videoTitle || recipe.recipeName,
-                            videoThumbnail: recipe.videoThumbnail || '',
-                            channelName: recipe.channelName || '',
-                            videoDurationSeconds: recipe.videoDurationSeconds || 0,
-                            videoViews: recipe.videoViews || 0,
-                            videoDescription: recipe.videoDescription || '',
-                            transcriptText: '',
-                            structuredTranscript: [],
-                            hasSubtitles: true
-                          },
-                          extractedRecipe: {
-                            recipeName: recipe.recipeName,
-                            summary: recipe.summary || '',
-                            difficulty: recipe.difficulty || '',
-                            cookingTimeMinutes: recipe.cookingTimeMinutes || 0,
-                            ingredients: recipe.ingredients || [],
-                            steps: recipe.steps || [],
-                            tips: recipe.tips || [],
-                            personalNotes: recipe.personalNotes,
-                            noRecipeFoundMessage: recipe.noRecipeFoundMessage
+              <div className="flex gap-2 mt-2.5">
+                <button
+                      onClick={() => {
+                        // savedRecipeId가 있으면 레시피 상세 페이지로, 없으면 프리뷰 페이지로
+                        if (recipe.savedRecipeId) {
+                          // 저장된 레시피 → 레시피 상세 페이지
+                          window.location.href = `/recipe/${recipe.savedRecipeId}`
+                        } else {
+                          // 프리뷰만 본 레시피 → 프리뷰 페이지 (완전한 레시피 데이터 사용)
+                          const previewData = {
+                            youtubeUrl: recipe.youtubeUrl,
+                            videoInfo: {
+                              videoId: '',
+                              videoTitle: recipe.videoTitle || recipe.recipeName,
+                              videoThumbnail: recipe.videoThumbnail || '',
+                              channelName: recipe.channelName || '',
+                              videoDurationSeconds: recipe.videoDurationSeconds || 0,
+                              videoViews: recipe.videoViews || 0,
+                              videoDescription: recipe.videoDescription || '',
+                              transcriptText: '',
+                              structuredTranscript: [],
+                              hasSubtitles: true
+                            },
+                            extractedRecipe: {
+                              recipeName: recipe.recipeName,
+                              summary: recipe.summary || '',
+                              difficulty: recipe.difficulty || '',
+                              cookingTimeMinutes: recipe.cookingTimeMinutes || 0,
+                              ingredients: recipe.ingredients || [],
+                              steps: recipe.steps || [],
+                              tips: recipe.tips || [],
+                              personalNotes: recipe.personalNotes,
+                              noRecipeFoundMessage: recipe.noRecipeFoundMessage
+                            }
                           }
+                          localStorage.setItem('recipick_pending_recipe', JSON.stringify(previewData))
+                          window.location.href = '/temp-preview'
                         }
-                        localStorage.setItem('recipick_pending_recipe', JSON.stringify(previewData))
-                        window.location.href = '/temp-preview'
-                      }
-                    }}
-                    className="block w-full text-center py-2.5 mt-2.5 text-white text-sm font-medium rounded-full transition-all hover:opacity-90"
-                    style={{
-                      background: 'linear-gradient(120deg, #FF9057 0%, #FF5722 100%)',
-                      boxShadow: '0 3px 12px rgba(255, 87, 34, 0.3)'
-                    }}
-                  >
-                    레시피 보기
-                  </button>
+                      }}
+                      className="flex-1 text-center py-2.5 text-white text-sm font-medium rounded-full transition-all hover:opacity-90"
+                      style={{
+                        background: 'linear-gradient(120deg, #FF9057 0%, #FF5722 100%)',
+                        boxShadow: '0 3px 12px rgba(255, 87, 34, 0.3)'
+                      }}
+                    >
+                      레시피 보기
+                    </button>
+                <button
+                  className="w-10 h-10 flex items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200 transition-colors"
+                  onClick={() => {
+                    // TODO: 북마크 기능 구현
+                    console.log('Bookmark clicked for recipe:', recipe.id)
+                  }}
+                >
+                  {recipe.savedRecipeId ? (
+                    <BookmarkCheck className="w-4 h-4 text-orange-500" />
+                  ) : (
+                    <Bookmark className="w-4 h-4 text-gray-400" />
+                  )}
+                </button>
+              </div>
             </div>
           ))}
         </div>

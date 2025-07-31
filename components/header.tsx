@@ -39,7 +39,7 @@ export function Header({ hideAuthButton = false }: HeaderProps) {
   // 로딩 중일 때는 스켈레톤 표시
   if (isLoading) {
     return (
-      <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 hidden lg:block">
         <div className="container flex h-16 items-center">
           <div className="mr-6 flex items-center">
             <Link href="/" className="flex items-center">
@@ -125,7 +125,7 @@ export function Header({ hideAuthButton = false }: HeaderProps) {
         />
       )}
 
-      <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 hidden lg:block">
         <div className="container flex h-16 items-center">
           {/* 로고 - 텍스트만 */}
           <div className="mr-6 flex items-center">
