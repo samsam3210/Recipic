@@ -85,7 +85,7 @@ export function RecipesContent({ userId, selectedFolderId, page, limit, initialR
               <div className="h-8 w-48 bg-gray-200 rounded animate-pulse"></div>
               
               {/* 레시피 그리드 스켈레톤 */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {Array.from({ length: limit }).map((_, i) => (
                   <RecipeCardSkeleton key={i} />
                 ))}

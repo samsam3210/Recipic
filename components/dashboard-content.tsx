@@ -33,7 +33,7 @@ export function DashboardContent({ user }: { user: any }) {
         <section className="flex-1 lg:w-4/5 space-y-6">
           {/* 모바일 전용 로고 */}
           <div className="lg:hidden px-6">
-            <h1 className="text-3xl font-light text-gray-800 mb-6 tracking-wide" style={{ fontFamily: '"Inter", "Helvetica Neue", sans-serif' }}>Recipick</h1>
+            <h1 className="text-3xl font-bold text-gray-900 mb-6">Recipick</h1>
           </div>
           
           {/* 인사말과 캐치프레이즈 문구 */}

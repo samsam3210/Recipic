@@ -15,5 +15,5 @@ export function CurrentFolderTitle({ folders }: CurrentFolderTitleProps) {
     ? folders.find((f) => f.id === selectedFolderId)?.name || "알 수 없는 폴더"
     : "모든 레시피"
 
-  return <h1 className="text-3xl font-bold text-gray-900 mb-8">{currentFolderName}</h1>
+  return <h1 className="text-lg font-semibold text-gray-900 mb-4">{currentFolderName}</h1>
 }
