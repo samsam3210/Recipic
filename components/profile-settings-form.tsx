@@ -37,7 +37,10 @@ export function ProfileSettingsForm({ user, userProfile: initialProfile }: Profi
   const router = useRouter()
   const supabase = createClient()
   const { invalidateUserProfile } = useCacheInvalidation()
-  const { updateUserProfile: updateContextUserProfile } = useUser()
+  const { userProfile: contextUserProfile, updateUserProfile: updateContextUserProfile } = useUser()
+  
+  // UserContext의 프로필을 우선 사용, fallback으로 캐시된 프로필 사용
+  const activeUserProfile = contextUserProfile || userProfile
 
   // 초기 프로필이 있으면 즉시 사용
   useEffect(() => {
@@ -47,8 +50,8 @@ export function ProfileSettingsForm({ user, userProfile: initialProfile }: Profi
     }
   }, [initialProfile])
 
-  // 프로필이 없을 때만 스켈레톤 표시
-  if (!userProfile) {
+  // 프로필이 없을 때만 스켈레톤 표시  
+  if (!activeUserProfile) {
     return (
       <Card className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
         <CardHeader className="px-0 pt-0 pb-4">
@@ -71,16 +74,6 @@ export function ProfileSettingsForm({ user, userProfile: initialProfile }: Profi
     )
   }
 
-  // userProfile이 없으면 에러 상태
-  if (!userProfile) {
-    return (
-      <Card className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-        <CardContent className="flex items-center justify-center py-8">
-          <p className="text-gray-500">프로필 정보를 불러올 수 없습니다.</p>
-        </CardContent>
-      </Card>
-    )
-  }
 
   const handleSave = async () => {
     if (!editedName.trim()) {
@@ -123,7 +116,7 @@ export function ProfileSettingsForm({ user, userProfile: initialProfile }: Profi
   }
 
   const handleCancel = () => {
-    setEditedName(userProfile.nickname || "")
+    setEditedName(activeUserProfile.nickname || "")
     setIsEditing(false)
   }
 
@@ -243,7 +236,7 @@ export function ProfileSettingsForm({ user, userProfile: initialProfile }: Profi
               ) : (
                 <>
                   <p className="text-lg font-semibold text-gray-900 flex-1">
-                    {userProfile.nickname || user?.user_metadata?.full_name || user?.email?.split('@')[0] || "이름 없음"}
+                    {activeUserProfile.nickname || user?.user_metadata?.full_name || user?.email?.split('@')[0] || "이름 없음"}
                   </p>
                   <Button 
                     onClick={() => setIsEditing(true)} 

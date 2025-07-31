@@ -44,7 +44,7 @@ export function CachedSettings({
 
   const cacheData: SettingsCacheData = {
     userProfile: userProfile,
-    isLoading: false // 항상 캐시된 데이터 즉시 표시 (검색 결과와 동일)
+    isLoading: isLoading || isInitialLoading || !userProfile // 실제 로딩 상태 반영
   }
 
   return (
