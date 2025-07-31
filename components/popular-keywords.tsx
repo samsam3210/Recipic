@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
-import { Flame } from 'lucide-react'
 import { getPopularRecipes } from '@/lib/actions/popular-recipes'
 
 interface PopularKeyword {
@@ -53,24 +52,17 @@ export function PopularKeywords({ onKeywordClick, isSearching = false }: Popular
       </div>
       
       <div className="flex flex-wrap gap-2">
-        {keywords.map((item, index) => {
-          const isHot = item.recentCount > 5 // 최근 7일에 5명 이상 저장하면 HOT
-          
-          return (
-            <Button
-              key={index}
-              variant="outline"
-              onClick={() => onKeywordClick(item.recipeName)}
-              disabled={isSearching}
-              className="rounded-full border-gray-300 hover:bg-gray-50 transition-all duration-200 text-sm px-4 py-2"
-            >
-              <span>{item.recipeName}</span>
-              {isHot && (
-                <Flame className="h-3 w-3 text-red-500 ml-1" />
-              )}
-            </Button>
-          )
-        })}
+        {keywords.map((item, index) => (
+          <Button
+            key={index}
+            variant="outline"
+            onClick={() => onKeywordClick(item.recipeName)}
+            disabled={isSearching}
+            className="rounded-full border-gray-300 hover:bg-gray-50 transition-all duration-200 text-sm px-4 py-2"
+          >
+            <span>{item.recipeName}</span>
+          </Button>
+        ))}
       </div>
     </div>
   )

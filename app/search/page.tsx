@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef, Suspense } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
-import { Search, Loader2, ArrowUpDown, ChevronDown, Clock, Eye, ArrowRight, Play } from "lucide-react"
+import { Search, Loader2, ArrowUpDown, ChevronDown, Clock, Eye, ArrowRight, Play, Calendar } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Header } from "@/components/header"
@@ -319,9 +319,9 @@ function SearchPageContent({ user }: { user: User }) {
       const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent)
       const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
       
-      if (isIOS) {
-        // iOS에서는 자동 포커싱 하지 않음 (키보드가 올라오지 않아 어색한 UX 방지)
-        console.log('[Search] iOS 환경: 자동 포커싱 비활성화')
+      if (isIOS && !shouldFocus) {
+        // iOS에서 명시적 포커스 요청(focus=true)이 아닌 경우만 자동 포커싱 비활성화
+        console.log('[Search] iOS 환경: 자동 포커싱 비활성화 (명시적 요청 제외)')
         return
       } else {
         const delay = isMobile ? 300 : 100
@@ -614,7 +614,7 @@ function SearchPageContent({ user }: { user: User }) {
                       placeholder="요리 키워드 또는 URL 입력"
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
-                      className="h-12 md:h-14 flex-grow px-3 md:px-4 border-none focus:outline-none focus:ring-0 focus-visible:outline-none focus-visible:ring-0 focus-visible:ring-offset-0 text-base md:text-lg placeholder:placeholder-gray-400 bg-transparent rounded-full"
+                      className="h-12 md:h-14 flex-grow px-3 md:px-4 border-none focus:outline-none focus:ring-0 focus:ring-offset-0 focus-visible:outline-none focus-visible:ring-0 focus-visible:ring-offset-0 text-base md:text-lg placeholder:placeholder-gray-400 bg-transparent rounded-full"
                       disabled={isSearching}
                       autoComplete="off"
                       autoCorrect="off"
@@ -753,11 +753,19 @@ function SearchPageContent({ user }: { user: User }) {
                         <div className="flex items-center space-x-2 text-xs text-gray-500">
                         {/* 업로드일 */}
                         {video.publishedAt && (
-                            <span>{new Date(video.publishedAt).toLocaleDateString("ko-KR").replace(/^(\d{4})\./, (match, p1) => `${p1.slice(2)}.`)}</span>
+                            <div className="flex items-center gap-1">
+                              <Calendar className="w-3 h-3" />
+                              <span>{new Date(video.publishedAt).toLocaleDateString("ko-KR").replace(/^(\d{4})\./, (match, p1) => `${p1.slice(2)}.`)}</span>
+                            </div>
                         )}
 
                         {/* 조회수 */}
-                        {video.viewCountFormatted && <span>조회수 {video.viewCountFormatted}</span>}
+                        {video.viewCountFormatted && (
+                            <div className="flex items-center gap-1">
+                              <Eye className="w-3 h-3" />
+                              <span>조회수 {video.viewCountFormatted}</span>
+                            </div>
+                        )}
                         </div>
                     </div>
                     </div>

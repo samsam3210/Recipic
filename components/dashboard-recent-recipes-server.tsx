@@ -3,7 +3,7 @@
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
-import { BookOpen, Clock, BarChart3, Bookmark, BookmarkCheck } from "lucide-react"
+import { BookOpen, Clock, BarChart3, Bookmark, BookmarkCheck, ArrowRight } from "lucide-react"
 import Image from "next/image"
 import { deleteRecipe, saveRecipeFromRecentlyViewed } from "@/lib/actions/recipe"
 import { useState, useEffect } from "react"
@@ -172,7 +172,7 @@ export function DashboardRecentRecipesServer({ recipes, isLoading = false }: Das
                   <Skeleton className="h-4 w-3/4" />
                   <Skeleton className="h-4 w-1/2" />
                   <Skeleton className="h-4 w-full" />
-                  <div className="flex gap-2 mt-4 pt-2">
+                  <div className="flex gap-2 mt-3">
                     <Skeleton className="h-10 flex-1 rounded-full" />
                     <Skeleton className="h-12 w-12 rounded-full" />
                   </div>
@@ -238,12 +238,12 @@ export function DashboardRecentRecipesServer({ recipes, isLoading = false }: Das
                       </div>
                     ) : <div></div>}
                   </div>
-                  <div className="text-sm text-gray-600 line-clamp-2 mb-4 min-h-[3rem] leading-6">
+                  <div className="text-sm text-gray-600 line-clamp-2 mb-3 min-h-[3rem] leading-6">
                     {recipe.summary || ''}
                   </div>
                   
                   {/* 버튼 영역을 카드 내부로 이동 */}
-                  <div className="flex gap-2 mt-auto pt-2">
+                  <div className="flex gap-2 mt-auto">
                     <button
                       onClick={() => {
                         // savedRecipeId가 있으면 레시피 상세 페이지로, 없으면 프리뷰 페이지로
@@ -282,13 +282,16 @@ export function DashboardRecentRecipesServer({ recipes, isLoading = false }: Das
                           window.location.href = '/temp-preview'
                         }
                       }}
-                      className="flex-1 text-center py-2.5 text-white text-sm font-medium rounded-full transition-all hover:opacity-90"
+                      className="flex items-center justify-center gap-2 py-2.5 text-white text-sm font-medium rounded-full transition-all hover:opacity-90"
                       style={{
                         background: 'linear-gradient(120deg, #FF9057 0%, #FF5722 100%)',
                         boxShadow: '0 3px 12px rgba(255, 87, 34, 0.3)'
                       }}
                     >
-                      레시피 보기
+                      <span>레시피 보기</span>
+                      <div className="w-5 h-5 bg-white rounded-full flex items-center justify-center">
+                        <ArrowRight className="w-3 h-3 text-orange-500" />
+                      </div>
                     </button>
                     <button
                       className={`w-12 h-12 flex items-center justify-center rounded-full border transition-colors ${
