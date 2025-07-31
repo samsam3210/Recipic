@@ -626,11 +626,19 @@ function SearchPageContent({ user }: { user: User }) {
                     <Button
                       type="submit"
                       disabled={!searchQuery.trim() || isSearching}
-                      className={`m-2 h-8 md:h-10 px-4 md:px-6 ${
+                      className={`m-2 h-8 md:h-10 px-4 md:px-6 text-white rounded-full font-semibold transition-all duration-200 text-sm md:text-base hover:scale-105 ${
                         !searchQuery.trim() || isSearching
-                          ? "bg-gray-400"
-                          : "bg-orange-400 hover:bg-orange-500"
-                      } text-white rounded-full font-semibold transition-all duration-200 text-sm md:text-base hover:scale-105`}
+                          ? "bg-orange-300"
+                          : ""
+                      }`}
+                      style={
+                        !searchQuery.trim() || isSearching
+                          ? {}
+                          : {
+                              background: 'linear-gradient(120deg, #FF9057 0%, #FF5722 100%)',
+                              boxShadow: '0 3px 12px rgba(255, 87, 34, 0.3)'
+                            }
+                      }
                     >
                       {isSearching ? (
                         <Loader2 className="w-4 h-4 md:w-5 md:h-5 animate-spin" />
@@ -805,7 +813,11 @@ function SearchPageContent({ user }: { user: User }) {
         footer={
           <Button
             onClick={() => setShowUsageLimitModal(false)}
-            className="px-6 py-2 text-sm font-medium bg-gray-900 hover:bg-black text-white rounded-lg transition-colors duration-200"
+            className="px-6 py-2 text-sm font-semibold text-white rounded-full transition-all duration-200 hover:opacity-90"
+            style={{
+              background: 'linear-gradient(120deg, #FF9057 0%, #FF5722 100%)',
+              boxShadow: '0 3px 12px rgba(255, 87, 34, 0.3)'
+            }}
           >
             확인
           </Button>
@@ -819,7 +831,14 @@ function SearchPageContent({ user }: { user: User }) {
         title="레시피 추출 실패"
         description={errorMessage}
         footer={
-          <Button onClick={() => setShowErrorModal(false)} className="w-full py-3 px-4 text-sm font-semibold bg-gray-900 hover:bg-black text-white rounded-xl transition-all duration-300 shadow-lg">
+          <Button 
+            onClick={() => setShowErrorModal(false)} 
+            className="w-full py-3 px-4 text-sm font-semibold text-white rounded-full transition-all duration-300 hover:opacity-90"
+            style={{
+              background: 'linear-gradient(120deg, #FF9057 0%, #FF5722 100%)',
+              boxShadow: '0 3px 12px rgba(255, 87, 34, 0.3)'
+            }}
+          >
             확인
           </Button>
         }
@@ -836,7 +855,7 @@ function SearchPageContent({ user }: { user: User }) {
             <Button 
               variant="outline" 
               onClick={() => setShowDuplicateModal(false)}
-              className="flex-1 py-3 px-4 text-sm font-medium text-gray-600 bg-white hover:bg-gray-50 border border-gray-300 rounded-xl transition-all duration-300"
+              className="flex-1 py-3 px-4 text-sm font-medium text-gray-600 bg-white hover:bg-gray-50 border border-gray-300 rounded-full transition-all duration-300"
             >
               아니요, 다른 영상 입력할게요
             </Button>
@@ -847,7 +866,11 @@ function SearchPageContent({ user }: { user: User }) {
                   setShowDuplicateModal(false)
                 }
               }}
-              className="flex-1 py-3 px-4 text-sm font-semibold bg-gray-900 hover:bg-black text-white rounded-xl transition-all duration-300 shadow-lg"
+              className="flex-1 py-3 px-4 text-sm font-semibold text-white rounded-full transition-all duration-300 hover:opacity-90"
+              style={{
+                background: 'linear-gradient(120deg, #FF9057 0%, #FF5722 100%)',
+                boxShadow: '0 3px 12px rgba(255, 87, 34, 0.3)'
+              }}
             >
               예, 기존 레시피 보기
             </Button>
@@ -862,7 +885,14 @@ function SearchPageContent({ user }: { user: User }) {
         title="레시피 조회 불가능"
         description={recipeUnavailableMessage}
         footer={
-          <Button onClick={() => setShowRecipeUnavailableModal(false)} className="w-full py-3 px-4 text-sm font-semibold bg-gray-900 hover:bg-black text-white rounded-xl transition-all duration-300 shadow-lg">
+          <Button 
+            onClick={() => setShowRecipeUnavailableModal(false)} 
+            className="w-full py-3 px-4 text-sm font-semibold text-white rounded-full transition-all duration-300 hover:opacity-90"
+            style={{
+              background: 'linear-gradient(120deg, #FF9057 0%, #FF5722 100%)',
+              boxShadow: '0 3px 12px rgba(255, 87, 34, 0.3)'
+            }}
+          >
             확인
           </Button>
         }

@@ -114,7 +114,11 @@ export function FloatingVideoPlayer({ isVisible, video, onClose, onExtractRecipe
       {onExtractRecipe && (
         <button
           onClick={onExtractRecipe}
-          className="absolute -top-3 right-10 z-10 bg-[#6BA368] hover:bg-[#5a8f57] text-white rounded-full p-1.5 shadow-lg transition-colors"
+          className="absolute -top-3 right-10 z-10 text-white rounded-full p-1.5 shadow-lg transition-all duration-300"
+          style={{
+            background: 'linear-gradient(120deg, #FF9057 0%, #FF5722 100%)',
+            boxShadow: '0 3px 12px rgba(255, 87, 34, 0.3)'
+          }}
           title="레시피 추출하기"
         >
           <BookOpen className="w-4 h-4" />

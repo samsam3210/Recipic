@@ -136,8 +136,11 @@ export function FloatingExtractionBar() {
             {!error && !isCompleted && (
               <div className="w-full bg-gray-200 rounded-full h-2">
                 <div 
-                  className="bg-blue-500 h-2 rounded-full transition-all duration-500 ease-out"
-                  style={{ width: `${progress}%` }}
+                  className="h-2 rounded-full transition-all duration-500 ease-out"
+                  style={{ 
+                    width: `${progress}%`,
+                    background: 'linear-gradient(120deg, #FF9057 0%, #FF5722 100%)'
+                  }}
                 />
               </div>
             )}
@@ -146,7 +149,11 @@ export function FloatingExtractionBar() {
             {isCompleted && completedRecipeId && (
               <Button 
                 onClick={handleNavigateToRecipe}
-                className="w-full bg-gray-900 hover:bg-black text-white rounded-xl font-semibold transition-all duration-300 shadow-lg"
+                className="w-full text-white rounded-xl font-semibold transition-all duration-300 shadow-lg"
+                style={{
+                  background: 'linear-gradient(120deg, #FF9057 0%, #FF5722 100%)',
+                  boxShadow: '0 3px 12px rgba(255, 87, 34, 0.3)'
+                }}
                 size="sm"
               >
                 레시피 보기
@@ -180,7 +187,11 @@ export function FloatingExtractionBar() {
                 </p>
                 <Button 
                   onClick={handleNavigateToRecipe}
-                  className="w-full bg-gray-900 hover:bg-black text-white rounded-xl font-semibold transition-all duration-300 shadow-lg"
+                  className="w-full text-white rounded-xl font-semibold transition-all duration-300 shadow-lg"
+                  style={{
+                    background: 'linear-gradient(120deg, #FF9057 0%, #FF5722 100%)',
+                    boxShadow: '0 3px 12px rgba(255, 87, 34, 0.3)'
+                  }}
                 >
                   레시피 보기
                 </Button>
@@ -194,8 +205,11 @@ export function FloatingExtractionBar() {
                 <div className="mb-4">
                   <div className="w-full bg-gray-200 rounded-full h-2">
                     <div 
-                      className="bg-blue-500 h-2 rounded-full transition-all duration-500 ease-out"
-                      style={{ width: `${progress}%` }}
+                      className="h-2 rounded-full transition-all duration-500 ease-out"
+                      style={{ 
+                        width: `${progress}%`,
+                        background: 'linear-gradient(120deg, #FF9057 0%, #FF5722 100%)'
+                      }}
                     />
                   </div>
                 </div>
@@ -209,20 +223,25 @@ export function FloatingExtractionBar() {
                     
                     return (
                       <div key={step.id} className="flex items-center gap-3">
-                        <div className={cn(
-                          "w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold transition-all duration-300",
-                          isCompleted && "bg-green-500 text-white",
-                          isActive && !isCompleted && "bg-blue-500 text-white animate-pulse",
-                          !isActive && !isCompleted && !isError && "bg-gray-200 text-gray-500",
-                          isError && "bg-red-500 text-white"
-                        )}>
+                        <div 
+                          className={cn(
+                            "w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold transition-all duration-300",
+                            isCompleted && "bg-green-500 text-white",
+                            isActive && !isCompleted && "text-white animate-pulse",
+                            !isActive && !isCompleted && !isError && "bg-gray-200 text-gray-500",
+                            isError && "bg-red-500 text-white"
+                          )}
+                          style={isActive && !isCompleted ? {
+                            background: 'linear-gradient(120deg, #FF9057 0%, #FF5722 100%)'
+                          } : undefined}
+                        >
                           {isCompleted ? "✓" : step.id}
                         </div>
                         <div className="flex-1 min-w-0">
                           <p className={cn(
                             "text-sm font-medium transition-colors duration-300",
                             isCompleted && "text-green-600",
-                            isActive && !isCompleted && "text-blue-600",
+                            isActive && !isCompleted && "text-orange-600",
                             !isActive && !isCompleted && !isError && "text-gray-500",
                             isError && "text-red-600"
                           )}>
@@ -230,7 +249,7 @@ export function FloatingExtractionBar() {
                           </p>
                           <p className={cn(
                             "text-xs transition-colors duration-300 truncate",
-                            isActive && !isCompleted && "text-blue-500",
+                            isActive && !isCompleted && "text-orange-500",
                             isCompleted && "text-green-500",
                             !isActive && !isCompleted && !isError && "text-gray-400",
                             isError && "text-red-500"
@@ -286,7 +305,11 @@ export function FloatingExtractionBar() {
             </Button>
             <Button 
               onClick={handleDuplicateConfirm}
-              className="flex-1 py-3 px-4 text-sm font-semibold bg-gray-900 hover:bg-black text-white rounded-xl transition-all duration-300 shadow-lg"
+              className="flex-1 py-3 px-4 text-sm font-semibold text-white rounded-xl transition-all duration-300 shadow-lg"
+              style={{
+                background: 'linear-gradient(120deg, #FF9057 0%, #FF5722 100%)',
+                boxShadow: '0 3px 12px rgba(255, 87, 34, 0.3)'
+              }}
             >
               {duplicateInfo.type === 'saved' ? "예, 기존 레시피 보기" : "예, 레시피 확인하기"}
             </Button>

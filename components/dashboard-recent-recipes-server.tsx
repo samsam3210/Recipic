@@ -190,7 +190,7 @@ export function DashboardRecentRecipesServer({ recipes, isLoading = false }: Das
                       레시피 보기
                     </button>
                 <button
-                  className={`w-12 h-12 flex items-center justify-center rounded-lg border transition-colors ${
+                  className={`w-12 h-12 flex items-center justify-center rounded-full border transition-colors ${
                     recipe.savedRecipeId 
                       ? 'bg-orange-50 border-orange-200 hover:bg-orange-100' 
                       : 'bg-white border-gray-300 hover:bg-gray-50'
