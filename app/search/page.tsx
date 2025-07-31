@@ -741,7 +741,7 @@ function SearchPageContent({ user }: { user: User }) {
                     
                     {/* 정보 영역 - 하단 */}
                     <div>
-                        <h3 className="font-semibold text-gray-900 line-clamp-2 text-base mb-2 min-h-[3rem] leading-6">{video.title}</h3>
+                        <h3 className="font-semibold text-gray-900 line-clamp-2 text-base mb-2 leading-6">{video.title}</h3>
                         <p className="text-sm text-gray-600 line-clamp-1 mb-2">{video.channelName}</p>
 
                         <div className="flex items-center space-x-2 text-xs text-gray-500">
