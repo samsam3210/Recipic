@@ -7,7 +7,9 @@ import { BookOpen, Clock, BarChart3, Bookmark, BookmarkCheck } from "lucide-reac
 import Image from "next/image"
 import { deleteRecipe, saveRecipeFromRecentlyViewed } from "@/lib/actions/recipe"
 import { useState, useEffect } from "react"
-import { useToast } from "@/hooks/use-toast"
+import { useToast } from "@/hooks/use-toast" 
+import { useCacheInvalidation } from "@/hooks/use-cache-invalidation"
+import { createClient } from "@/lib/supabase/client"
 
 interface RecentlyViewedRecipeProps {
   id: string
@@ -44,45 +46,69 @@ interface DashboardRecentRecipesServerProps {
 
 export function DashboardRecentRecipesServer({ recipes, isLoading = false }: DashboardRecentRecipesServerProps) {
   const [localRecipes, setLocalRecipes] = useState(recipes)
-  const [bookmarkLoadingIds, setBookmarkLoadingIds] = useState<Set<string>>(new Set())
   const { toast } = useToast()
+  const { invalidateByAction } = useCacheInvalidation()
 
   // recipes prop이 변경되면 localRecipes 업데이트
   useEffect(() => {
     setLocalRecipes(recipes)
   }, [recipes])
 
-  // 북마크 토글 함수
+  // 북마크 토글 함수 (Optimistic UI + DB 트랜잭션)
   const handleBookmarkToggle = async (recipe: RecentlyViewedRecipeProps) => {
     const isSaved = !!recipe.savedRecipeId
+    const originalSavedRecipeId = recipe.savedRecipeId
     
-    setBookmarkLoadingIds(prev => new Set([...prev, recipe.id]))
+    // 1. 즉시 UI 업데이트 (Optimistic)
+    setLocalRecipes(prev => 
+      prev.map(r => 
+        r.id === recipe.id 
+          ? { ...r, savedRecipeId: isSaved ? null : 'optimistic-temp-id' }
+          : r
+      )
+    )
+    
+    // 2. 즉시 피드백 토스트
+    toast({
+      title: isSaved ? "레시피 삭제" : "레시피 저장",
+      description: `"${recipe.recipeName || "레시피"}"를 나의레시피에서 ${isSaved ? "삭제" : "저장"}했습니다.`,
+    })
+    
+    // 3. userId 확인 및 백그라운드 서버 동기화
+    const supabase = createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) {
+      // 인증 실패 시 롤백
+      setLocalRecipes(prev => 
+        prev.map(r => 
+          r.id === recipe.id 
+            ? { ...r, savedRecipeId: originalSavedRecipeId }
+            : r
+        )
+      )
+      toast({
+        title: "인증 오류",
+        description: "로그인이 필요합니다.",
+        variant: "destructive",
+      })
+      return
+    }
     
     try {
-      if (isSaved && recipe.savedRecipeId) {
-        // 삭제
-        const result = await deleteRecipe(recipe.savedRecipeId)
+      if (isSaved && originalSavedRecipeId) {
+        // 삭제 요청
+        const result = await deleteRecipe(originalSavedRecipeId)
         if (result.success) {
-          // UI 업데이트: savedRecipeId를 null로 설정
-          setLocalRecipes(prev => 
-            prev.map(r => 
-              r.id === recipe.id 
-                ? { ...r, savedRecipeId: null }
-                : r
-            )
-          )
-          toast({
-            title: "레시피 삭제",
-            description: `"${recipe.recipeName || "레시피"}"를 나의레시피에서 삭제했습니다.`,
-          })
+          // 성공: 백그라운드 캐시 무효화
+          invalidateByAction('RECIPE_DELETED', user.id).catch(console.error)
         } else {
           throw new Error(result.message)
         }
       } else {
-        // 저장
+        // 저장 요청
         const result = await saveRecipeFromRecentlyViewed(recipe.id)
         if (result.success && result.recipeId) {
-          // UI 업데이트: savedRecipeId 설정
+          // 성공: 실제 ID로 업데이트 + 캐시 무효화
           setLocalRecipes(prev => 
             prev.map(r => 
               r.id === recipe.id 
@@ -90,26 +116,25 @@ export function DashboardRecentRecipesServer({ recipes, isLoading = false }: Das
                 : r
             )
           )
-          toast({
-            title: "레시피 저장",
-            description: `"${recipe.recipeName || "레시피"}"를 나의레시피에 저장했습니다.`,
-          })
+          invalidateByAction('RECIPE_SAVED', user.id).catch(console.error)
         } else {
           throw new Error(result.message)
         }
       }
     } catch (error: any) {
-      console.error("북마크 토글 실패:", error)
+      // 4. 실패 시 원래 상태로 롤백 + 에러 메시지
+      console.error("북마크 동기화 실패:", error)
+      setLocalRecipes(prev => 
+        prev.map(r => 
+          r.id === recipe.id 
+            ? { ...r, savedRecipeId: originalSavedRecipeId }
+            : r
+        )
+      )
       toast({
-        title: "오류",
-        description: error.message || "북마크 처리 중 오류가 발생했습니다.",
+        title: "동기화 실패",
+        description: `${isSaved ? "삭제" : "저장"} 처리에 실패했습니다. 다시 시도해주세요.`,
         variant: "destructive",
-      })
-    } finally {
-      setBookmarkLoadingIds(prev => {
-        const newSet = new Set(prev)
-        newSet.delete(recipe.id)
-        return newSet
       })
     }
   }
@@ -139,7 +164,7 @@ export function DashboardRecentRecipesServer({ recipes, isLoading = false }: Das
           `}</style>
           {Array.from({ length: 3 }).map((_, i) => (
             <div key={i} className="flex-none" style={{ width: '256px' }}>
-              <div className="bg-white rounded-2xl shadow-sm p-4">
+              <div className="bg-white rounded-2xl p-4 border border-gray-200">
                 <div className="relative w-full rounded-xl overflow-hidden mb-3" style={{ paddingBottom: '56.25%' }}>
                   <Skeleton className="absolute inset-0 w-full h-full" />
                 </div>
@@ -180,7 +205,7 @@ export function DashboardRecentRecipesServer({ recipes, isLoading = false }: Das
           `}</style>
           {localRecipes.map((recipe) => (
             <div key={recipe.id} className="flex-none" style={{ width: '256px' }}>
-              <div className="bg-white rounded-2xl shadow-sm p-4">
+              <div className="bg-white rounded-2xl p-4 border border-gray-200">
                 <div className="relative w-full rounded-xl overflow-hidden mb-3" style={{ paddingBottom: '56.25%' }}>
                   <Image
                     src={recipe.videoThumbnail || "/placeholder.svg?height=192&width=256&text=No+Thumbnail"}
@@ -263,21 +288,18 @@ export function DashboardRecentRecipesServer({ recipes, isLoading = false }: Das
                       레시피 보기
                     </button>
                 <button
-                  className={`w-12 h-12 flex items-center justify-center rounded-full border transition-colors disabled:opacity-50 ${
+                  className={`w-12 h-12 flex items-center justify-center rounded-full border transition-colors ${
                     recipe.savedRecipeId 
                       ? 'bg-orange-50 border-orange-200 hover:bg-orange-100' 
                       : 'bg-white border-gray-300 hover:bg-gray-50'
                   }`}
-                  disabled={bookmarkLoadingIds.has(recipe.id)}
                   onClick={(e) => {
                     e.preventDefault()
                     e.stopPropagation()
                     handleBookmarkToggle(recipe)
                   }}
                 >
-                  {bookmarkLoadingIds.has(recipe.id) ? (
-                    <div className="w-5 h-5 border-2 border-orange-500 border-t-transparent rounded-full animate-spin" />
-                  ) : recipe.savedRecipeId ? (
+                  {recipe.savedRecipeId ? (
                     <BookmarkCheck className="w-5 h-5 text-orange-500 fill-current" />
                   ) : (
                     <Bookmark className="w-5 h-5 text-gray-600" />

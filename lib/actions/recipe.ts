@@ -366,61 +366,70 @@ export async function saveRecipeFromRecentlyViewed(recentlyViewedId: string): Pr
   }
 
   try {
-    // 1. recently_viewed_recipes에서 해당 레시피 데이터 가져오기
-    const [recentlyViewedRecipe] = await db
-      .select()
-      .from(recentlyViewedRecipes)
-      .where(and(eq(recentlyViewedRecipes.id, recentlyViewedId), eq(recentlyViewedRecipes.userId, userId)))
-      .limit(1)
+    // 트랜잭션으로 모든 작업을 한 번에 처리
+    const result = await db.transaction(async (tx) => {
+      // 1. recently_viewed_recipes에서 해당 레시피 데이터 가져오기
+      const [recentlyViewedRecipe] = await tx
+        .select()
+        .from(recentlyViewedRecipes)
+        .where(and(eq(recentlyViewedRecipes.id, recentlyViewedId), eq(recentlyViewedRecipes.userId, userId)))
+        .limit(1)
 
-    if (!recentlyViewedRecipe) {
-      return { success: false, message: "최근 본 레시피를 찾을 수 없습니다." }
-    }
+      if (!recentlyViewedRecipe) {
+        throw new Error("최근 본 레시피를 찾을 수 없습니다.")
+      }
 
-    // 이미 저장된 레시피인지 확인
-    if (recentlyViewedRecipe.savedRecipeId) {
-      return { success: false, message: "이미 저장된 레시피입니다." }
-    }
+      // 이미 저장된 레시피인지 확인
+      if (recentlyViewedRecipe.savedRecipeId) {
+        throw new Error("이미 저장된 레시피입니다.")
+      }
 
-    // 2. recipes 테이블에 저장
-    const recipeToSave: CreateRecipeData = {
-      youtubeUrl: recentlyViewedRecipe.youtubeUrl,
-      videoTitle: recentlyViewedRecipe.videoTitle,
-      videoThumbnail: recentlyViewedRecipe.videoThumbnail,
-      channelName: recentlyViewedRecipe.channelName,
-      videoDurationSeconds: recentlyViewedRecipe.videoDurationSeconds,
-      videoViews: recentlyViewedRecipe.videoViews,
-      videoDescription: recentlyViewedRecipe.videoDescription,
-      recipeName: recentlyViewedRecipe.recipeName,
-      noRecipeFoundMessage: recentlyViewedRecipe.noRecipeFoundMessage,
-      summary: recentlyViewedRecipe.summary,
-      difficulty: recentlyViewedRecipe.difficulty,
-      cookingTimeMinutes: recentlyViewedRecipe.cookingTimeMinutes,
-      ingredients: recentlyViewedRecipe.ingredients,
-      steps: recentlyViewedRecipe.steps,
-      tips: recentlyViewedRecipe.tips,
-      personalNotes: recentlyViewedRecipe.personalNotes,
-    }
+      // 2. recipes 테이블에 직접 삽입 (createRecipe 함수 사용하지 않고 직접 처리)
+      const [newRecipe] = await tx
+        .insert(recipes)
+        .values({
+          userId: userId,
+          youtubeUrl: recentlyViewedRecipe.youtubeUrl,
+          videoTitle: recentlyViewedRecipe.videoTitle,
+          videoThumbnail: recentlyViewedRecipe.videoThumbnail,
+          channelName: recentlyViewedRecipe.channelName,
+          videoDurationSeconds: recentlyViewedRecipe.videoDurationSeconds,
+          videoViews: recentlyViewedRecipe.videoViews,
+          videoDescription: recentlyViewedRecipe.videoDescription,
+          recipeName: recentlyViewedRecipe.recipeName,
+          noRecipeFoundMessage: recentlyViewedRecipe.noRecipeFoundMessage,
+          summary: recentlyViewedRecipe.summary,
+          difficulty: recentlyViewedRecipe.difficulty,
+          cookingTimeMinutes: recentlyViewedRecipe.cookingTimeMinutes,
+          ingredients: recentlyViewedRecipe.ingredients,
+          steps: recentlyViewedRecipe.steps,
+          tips: recentlyViewedRecipe.tips,
+          personalNotes: recentlyViewedRecipe.personalNotes,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        })
+        .returning({ id: recipes.id })
 
-    const saveResult = await createRecipe(recipeToSave)
+      if (!newRecipe.id) {
+        throw new Error("레시피 저장에 실패했습니다.")
+      }
 
-    if (saveResult.success && saveResult.recipeId) {
       // 3. recently_viewed_recipes의 savedRecipeId 업데이트
-      await db
+      await tx
         .update(recentlyViewedRecipes)
-        .set({ savedRecipeId: saveResult.recipeId })
+        .set({ savedRecipeId: newRecipe.id })
         .where(eq(recentlyViewedRecipes.id, recentlyViewedId))
 
-      console.log(`[saveRecipeFromRecentlyViewed] 레시피 저장 완료: ${saveResult.recipeId}, recently_viewed_recipes 동기화 완료`)
+      // 4. 인기도 업데이트도 같이 처리
+      if (recentlyViewedRecipe.recipeName) {
+        await updatePopularityScore(recentlyViewedRecipe.recipeName)
+      }
 
-      revalidatePath("/recipes")
-      revalidatePath("/dashboard")
-      revalidatePath(`/recipe/${saveResult.recipeId}`)
-      
-      return { success: true, message: "레시피가 성공적으로 저장되었습니다.", recipeId: saveResult.recipeId }
-    } else {
-      throw new Error(saveResult.message || "레시피 저장에 실패했습니다.")
-    }
+      return { recipeId: newRecipe.id }
+    })
+
+    console.log(`[saveRecipeFromRecentlyViewed] 트랜잭션 완료: ${result.recipeId}`)
+    return { success: true, message: "레시피가 성공적으로 저장되었습니다.", recipeId: result.recipeId }
   } catch (error) {
     console.error("[saveRecipeFromRecentlyViewed] Error saving recipe from recently viewed:", error)
     return { success: false, message: `레시피 저장 실패: ${(error as Error).message}` }
@@ -436,31 +445,30 @@ export async function deleteRecipe(recipeId: string): Promise<{ success: boolean
   }
 
   try {
-    // 1. 레시피를 soft delete (deleted = true로 업데이트)
-    const result = await db
-      .update(recipes)
-      .set({ 
-        deleted: true,
-        updatedAt: new Date()
-      })
-      .where(and(eq(recipes.id, recipeId), eq(recipes.userId, userId), eq(recipes.deleted, false)))
-      .returning({ id: recipes.id })
+    // 트랜잭션으로 모든 작업을 한 번에 처리
+    await db.transaction(async (tx) => {
+      // 1. 레시피를 soft delete (deleted = true로 업데이트)
+      const result = await tx
+        .update(recipes)
+        .set({ 
+          deleted: true,
+          updatedAt: new Date()
+        })
+        .where(and(eq(recipes.id, recipeId), eq(recipes.userId, userId), eq(recipes.deleted, false)))
+        .returning({ id: recipes.id })
 
-    if (result.length === 0) {
-      throw new Error("레시피를 찾을 수 없거나 이미 삭제되었거나 삭제 권한이 없습니다.")
-    }
+      if (result.length === 0) {
+        throw new Error("레시피를 찾을 수 없거나 이미 삭제되었거나 삭제 권한이 없습니다.")
+      }
 
-    // 2. recently_viewed_recipes에서 해당 레시피의 savedRecipeId를 null로 업데이트
-    await db
-      .update(recentlyViewedRecipes)
-      .set({ savedRecipeId: null })
-      .where(and(eq(recentlyViewedRecipes.userId, userId), eq(recentlyViewedRecipes.savedRecipeId, recipeId)))
+      // 2. recently_viewed_recipes에서 해당 레시피의 savedRecipeId를 null로 업데이트
+      await tx
+        .update(recentlyViewedRecipes)
+        .set({ savedRecipeId: null })
+        .where(and(eq(recentlyViewedRecipes.userId, userId), eq(recentlyViewedRecipes.savedRecipeId, recipeId)))
+    })
 
-    console.log(`[deleteRecipe] 레시피 soft delete 완료: ${recipeId}, recently_viewed_recipes 동기화 완료`)
-
-    revalidatePath("/recipes") // /recipes 페이지 캐시 무효화
-    revalidatePath("/dashboard") // 대시보드 페이지 캐시 무효화 (최근 레시피 업데이트)
-    revalidatePath(`/recipe/${recipeId}`) // 삭제된 레시피 상세 페이지 캐시 무효화
+    console.log(`[deleteRecipe] 트랜잭션 완료: ${recipeId}`)
     return { success: true, message: "레시피가 성공적으로 삭제되었습니다." }
   } catch (error) {
     console.error("[deleteRecipe] Error soft deleting recipe:", error)

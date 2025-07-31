@@ -26,7 +26,7 @@ export function DashboardRecentRecipes({ recipes }: { recipes: RecipeListItemPro
       `}</style>
       {recipes.map((recipe) => (
         <div key={recipe.id} className="flex-none w-56">
-          <div className="bg-white rounded-2xl shadow-md overflow-hidden border border-gray-200">
+          <div className="bg-white rounded-2xl overflow-hidden border border-gray-200">
             <div className="relative" style={{ paddingBottom: '56.25%' }}>
               <Image
                 src={recipe.videoThumbnail || "/placeholder.svg?height=192&width=256&text=No+Thumbnail"}

@@ -3,6 +3,7 @@
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { AlertCircle, RefreshCw } from "lucide-react"
+import Image from "next/image"
 
 export default function ErrorPage() {
   const handleRetryLogin = () => {
@@ -18,7 +19,13 @@ export default function ErrorPage() {
           </div>
           <div>
             <CardTitle className="text-2xl font-bold text-gray-900">
-              Recipick
+              <Image
+                src="/recipick-logo.png"
+                alt="Recipick"
+                width={140}
+                height={36}
+                className="h-9 w-auto mx-auto"
+              />
             </CardTitle>
             <CardDescription className="text-lg mt-2">
               잠시 연결이 원활하지 않아요

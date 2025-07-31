@@ -2,6 +2,7 @@
 
 import { Header } from "@/components/header"
 import { HandlePendingRecipe } from "@/components/handle-pending-recipe"
+import Image from "next/image"
 import { HeroSection } from "@/components/hero-section"
 import { DashboardRecentRecipesServer } from "@/components/dashboard-recent-recipes-server"
 import { BottomNavigation } from "@/components/bottom-navigation"
@@ -12,7 +13,7 @@ import { Skeleton } from "@/components/ui/skeleton"
 
 export function DashboardContent({ user }: { user: any }) {
   const { userProfile: cachedUserProfile, recentRecipes: cachedRecentRecipes, usageData, isLoading } = useDashboardCache()
-  const userName = cachedUserProfile?.nickname
+  const userName = cachedUserProfile?.nickname || user?.user_metadata?.name || user?.email?.split('@')[0] || "사용자"
   
   return (
     <div className="flex flex-col min-h-screen">
@@ -33,7 +34,13 @@ export function DashboardContent({ user }: { user: any }) {
         <section className="flex-1 lg:w-4/5 space-y-6">
           {/* 모바일 전용 로고 */}
           <div className="lg:hidden px-6">
-            <h1 className="text-3xl font-bold text-gray-900 mb-6">Recipick</h1>
+            <Image
+              src="/recipick-logo.png"
+              alt="Recipick"
+              width={160}
+              height={40}
+              className="h-10 w-auto mb-6"
+            />
           </div>
           
           {/* 인사말과 캐치프레이즈 문구 */}
