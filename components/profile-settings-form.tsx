@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { useToast } from "@/hooks/use-toast"
-import { Loader2, Edit2, Check, X, UserX } from "lucide-react"
+import { Loader2, Edit2, Check, X } from "lucide-react"
 import { updateUserName, getUserProfile } from "@/lib/actions/user"
 import { signOut } from "@/lib/actions/auth"
 import { createClient } from "@/lib/supabase/client"
@@ -285,7 +285,6 @@ export function ProfileSettingsForm({ user, userProfile: initialProfile }: Profi
             variant="outline"
             className="w-full text-gray-600 border-gray-300 hover:bg-gray-50"
           >
-            <UserX className="mr-2 h-4 w-4" />
             탈퇴하기
           </Button>
         </div>

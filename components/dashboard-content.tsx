@@ -15,7 +15,7 @@ export function DashboardContent({ user }: { user: any }) {
   const userName = cachedUserProfile?.nickname
   
   return (
-    <div className="flex flex-col min-h-screen" style={{ backgroundColor: '#FAFAFA' }}>
+    <div className="flex flex-col min-h-screen">
       {/* 헤더 - 네비게이션 메뉴 없음 */}
       <Header />
       

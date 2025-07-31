@@ -591,7 +591,7 @@ function SearchPageContent({ user }: { user: User }) {
   }
 
   return (
-    <div className="flex flex-col min-h-screen" style={{ backgroundColor: '#FAFAFA' }}>
+    <div className="flex flex-col min-h-screen">
       <Header />
 
       <main className="flex-1 pt-6 md:pt-8 w-full py-4 sm:py-8">

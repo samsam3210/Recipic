@@ -56,7 +56,7 @@ export function DashboardRecentRecipesClient({ userId }: DashboardRecentRecipesC
   }, [userId, toast])
 
   return (
-    <div className="p-6" style={{ backgroundColor: '#FAFAFA' }}>
+    <div className="p-6">
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-2xl font-bold text-gray-800">최근 본 레시피</h2>
         {!isLoading && recentRecipes.length > 0 && (

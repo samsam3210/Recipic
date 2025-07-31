@@ -73,7 +73,7 @@ export function RecipesContent({ userId, selectedFolderId, page, limit, initialR
           {actualIsLoading ? (
             <div className="space-y-4">
               {/* 모바일 폴더 선택기 스켈레톤 */}
-              <div className="lg:hidden">
+              <div className="lg:hidden px-6">
                 <div className="h-10 w-full bg-gray-200 rounded animate-pulse"></div>
               </div>
               
