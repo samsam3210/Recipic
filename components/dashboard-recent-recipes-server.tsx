@@ -282,7 +282,7 @@ export function DashboardRecentRecipesServer({ recipes, isLoading = false }: Das
                           window.location.href = '/temp-preview'
                         }
                       }}
-                      className="flex items-center justify-center py-2.5 px-3 text-white text-sm font-medium rounded-full transition-all hover:opacity-90"
+                      className="flex-1 flex items-center justify-center py-2.5 px-3 text-white text-sm font-medium rounded-full transition-all hover:opacity-90"
                       style={{
                         background: 'linear-gradient(120deg, #FF9057 0%, #FF5722 100%)',
                         boxShadow: '0 3px 12px rgba(255, 87, 34, 0.3)'
