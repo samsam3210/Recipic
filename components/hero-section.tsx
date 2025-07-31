@@ -551,10 +551,10 @@ export function HeroSection({ user, isDashboard = false, cachedUsageData = null,
   return (
     <section
       className={cn(
-        "relative w-full flex flex-col items-center justify-center text-center",
+        "relative w-full flex flex-col",
         isDashboard
-          ? "py-6 px-4 md:px-6 space-y-6" // 박스 상자 관련 클래스 제거
-          : "py-20 md:py-32 lg:py-[150px] bg-white",
+          ? "py-6 space-y-6" // Remove centering classes and padding
+          : "py-20 md:py-32 lg:py-[150px] bg-white items-center justify-center text-center",
       )}
     >
       {!isDashboard && (
@@ -721,7 +721,7 @@ export function HeroSection({ user, isDashboard = false, cachedUsageData = null,
                       />
                     </div>
                   </div>
-                  <p className="text-sm text-gray-600 leading-relaxed">
+                  <p className="text-sm text-gray-600 leading-relaxed text-left">
                     Recipick AI가 레시피 추출을 도와드려요.
                   </p>
                 </>
