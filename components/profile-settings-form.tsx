@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import type { User } from "@supabase/supabase-js"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { useToast } from "@/hooks/use-toast"
@@ -195,9 +195,6 @@ export function ProfileSettingsForm({ user, userProfile: initialProfile }: Profi
 
   return (
     <Card className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-      <CardHeader className="px-0 pt-0 pb-4">
-        <CardTitle className="text-2xl font-bold text-gray-800">프로필</CardTitle>
-      </CardHeader>
       <CardContent className="px-0 py-0 space-y-6">
         <div className="space-y-3">
           <div>

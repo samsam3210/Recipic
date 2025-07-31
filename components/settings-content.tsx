@@ -32,6 +32,7 @@ export function SettingsContent({ user }: { user: any }) {
 
         <section className="flex-1 lg:w-4/5 space-y-10">
           <div className="px-6">
+            <h1 className="text-lg font-semibold text-gray-900 mb-4">프로필</h1>
             <Suspense fallback={<div>로딩 중...</div>}>
               <ProfileSettingsForm user={user} userProfile={cachedUserProfile} />
             </Suspense>

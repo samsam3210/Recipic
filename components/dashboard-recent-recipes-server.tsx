@@ -289,7 +289,7 @@ export function DashboardRecentRecipesServer({ recipes, isLoading = false }: Das
                       }}
                     >
                       <span>레시피 보기</span>
-                      <div className="w-5 h-5 bg-white rounded-full flex items-center justify-center ml-1">
+                      <div className="w-5 h-5 bg-white rounded-full flex items-center justify-center ml-2">
                         <ArrowRight className="w-3 h-3 text-orange-500" />
                       </div>
                     </button>
