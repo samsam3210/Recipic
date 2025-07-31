@@ -240,7 +240,7 @@ export function FloatingExtractionBar() {
                         <div className="flex-1 min-w-0">
                           <p className={cn(
                             "text-sm font-medium transition-colors duration-300",
-                            isCompleted && "text-orange-600",
+                            isCompleted && "text-gray-900",
                             isActive && !isCompleted && "text-orange-600",
                             !isActive && !isCompleted && !isError && "text-gray-500",
                             isError && "text-red-600"
@@ -250,7 +250,7 @@ export function FloatingExtractionBar() {
                           <p className={cn(
                             "text-xs transition-colors duration-300 truncate",
                             isActive && !isCompleted && "text-orange-500",
-                            isCompleted && "text-orange-500",
+                            isCompleted && "text-gray-600",
                             !isActive && !isCompleted && !isError && "text-gray-400",
                             isError && "text-red-500"
                           )}>

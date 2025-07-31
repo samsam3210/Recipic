@@ -48,26 +48,32 @@ export function RecipeCard({
     timestamp: new Date().toISOString()
   })
   return (
-    <Card className="h-full flex flex-col hover:shadow-lg transition-shadow duration-200 relative">
-      <Link href={`/recipe/${id}`} className="block h-full">
-        <CardHeader className="p-0">
-          <AspectRatio ratio={16 / 9}>
+    <div className="bg-white rounded-2xl shadow-sm hover:shadow-md cursor-pointer transition-all duration-200 border border-gray-100 p-4 relative">
+      <Link href={`/recipe/${id}`} className="block">
+        {/* 썸네일 - 상단 전체 너비 */}
+        <div className="relative w-full mb-3">
+          <div className="relative w-full aspect-video rounded-xl overflow-hidden">
             <Image
               src={videoThumbnail || "/placeholder.svg?height=200&width=300&text=No+Thumbnail"}
               alt={recipeName || "레시피 썸네일"}
               fill
-              className="rounded-t-lg object-cover"
+              className="object-cover"
             />
-          </AspectRatio>
-        </CardHeader>
-        <CardContent className="p-4 flex-1 flex flex-col">
-          <CardTitle className="text-lg font-semibold line-clamp-2 mb-2">{recipeName || "제목 없음"}</CardTitle>
+          </div>
+        </div>
+        
+        {/* 콘텐츠 정보 */}
+        <div className="space-y-2">
+          <h3 className="text-base font-semibold text-gray-900 line-clamp-2">
+            {recipeName || "제목 없음"}
+          </h3>
+          
           {channelName && (
-            <CardDescription className="text-sm text-muted-foreground mb-2">{channelName}</CardDescription>
+            <p className="text-sm text-gray-500 truncate">{channelName}</p>
           )}
           
           {/* 난이도와 조리시간 */}
-          <div className="flex items-center gap-3 text-sm text-gray-400 mb-2">
+          <div className="flex items-center gap-3 text-sm text-gray-400">
             {cookingTimeMinutes ? (
               <div className="flex items-center gap-1">
                 <Clock className="w-3 h-3" />
@@ -82,8 +88,12 @@ export function RecipeCard({
             ) : <div></div>}
           </div>
           
-          {summary && <p className="text-sm text-muted-foreground line-clamp-2">{summary}</p>}
-        </CardContent>
+          {summary && (
+            <p className="text-sm text-gray-600 line-clamp-2 leading-relaxed">
+              {summary}
+            </p>
+          )}
+        </div>
       </Link>
 
       {/* 액션 버튼 드롭다운 */}

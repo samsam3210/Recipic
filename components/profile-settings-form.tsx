@@ -228,11 +228,8 @@ export function ProfileSettingsForm({ user, userProfile: initialProfile }: Profi
                     onClick={handleSave} 
                     disabled={isSaving} 
                     size="icon" 
-                    className="text-white hover:opacity-90"
-                    style={{
-                      background: 'linear-gradient(120deg, #FF9057 0%, #FF5722 100%)',
-                      boxShadow: '0 3px 12px rgba(255, 87, 34, 0.3)'
-                    }}
+                    variant="outline"
+                    className="text-gray-600 border-gray-300 hover:bg-gray-50"
                   >
                     {isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
                   </Button>
@@ -248,11 +245,8 @@ export function ProfileSettingsForm({ user, userProfile: initialProfile }: Profi
                   <Button 
                     onClick={() => setIsEditing(true)} 
                     size="icon" 
-                    className="text-white hover:opacity-90"
-                    style={{
-                      background: 'linear-gradient(120deg, #FF9057 0%, #FF5722 100%)',
-                      boxShadow: '0 3px 12px rgba(255, 87, 34, 0.3)'
-                    }}
+                    variant="outline"
+                    className="text-gray-600 border-gray-300 hover:bg-gray-50"
                   >
                     <Edit2 className="h-4 w-4" />
                   </Button>
@@ -272,8 +266,8 @@ export function ProfileSettingsForm({ user, userProfile: initialProfile }: Profi
           <Button 
             onClick={handleSignOut} 
             disabled={isSigningOut || isEditing}
-            variant="destructive"
-            className="w-full"
+            variant="outline"
+            className="w-full text-gray-700 border-gray-300 hover:bg-gray-50"
           >
             {isSigningOut ? (
               <>
@@ -289,7 +283,7 @@ export function ProfileSettingsForm({ user, userProfile: initialProfile }: Profi
             onClick={() => setIsDeleteModalOpen(true)} 
             disabled={isSigningOut || isEditing}
             variant="outline"
-            className="w-full text-red-600 border-red-200 hover:bg-red-50 hover:border-red-300"
+            className="w-full text-gray-600 border-gray-300 hover:bg-gray-50"
           >
             <UserX className="mr-2 h-4 w-4" />
             탈퇴하기
