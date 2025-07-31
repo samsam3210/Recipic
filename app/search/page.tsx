@@ -300,16 +300,21 @@ function SearchPageContent({ user }: { user: User }) {
     }
   }, [searchParams, getCache, getRecentCache, restoreScrollPosition, router])
 
-  // 검색결과가 없을 때 자동 포커싱
+  // 캐시 상태에 따른 조건부 포커싱
   useEffect(() => {
     const urlQuery = searchParams.get('q')
     const shouldFocus = searchParams.get('focus') === 'true'
+    const recentCache = getRecentCache()
     
-    // 검색결과가 없고 포커스 요청이 있거나, 캐시도 없고 검색어도 없을 때 포커싱
-    const shouldAutoFocus = (shouldFocus) || 
-                           (!urlQuery && searchResults.length === 0 && !getRecentCache())
+    // 포커싱 조건:
+    // 1. 명시적 포커스 요청이 있거나
+    // 2. URL 쿼리도 없고, 검색결과도 없고, 캐시도 없을 때 (완전히 빈 상태)
+    const shouldAutoFocus = shouldFocus || 
+                           (!urlQuery && searchResults.length === 0 && !recentCache)
     
     if (shouldAutoFocus && inputRef.current) {
+      console.log('[Search] 입력 필드 포커싱:', { shouldFocus, hasUrlQuery: !!urlQuery, hasResults: searchResults.length > 0, hasCache: !!recentCache })
+      
       // iOS 감지
       const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent)
       const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
@@ -333,6 +338,8 @@ function SearchPageContent({ user }: { user: User }) {
           inputRef.current?.focus()
         }, delay)
       }
+    } else if (recentCache || searchResults.length > 0) {
+      console.log('[Search] 캐시/결과 있음 - 포커싱 건너뜀:', { hasCache: !!recentCache, resultsCount: searchResults.length })
     }
   }, [searchParams, searchResults.length, getRecentCache])
 
