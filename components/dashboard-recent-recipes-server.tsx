@@ -164,7 +164,7 @@ export function DashboardRecentRecipesServer({ recipes, isLoading = false }: Das
           `}</style>
           {Array.from({ length: 3 }).map((_, i) => (
             <div key={i} className="flex-none" style={{ width: '256px' }}>
-              <div className="bg-white rounded-2xl p-4 border border-gray-200">
+              <div className="bg-white rounded-2xl p-4 border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
                 <div className="relative w-full rounded-xl overflow-hidden mb-3" style={{ paddingBottom: '56.25%' }}>
                   <Skeleton className="absolute inset-0 w-full h-full" />
                 </div>
@@ -205,7 +205,7 @@ export function DashboardRecentRecipesServer({ recipes, isLoading = false }: Das
           `}</style>
           {localRecipes.map((recipe) => (
             <div key={recipe.id} className="flex-none" style={{ width: '256px' }}>
-              <div className="bg-white rounded-2xl p-4 border border-gray-200">
+              <div className="bg-white rounded-2xl p-4 border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
                 <div className="relative w-full rounded-xl overflow-hidden mb-3" style={{ paddingBottom: '56.25%' }}>
                   <Image
                     src={recipe.videoThumbnail || "/placeholder.svg?height=192&width=256&text=No+Thumbnail"}

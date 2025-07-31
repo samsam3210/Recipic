@@ -36,6 +36,7 @@ export function ProfileSettingsForm({ user, userProfile: initialProfile }: Profi
   const router = useRouter()
   const supabase = createClient()
   const { invalidateUserProfile } = useCacheInvalidation()
+  const { updateUserProfile: updateContextUserProfile } = useUser()
 
   // 초기 프로필이 있으면 즉시 사용
   useEffect(() => {
@@ -101,9 +102,10 @@ export function ProfileSettingsForm({ user, userProfile: initialProfile }: Profi
         setIsEditing(false)
         // 로컬 상태 업데이트
         setUserProfile(prev => prev ? { ...prev, nickname: editedName.trim() } : null)
+        // UserContext도 동기화
+        updateContextUserProfile({ nickname: editedName.trim() })
         // React Query 캐시 무효화 (대시보드 홈화면 갱신)
         invalidateUserProfile(user.id)
-        router.refresh()
       } else {
         throw new Error(result.message)
       }
@@ -240,7 +242,7 @@ export function ProfileSettingsForm({ user, userProfile: initialProfile }: Profi
               ) : (
                 <>
                   <p className="text-lg font-semibold text-gray-900 flex-1">
-                    {userProfile.nickname || "이름 없음"}
+                    {userProfile.nickname || user?.user_metadata?.full_name || user?.email?.split('@')[0] || "이름 없음"}
                   </p>
                   <Button 
                     onClick={() => setIsEditing(true)} 

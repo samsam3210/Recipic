@@ -3,8 +3,8 @@
 import { createContext, useContext } from "react"
 import { useQuery } from "@tanstack/react-query"
 import { getRecentlyViewedRecipes } from "@/lib/actions/recently-viewed"
-import { getOrCreateUserProfile } from "@/lib/actions/user"
 import { checkDailyUsage } from "@/lib/actions/usage"
+import { useUser } from "@/contexts/user-context"
 import type { User } from "@supabase/supabase-js"
 
 interface DashboardCacheData {
@@ -36,17 +36,8 @@ export function CachedDashboard({
   user, 
   children 
 }: CachedDashboardProps) {
-  // 사용자 프로필 쿼리 (긴 캐시)
-  const { data: userProfile } = useQuery({
-    queryKey: ['user-profile', user.id],
-    queryFn: () => getOrCreateUserProfile(user),
-    staleTime: 30 * 60 * 1000, // 30분
-    gcTime: 60 * 60 * 1000, // 1시간
-    refetchOnWindowFocus: false,
-    refetchOnMount: false,
-    refetchOnReconnect: false,
-    refetchInterval: false,
-  })
+  // UserContext에서 사용자 프로필 가져오기 (중복 조회 방지)
+  const { userProfile } = useUser()
 
   // 최근 본 레시피 쿼리 (짧은 캐시)
   const { data: recentlyViewedResult, isLoading, isFetching, isInitialLoading } = useQuery({
@@ -78,8 +69,8 @@ export function CachedDashboard({
     isAdmin: usageResult.isAdmin || false
   } : null
 
-  // 실제 로딩 상태 계산 - 모든 필수 데이터가 로드될 때까지 로딩 중 (fetching 상태도 포함)
-  const isActuallyLoading = !userProfile || !usageData || isLoading || isInitialLoading || isFetching
+  // 실제 로딩 상태 계산 - 필수 데이터가 로드될 때까지 로딩 중
+  const isActuallyLoading = !usageData || isLoading || isInitialLoading || isFetching
 
   console.log('[CachedDashboard] 상태:', {
     timestamp: new Date().toISOString(),
@@ -91,7 +82,7 @@ export function CachedDashboard({
     isLoadingRecentRecipes: isLoading,
     isFetchingRecentRecipes: isFetching,
     isInitialLoadingRecentRecipes: isInitialLoading,
-    isActuallyLoading: isActuallyLoading, // 이제 정상!
+    isActuallyLoading: isActuallyLoading,
     userId: user.id
   });
 

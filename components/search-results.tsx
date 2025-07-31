@@ -160,7 +160,7 @@ export default function SearchResults({ query }: SearchResultsProps) {
           {results.map((video) => (
             <div
               key={video.videoId}
-              className="bg-white rounded-lg border border-gray-200 p-4 transition-all group"
+              className="bg-white rounded-lg border border-gray-200 shadow-sm hover:shadow-md p-4 transition-all group"
             >
               <div className="flex flex-col md:flex-row gap-4">
                 {/* 썸네일 */}

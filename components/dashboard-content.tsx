@@ -9,11 +9,16 @@ import { BottomNavigation } from "@/components/bottom-navigation"
 import { SidebarNav } from "@/components/sidebar-nav"
 import { dashboardSidebarNavItems } from "@/lib/navigation"
 import { useDashboardCache } from "@/components/cached-dashboard"
+import { useUser } from "@/contexts/user-context"
 import { Skeleton } from "@/components/ui/skeleton"
 
 export function DashboardContent({ user }: { user: any }) {
   const { userProfile: cachedUserProfile, recentRecipes: cachedRecentRecipes, usageData, isLoading } = useDashboardCache()
-  const userName = cachedUserProfile?.nickname || user?.user_metadata?.name || user?.email?.split('@')[0] || "사용자"
+  const { userProfile: contextUserProfile } = useUser()
+  
+  // UserContext의 프로필을 우선 사용, fallback으로 캐시된 프로필 사용
+  const activeUserProfile = contextUserProfile || cachedUserProfile
+  const userName = activeUserProfile?.nickname || user?.user_metadata?.full_name || user?.email?.split('@')[0] || "사용자"
   
   return (
     <div className="flex flex-col min-h-screen">

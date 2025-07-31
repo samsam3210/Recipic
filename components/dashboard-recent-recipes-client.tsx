@@ -152,7 +152,7 @@ export function DashboardRecentRecipesClient({ userId }: DashboardRecentRecipesC
           `}</style>
           {Array.from({ length: 3 }).map((_, i) => (
             <div key={i} className="flex-none" style={{ width: '224px' }}>
-              <div className="bg-white rounded-2xl overflow-hidden border border-gray-200">
+              <div className="bg-white rounded-2xl overflow-hidden border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
                 <div className="relative w-full" style={{ paddingBottom: '56.25%' }}>
                   <Skeleton className="absolute inset-0 w-full h-full" />
                 </div>
@@ -192,7 +192,7 @@ export function DashboardRecentRecipesClient({ userId }: DashboardRecentRecipesC
           `}</style>
           {recentRecipes.map((recipe) => (
             <div key={recipe.id} className="flex-none" style={{ width: '224px' }}>
-              <div className="bg-white rounded-2xl overflow-hidden border border-gray-200">
+              <div className="bg-white rounded-2xl overflow-hidden border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
                 <div className="relative w-full" style={{ paddingBottom: '56.25%' }}>
                   <Image
                     src={recipe.videoThumbnail || "/placeholder.svg?height=192&width=256&text=No+Thumbnail"}

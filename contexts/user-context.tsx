@@ -12,13 +12,15 @@ interface UserContextType {
   userProfile: UserProfile | null
   isLoading: boolean
   authError: boolean
+  updateUserProfile: (updatedProfile: Partial<UserProfile>) => void
 }
 
 const UserContext = createContext<UserContextType>({
   user: null,
   userProfile: null,
   isLoading: true,
-  authError: false
+  authError: false,
+  updateUserProfile: () => {}
 })
 
 export function UserProvider({ children }: { children: ReactNode }) {
@@ -105,8 +107,12 @@ export function UserProvider({ children }: { children: ReactNode }) {
     return () => subscription.unsubscribe()
   }, [])
 
+  const updateUserProfile = (updatedProfile: Partial<UserProfile>) => {
+    setUserProfile(prev => prev ? { ...prev, ...updatedProfile } : null)
+  }
+
   return (
-    <UserContext.Provider value={{ user, userProfile, isLoading, authError }}>
+    <UserContext.Provider value={{ user, userProfile, isLoading, authError, updateUserProfile }}>
       {children}
     </UserContext.Provider>
   )
