@@ -320,18 +320,9 @@ function SearchPageContent({ user }: { user: User }) {
       const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
       
       if (isIOS) {
-        // iOS는 즉시 포커스 시도
-        const focusInput = () => {
-          if (inputRef.current) {
-            inputRef.current.focus()
-            inputRef.current.setAttribute('readonly', 'readonly')
-            inputRef.current.focus()
-            inputRef.current.removeAttribute('readonly')
-          }
-        }
-        
-        focusInput()
-        setTimeout(focusInput, 100)
+        // iOS에서는 자동 포커싱 하지 않음 (키보드가 올라오지 않아 어색한 UX 방지)
+        console.log('[Search] iOS 환경: 자동 포커싱 비활성화')
+        return
       } else {
         const delay = isMobile ? 300 : 100
         setTimeout(() => {

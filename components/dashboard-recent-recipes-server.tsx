@@ -172,10 +172,12 @@ export function DashboardRecentRecipesServer({ recipes, isLoading = false }: Das
                   <Skeleton className="h-4 w-3/4" />
                   <Skeleton className="h-4 w-1/2" />
                   <Skeleton className="h-4 w-full" />
-                  <Skeleton className="h-8 w-full" />
+                  <div className="flex gap-2 mt-4 pt-2">
+                    <Skeleton className="h-10 flex-1 rounded-full" />
+                    <Skeleton className="h-12 w-12 rounded-full" />
+                  </div>
                 </div>
               </div>
-              <Skeleton className="h-10 w-full rounded-full mt-2.5" />
             </div>
           ))}
         </div>
@@ -236,12 +238,13 @@ export function DashboardRecentRecipesServer({ recipes, isLoading = false }: Das
                       </div>
                     ) : <div></div>}
                   </div>
-                  <div className="text-sm text-gray-600 line-clamp-2 mb-2 min-h-[3rem] leading-6">
+                  <div className="text-sm text-gray-600 line-clamp-2 mb-4 min-h-[3rem] leading-6">
                     {recipe.summary || ''}
                   </div>
-                </div>
-              <div className="flex gap-2 mt-2.5">
-                <button
+                  
+                  {/* 버튼 영역을 카드 내부로 이동 */}
+                  <div className="flex gap-2 mt-auto pt-2">
+                    <button
                       onClick={() => {
                         // savedRecipeId가 있으면 레시피 상세 페이지로, 없으면 프리뷰 페이지로
                         if (recipe.savedRecipeId) {
@@ -287,25 +290,26 @@ export function DashboardRecentRecipesServer({ recipes, isLoading = false }: Das
                     >
                       레시피 보기
                     </button>
-                <button
-                  className={`w-12 h-12 flex items-center justify-center rounded-full border transition-colors ${
-                    recipe.savedRecipeId 
-                      ? 'bg-orange-50 border-orange-200 hover:bg-orange-100' 
-                      : 'bg-white border-gray-300 hover:bg-gray-50'
-                  }`}
-                  onClick={(e) => {
-                    e.preventDefault()
-                    e.stopPropagation()
-                    handleBookmarkToggle(recipe)
-                  }}
-                >
-                  {recipe.savedRecipeId ? (
-                    <BookmarkCheck className="w-5 h-5 text-orange-500 fill-current" />
-                  ) : (
-                    <Bookmark className="w-5 h-5 text-gray-600" />
-                  )}
-                </button>
-              </div>
+                    <button
+                      className={`w-12 h-12 flex items-center justify-center rounded-full border transition-colors ${
+                        recipe.savedRecipeId 
+                          ? 'bg-orange-50 border-orange-200 hover:bg-orange-100' 
+                          : 'bg-white border-gray-300 hover:bg-gray-50'
+                      }`}
+                      onClick={(e) => {
+                        e.preventDefault()
+                        e.stopPropagation()
+                        handleBookmarkToggle(recipe)
+                      }}
+                    >
+                      {recipe.savedRecipeId ? (
+                        <BookmarkCheck className="w-5 h-5 text-orange-500 fill-current" />
+                      ) : (
+                        <Bookmark className="w-5 h-5 text-gray-600" />
+                      )}
+                    </button>
+                  </div>
+                </div>
             </div>
           ))}
         </div>
