@@ -614,7 +614,7 @@ function SearchPageContent({ user }: { user: User }) {
                       placeholder="요리 키워드 또는 URL 입력"
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
-                      className="h-12 md:h-14 flex-grow px-3 md:px-4 border-none focus:outline-none focus:ring-0 focus:ring-offset-0 focus-visible:outline-none focus-visible:ring-0 focus-visible:ring-offset-0 text-base md:text-lg placeholder:placeholder-gray-400 bg-transparent rounded-full"
+                      className="h-12 md:h-14 flex-grow px-3 md:px-4 border-none focus:outline-none focus:ring-0 focus:ring-offset-0 focus-visible:outline-none focus-visible:ring-0 focus-visible:ring-offset-0 focus:border-transparent focus-visible:border-transparent text-base md:text-lg placeholder:placeholder-gray-400 bg-transparent rounded-full !ring-0 !ring-offset-0 !border-none"
                       disabled={isSearching}
                       autoComplete="off"
                       autoCorrect="off"
