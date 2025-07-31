@@ -1,7 +1,7 @@
 "use client"
 
 import type React from "react"
-import { useState, useEffect, useCallback } from "react"
+import { useState, useEffect, useCallback, useRef } from "react"
 import { Textarea } from "@/components/ui/textarea"
 import { Button } from "@/components/ui/button" // Button 임포트 추가
 import { Play, Save, Loader2, Bookmark, BookmarkCheck, ChevronDown } from "lucide-react" // 필요한 아이콘들만 임포트
@@ -52,12 +52,68 @@ export function RecipeDisplay({
 }: RecipeDisplayProps) {
   const [personalNotes, setPersonalNotes] = useState(recipe.personalNotes || "")
   const [isSavingMemo, setIsSavingMemo] = useState(false) // 메모 저장 중 상태 추가
-  const [activeTab, setActiveTab] = useState<'ingredients' | 'steps' | 'tips' | 'memo'>('ingredients') // 탭 상태 추가
-  const [showAllIngredients, setShowAllIngredients] = useState(false) // 재료 전체 보기 상태 추가
+  const [activeTab, setActiveTab] = useState<'ingredients' | 'steps' | 'memo'>('ingredients') // 탭 상태 추가
+  const [isTabSticky, setIsTabSticky] = useState(false) // 탭 메뉴 sticky 상태
+  
+  // 섹션 ref들
+  const ingredientsRef = useRef<HTMLDivElement>(null)
+  const stepsRef = useRef<HTMLDivElement>(null)
+  const memoRef = useRef<HTMLDivElement>(null)
+  const tabNavRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     setPersonalNotes(recipe.personalNotes || "")
   }, [recipe.personalNotes])
+
+  // Intersection Observer로 섹션 감지 및 탭 자동 전환
+  useEffect(() => {
+    const observerOptions = {
+      rootMargin: '-20% 0px -60% 0px',
+      threshold: 0.1
+    }
+
+    const observerCallback = (entries: IntersectionObserverEntry[]) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          const target = entry.target as HTMLElement
+          if (target === ingredientsRef.current) {
+            setActiveTab('ingredients')
+          } else if (target === stepsRef.current) {
+            setActiveTab('steps')
+          } else if (target === memoRef.current) {
+            setActiveTab('memo')
+          }
+        }
+      })
+    }
+
+    const observer = new IntersectionObserver(observerCallback, observerOptions)
+    
+    if (ingredientsRef.current) observer.observe(ingredientsRef.current)
+    if (stepsRef.current) observer.observe(stepsRef.current)
+    if (memoRef.current) observer.observe(memoRef.current)
+
+    // 탭 메뉴 sticky 감지
+    const stickyObserverCallback = (entries: IntersectionObserverEntry[]) => {
+      entries.forEach((entry) => {
+        setIsTabSticky(!entry.isIntersecting)
+      })
+    }
+
+    const stickyObserver = new IntersectionObserver(stickyObserverCallback, {
+      rootMargin: '-1px 0px 0px 0px',
+      threshold: 0
+    })
+
+    if (tabNavRef.current) {
+      stickyObserver.observe(tabNavRef.current)
+    }
+
+    return () => {
+      observer.disconnect()
+      stickyObserver.disconnect()
+    }
+  }, [])
 
   const handlePersonalNotesChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setPersonalNotes(e.target.value)
@@ -153,7 +209,7 @@ export function RecipeDisplay({
       {/* 컨텐츠 영역 */}
       <div className="px-6">
         {/* 레시피 제목 */}
-        <div className="flex items-start justify-between mb-2 mt-6">
+        <div className="flex items-start justify-between mb-1 mt-6">
           <h1 className="text-2xl font-bold text-gray-900 leading-tight flex-1">
             {recipe.recipeName || "제목 없음"}
           </h1>
@@ -181,7 +237,7 @@ export function RecipeDisplay({
 
         {/* 채널 정보 */}
         {recipe.channelName && (
-          <div className="mb-8">
+          <div className="mb-4">
             <p className="text-gray-600 text-sm">{recipe.channelName}</p>
           </div>
         )}
@@ -224,16 +280,28 @@ export function RecipeDisplay({
         </div>
 
         {/* 탭 네비게이션 */}
-        <div className="flex border-b border-gray-200 mb-6">
+        <div 
+          ref={tabNavRef}
+          className={`flex border-b border-gray-200 mb-6 bg-white z-10 transition-all duration-200 ${
+            isTabSticky ? 'sticky top-0 shadow-sm' : ''
+          }`}
+        >
           {[
             { key: 'ingredients', label: '재료' },
             { key: 'steps', label: '조리단계' },
-            { key: 'tips', label: '핵심팁' },
             { key: 'memo', label: '메모' }
           ].map((tab) => (
             <button
               key={tab.key}
-              onClick={() => setActiveTab(tab.key as typeof activeTab)}
+              onClick={() => {
+                setActiveTab(tab.key as typeof activeTab)
+                // 클릭 시 해당 섹션으로 스크롤
+                const targetRef = tab.key === 'ingredients' ? ingredientsRef : 
+                                 tab.key === 'steps' ? stepsRef : memoRef
+                if (targetRef.current) {
+                  targetRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' })
+                }
+              }}
               className={`flex-1 py-3 px-4 text-sm font-medium text-center border-b-2 transition-colors ${
                 activeTab === tab.key
                   ? 'border-orange-500 text-orange-600'
@@ -245,10 +313,11 @@ export function RecipeDisplay({
           ))}
         </div>
 
-        {/* 탭 컨텐츠 */}
+        {/* 전체 컨텐츠 (스크롤 기반) */}
         <div className="pb-8">
-          {/* 재료 탭 */}
-          {activeTab === 'ingredients' && (
+          {/* 재료 섹션 */}
+          <div ref={ingredientsRef} className="mb-8">
+            <h3 className="font-semibold text-gray-900 mb-4 text-lg">재료</h3>
             <div className="space-y-3">
               {recipe.ingredients.map((ingredient, index) => (
                 <div key={index} className="flex items-center justify-between py-3 px-4 bg-gray-50 rounded-lg">
@@ -267,45 +336,24 @@ export function RecipeDisplay({
                 </div>
               ))}
             </div>
-          )}
+          </div>
 
-          {/* 조리단계 탭 */}
-          {activeTab === 'steps' && (
+          {/* 조리단계 섹션 */}
+          <div ref={stepsRef} className="mb-8">
+            <h3 className="font-semibold text-gray-900 mb-4 text-lg">조리단계</h3>
             <div className="space-y-4">
               {recipe.steps.map((step, index) => (
                 <div key={step.stepNumber} className="bg-gray-50 rounded-lg p-4">
                   <div className="flex gap-4">
-                    <div className="flex-shrink-0 w-8 h-8 rounded-full bg-orange-500 text-white flex items-center justify-center font-semibold text-sm">
+                    <div className="flex-shrink-0 w-8 h-8 rounded-full bg-gray-100 border border-gray-300 text-gray-700 flex items-center justify-center font-semibold text-sm">
                       {step.stepNumber}
                     </div>
                     <div className="flex-1 pt-1">
-                      {step.youtubeTimestampSecond !== undefined && step.youtubeTimestampSecond !== null && (
-                        <div className="flex gap-2 mb-3">
-                          <button
-                            onClick={() => handleSeekVideo(step.youtubeTimestampSecond)}
-                            disabled={!isPlayerReady}
-                            className="inline-flex items-center gap-1 px-2 py-1 bg-blue-50 hover:bg-blue-100 text-blue-600 hover:text-blue-700 rounded text-xs border border-blue-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                          >
-                            <Play className="h-3 w-3" />
-                            {formatTime(step.youtubeTimestampSecond)}
-                          </button>
-                          <button
-                            onClick={handlePauseVideo}
-                            disabled={!isPlayerReady}
-                            className="inline-flex items-center gap-1 px-2 py-1 bg-gray-50 hover:bg-gray-100 text-gray-600 hover:text-gray-700 rounded text-xs border border-gray-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                          >
-                            <svg className="h-3 w-3" fill="currentColor" viewBox="0 0 24 24">
-                              <path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z"/>
-                            </svg>
-                            일시중지
-                          </button>
-                        </div>
-                      )}
                       <div className="space-y-3">
-                        <p className="whitespace-pre-line text-gray-900 leading-relaxed">{step.description}</p>
+                        <p className="whitespace-pre-line text-gray-900 leading-relaxed font-medium">{step.description}</p>
                         {step.ingredientsUsed && step.ingredientsUsed.length > 0 && (
                           <p className="text-sm text-gray-600">
-                            <span className="font-medium">재료:</span> {step.ingredientsUsed.map(ingredient => {
+                            <span className="font-semibold">재료:</span> {step.ingredientsUsed.map(ingredient => {
                               if (typeof ingredient === 'string') {
                                 return ingredient;
                               }
@@ -321,11 +369,33 @@ export function RecipeDisplay({
                         )}
                         {step.notes && (
                           <p className="text-sm text-gray-600">
-                            <span className="font-medium">팁:</span> {step.notes}
+                            <span className="font-semibold">팁:</span> {step.notes}
                           </p>
                         )}
                         {getYoutubeTimestampRange(index) && (
                           <p className="text-xs text-gray-400">재생 시간: {getYoutubeTimestampRange(index)}</p>
+                        )}
+                        {step.youtubeTimestampSecond !== undefined && step.youtubeTimestampSecond !== null && (
+                          <div className="flex gap-2 pt-2">
+                            <button
+                              onClick={() => handleSeekVideo(step.youtubeTimestampSecond)}
+                              disabled={!isPlayerReady}
+                              className="inline-flex items-center gap-1 px-2 py-1 bg-blue-50 hover:bg-blue-100 text-blue-600 hover:text-blue-700 rounded text-xs border border-blue-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                              <Play className="h-3 w-3" />
+                              {formatTime(step.youtubeTimestampSecond)}
+                            </button>
+                            <button
+                              onClick={handlePauseVideo}
+                              disabled={!isPlayerReady}
+                              className="inline-flex items-center gap-1 px-2 py-1 bg-gray-50 hover:bg-gray-100 text-gray-600 hover:text-gray-700 rounded text-xs border border-gray-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                              <svg className="h-3 w-3" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z"/>
+                              </svg>
+                              일시중지
+                            </button>
+                          </div>
                         )}
                       </div>
                     </div>
@@ -333,33 +403,33 @@ export function RecipeDisplay({
                 </div>
               ))}
             </div>
-          )}
-
-          {/* 핵심팁 탭 */}
-          {activeTab === 'tips' && (
-            <div className="space-y-3">
-              {recipe.tips && recipe.tips.length > 0 ? (
-                recipe.tips.map((tip, index) => (
-                  <div key={index} className="bg-gray-50 rounded-lg p-4">
-                    <div className="flex gap-3">
-                      <div className="flex-shrink-0 w-6 h-6 rounded-full bg-orange-500 text-white flex items-center justify-center text-xs font-semibold">
-                        ✓
-                      </div>
-                      <div className="flex-1">
-                        <h4 className="font-semibold text-gray-900 mb-2">{tip.title}</h4>
-                        <p className="text-gray-700 text-sm leading-relaxed">{tip.description}</p>
+            
+            {/* 핵심팁을 조리단계 끝에 통합 */}
+            {recipe.tips && recipe.tips.length > 0 && (
+              <div className="mt-8">
+                <h4 className="font-semibold text-gray-900 mb-4">핵심팁</h4>
+                <div className="space-y-3">
+                  {recipe.tips.map((tip, index) => (
+                    <div key={index} className="bg-gray-50 rounded-lg p-4">
+                      <div className="flex gap-3">
+                        <div className="flex-shrink-0 w-6 h-6 rounded-full bg-gray-100 border border-gray-300 text-gray-600 flex items-center justify-center text-xs font-semibold">
+                          ✓
+                        </div>
+                        <div className="flex-1">
+                          <h5 className="font-semibold text-gray-900 mb-2">{tip.title}</h5>
+                          <p className="text-gray-700 text-sm leading-relaxed">{tip.description}</p>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))
-              ) : (
-                <p className="text-gray-500 text-center py-8">등록된 핵심팁이 없습니다.</p>
-              )}
-            </div>
-          )}
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
 
-          {/* 메모 탭 */}
-          {activeTab === 'memo' && (
+          {/* 메모 섹션 */}
+          <div ref={memoRef} className="mb-8">
+            <h3 className="font-semibold text-gray-900 mb-4 text-lg">멤모</h3>
             <div className="bg-gray-50 rounded-lg p-4">
               <Textarea
                 name="personalNotes"
@@ -381,7 +451,7 @@ export function RecipeDisplay({
                 </Button>
               </div>
             </div>
-          )}
+          </div>
         </div>
       </div>
     </div>

@@ -36,16 +36,16 @@ export function DashboardRecentRecipes({ recipes }: { recipes: RecipeListItemPro
               />
             </div>
             <div className="p-4">
-              <div className="flex justify-between items-start mb-2">
+              <div className="flex justify-between items-start mb-3">
                 <h3 className="text-sm font-semibold text-gray-900 line-clamp-1 flex-1">
                   {recipe.recipeName || "제목 없음"}
                 </h3>
                 <Bookmark className="w-4 h-4 text-gray-400 flex-none ml-2" />
               </div>
               {recipe.channelName && (
-                <p className="text-xs text-gray-500 mb-2">{recipe.channelName}</p>
+                <p className="text-xs text-gray-500 mb-8">{recipe.channelName}</p>
               )}
-              <div className="flex items-center gap-3 text-xs text-gray-400 mb-2">
+              <div className="flex items-center gap-4 text-xs text-gray-400 mb-8">
                 {recipe.cookingTimeMinutes && (
                   <div className="flex items-center gap-1">
                     <Clock className="w-3 h-3" />
@@ -60,7 +60,7 @@ export function DashboardRecentRecipes({ recipes }: { recipes: RecipeListItemPro
                 )}
               </div>
               {recipe.summary && (
-                <p className="text-xs text-gray-600 line-clamp-2 mb-2">
+                <p className="text-xs text-gray-600 line-clamp-2 mb-8">
                   {recipe.summary}
                 </p>
               )}
