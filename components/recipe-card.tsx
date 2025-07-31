@@ -11,7 +11,7 @@ import {
   DropdownMenuTrigger,
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu"
-import { MoreVertical, Trash2, Folder } from "lucide-react"
+import { MoreVertical, Trash2, Folder, Clock, BarChart3 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
 interface RecipeCardProps {
@@ -20,6 +20,8 @@ interface RecipeCardProps {
   videoThumbnail: string | null
   channelName: string | null
   summary: string | null
+  difficulty: string | null
+  cookingTimeMinutes: number | null
   onDelete: (id: string, name: string | null) => void
   onMove: (id: string, name: string | null) => void
   folders: { id: string; name: string }[] // 폴더 목록 추가
@@ -32,6 +34,8 @@ export function RecipeCard({
   videoThumbnail,
   channelName,
   summary,
+  difficulty,
+  cookingTimeMinutes,
   onDelete,
   onMove,
   folders,
@@ -57,11 +61,28 @@ export function RecipeCard({
           </AspectRatio>
         </CardHeader>
         <CardContent className="p-4 flex-1 flex flex-col">
-          <CardTitle className="text-lg font-semibold line-clamp-2 mb-1">{recipeName || "제목 없음"}</CardTitle>
+          <CardTitle className="text-lg font-semibold line-clamp-2 mb-2">{recipeName || "제목 없음"}</CardTitle>
           {channelName && (
             <CardDescription className="text-sm text-muted-foreground mb-2">{channelName}</CardDescription>
           )}
-          {summary && <p className="text-sm text-muted-foreground line-clamp-3">{summary}</p>}
+          
+          {/* 난이도와 조리시간 */}
+          <div className="flex items-center gap-3 text-sm text-gray-400 mb-2">
+            {cookingTimeMinutes ? (
+              <div className="flex items-center gap-1">
+                <Clock className="w-3 h-3" />
+                <span>{cookingTimeMinutes}분</span>
+              </div>
+            ) : <div></div>}
+            {difficulty ? (
+              <div className="flex items-center gap-1">
+                <BarChart3 className="w-3 h-3" />
+                <span>{difficulty}</span>
+              </div>
+            ) : <div></div>}
+          </div>
+          
+          {summary && <p className="text-sm text-muted-foreground line-clamp-2">{summary}</p>}
         </CardContent>
       </Link>
 

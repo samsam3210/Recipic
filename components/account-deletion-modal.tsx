@@ -125,15 +125,19 @@ export function AccountDeletionModal({
           </Button>
           {step === 1 && (
             <Button
-              variant="default"
               onClick={handleNextStep}
+              className="text-white hover:opacity-90"
+              style={{
+                background: 'linear-gradient(120deg, #FF9057 0%, #FF5722 100%)',
+                boxShadow: '0 3px 12px rgba(255, 87, 34, 0.3)'
+              }}
             >
               다음 단계
             </Button>
           )}
           {step === 2 && (
             <Button
-              variant="default"
+              variant="destructive"
               onClick={handleConfirmDeletion}
               disabled={!isConfirmTextValid || isDeleting}
             >

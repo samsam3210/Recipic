@@ -71,6 +71,11 @@ export function RecipesContent({ userId, selectedFolderId, page, limit, initialR
         <section className="flex-1 lg:w-4/5 space-y-10 min-h-screen">
           {actualIsLoading ? (
             <div className="space-y-10">
+              {/* 모바일 전용 로고 스켈레톤 */}
+              <div className="lg:hidden px-6">
+                <div className="h-8 w-32 bg-gray-200 rounded animate-pulse"></div>
+              </div>
+              
               {/* 모바일 폴더 선택기 스켈레톤 */}
               <div className="lg:hidden">
                 <div className="h-10 w-full bg-gray-200 rounded animate-pulse"></div>

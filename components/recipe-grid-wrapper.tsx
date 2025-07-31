@@ -310,7 +310,14 @@ export default function RecipeGridWrapper({
           <p className="text-sm text-gray-400 mb-6">
             마음에 드는 레시피를 저장해보세요!
           </p>
-          <Button variant="outline" onClick={() => router.push('/search')}>
+          <Button 
+            onClick={() => router.push('/search')}
+            className="text-white hover:opacity-90"
+            style={{
+              background: 'linear-gradient(120deg, #FF9057 0%, #FF5722 100%)',
+              boxShadow: '0 3px 12px rgba(255, 87, 34, 0.3)'
+            }}
+          >
             <Plus className="w-4 h-4 mr-2" />
             새로운 레시피 추출하기
           </Button>
@@ -335,6 +342,11 @@ export default function RecipeGridWrapper({
               router.push(`/recipes?${newSearchParams.toString()}`)
             }}
             disabled={isFetching || actualIsLoading}
+            className="text-white hover:opacity-90"
+            style={{
+              background: 'linear-gradient(120deg, #FF9057 0%, #FF5722 100%)',
+              boxShadow: '0 3px 12px rgba(255, 87, 34, 0.3)'
+            }}
           >
             {isFetching ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}더 불러오기
           </Button>
@@ -384,8 +396,12 @@ export default function RecipeGridWrapper({
                 variant={selectedMoveToFolderId === null ? "default" : "ghost"}
                 className={cn(
                   "w-full justify-start mb-1",
-                  selectedMoveToFolderId === null && "bg-blue-600 hover:bg-blue-700 text-white"
+                  selectedMoveToFolderId === null && "text-white"
                 )}
+                style={selectedMoveToFolderId === null ? {
+                  background: 'linear-gradient(120deg, #FF9057 0%, #FF5722 100%)',
+                  boxShadow: '0 3px 12px rgba(255, 87, 34, 0.3)'
+                } : undefined}
                 onClick={() => handleSelectFolderToMove(null)}
                 disabled={isMoving}
               >
@@ -399,8 +415,12 @@ export default function RecipeGridWrapper({
                     variant={selectedMoveToFolderId === folder.id ? "default" : "ghost"}
                     className={cn(
                       "w-full justify-start mb-1",
-                      selectedMoveToFolderId === folder.id && "bg-blue-600 hover:bg-blue-700 text-white"
+                      selectedMoveToFolderId === folder.id && "text-white"
                     )}
+                    style={selectedMoveToFolderId === folder.id ? {
+                      background: 'linear-gradient(120deg, #FF9057 0%, #FF5722 100%)',
+                      boxShadow: '0 3px 12px rgba(255, 87, 34, 0.3)'
+                    } : undefined}
                     onClick={() => handleSelectFolderToMove(folder.id)}
                     disabled={isMoving}
                   >
@@ -420,7 +440,11 @@ export default function RecipeGridWrapper({
             <Button 
               onClick={handleConfirmMoveToFolder} 
               disabled={isMoving}
-              className="bg-blue-600 hover:bg-blue-700"
+              className="text-white hover:opacity-90"
+              style={{
+                background: 'linear-gradient(120deg, #FF9057 0%, #FF5722 100%)',
+                boxShadow: '0 3px 12px rgba(255, 87, 34, 0.3)'
+              }}
             >
               {isMoving ? (
                 <>

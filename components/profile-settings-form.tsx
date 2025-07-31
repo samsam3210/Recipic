@@ -224,7 +224,16 @@ export function ProfileSettingsForm({ user, userProfile: initialProfile }: Profi
                     className="flex-1"
                     disabled={isSaving}
                   />
-                  <Button onClick={handleSave} disabled={isSaving} size="icon" variant="ghost">
+                  <Button 
+                    onClick={handleSave} 
+                    disabled={isSaving} 
+                    size="icon" 
+                    className="text-white hover:opacity-90"
+                    style={{
+                      background: 'linear-gradient(120deg, #FF9057 0%, #FF5722 100%)',
+                      boxShadow: '0 3px 12px rgba(255, 87, 34, 0.3)'
+                    }}
+                  >
                     {isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
                   </Button>
                   <Button onClick={handleCancel} variant="ghost" size="icon" disabled={isSaving}>
@@ -236,7 +245,15 @@ export function ProfileSettingsForm({ user, userProfile: initialProfile }: Profi
                   <p className="text-lg font-semibold text-gray-900 flex-1">
                     {userProfile.nickname || "이름 없음"}
                   </p>
-                  <Button onClick={() => setIsEditing(true)} variant="ghost" size="icon">
+                  <Button 
+                    onClick={() => setIsEditing(true)} 
+                    size="icon" 
+                    className="text-white hover:opacity-90"
+                    style={{
+                      background: 'linear-gradient(120deg, #FF9057 0%, #FF5722 100%)',
+                      boxShadow: '0 3px 12px rgba(255, 87, 34, 0.3)'
+                    }}
+                  >
                     <Edit2 className="h-4 w-4" />
                   </Button>
                 </>

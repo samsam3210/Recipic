@@ -80,9 +80,9 @@ export function FloatingExtractionBar() {
             {error ? (
               <AlertCircle className="w-5 h-5 text-red-500" />
             ) : isCompleted ? (
-              <CheckCircle className="w-5 h-5 text-green-500" />
+              <CheckCircle className="w-5 h-5 text-orange-500" />
             ) : (
-              <div className="w-5 h-5 rounded-full border-2 border-blue-500 border-t-transparent animate-spin" />
+              <div className="w-5 h-5 rounded-full border-2 border-orange-500 border-t-transparent animate-spin" />
             )}
             <h3 className="font-semibold text-gray-900">
               {error ? "추출 실패" : isCompleted ? "추출 완료!" : "레시피 추출 중"}
@@ -226,7 +226,7 @@ export function FloatingExtractionBar() {
                         <div 
                           className={cn(
                             "w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold transition-all duration-300",
-                            isCompleted && "bg-green-500 text-white",
+                            isCompleted && "bg-orange-500 text-white",
                             isActive && !isCompleted && "text-white animate-pulse",
                             !isActive && !isCompleted && !isError && "bg-gray-200 text-gray-500",
                             isError && "bg-red-500 text-white"
@@ -240,7 +240,7 @@ export function FloatingExtractionBar() {
                         <div className="flex-1 min-w-0">
                           <p className={cn(
                             "text-sm font-medium transition-colors duration-300",
-                            isCompleted && "text-green-600",
+                            isCompleted && "text-orange-600",
                             isActive && !isCompleted && "text-orange-600",
                             !isActive && !isCompleted && !isError && "text-gray-500",
                             isError && "text-red-600"
@@ -250,7 +250,7 @@ export function FloatingExtractionBar() {
                           <p className={cn(
                             "text-xs transition-colors duration-300 truncate",
                             isActive && !isCompleted && "text-orange-500",
-                            isCompleted && "text-green-500",
+                            isCompleted && "text-orange-500",
                             !isActive && !isCompleted && !isError && "text-gray-400",
                             isError && "text-red-500"
                           )}>
@@ -266,7 +266,7 @@ export function FloatingExtractionBar() {
                 <Button 
                   onClick={stopExtraction}
                   variant="outline"
-                  className="w-full text-red-600 border-red-200 hover:bg-red-50"
+                  className="w-full text-gray-600 border-gray-300 hover:bg-gray-50"
                 >
                   추출 중지
                 </Button>

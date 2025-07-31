@@ -7,6 +7,8 @@ interface RecipeGridProps {
     videoThumbnail: string | null
     channelName: string | null
     summary: string | null
+    difficulty: string | null
+    cookingTimeMinutes: number | null
   }[]
   onDelete: (id: string, name: string | null) => void // onDelete prop 추가
   onMove: (id: string, name: string | null) => void // onMove prop 추가
@@ -25,6 +27,8 @@ export function RecipeGrid({ recipes, onDelete, onMove, folders, currentFolderId
           videoThumbnail={recipe.videoThumbnail}
           channelName={recipe.channelName}
           summary={recipe.summary}
+          difficulty={recipe.difficulty}
+          cookingTimeMinutes={recipe.cookingTimeMinutes}
           onDelete={onDelete} // onDelete prop 전달
           onMove={onMove} // onMove prop 전달
           folders={folders} // 폴더 목록 전달
