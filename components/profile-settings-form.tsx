@@ -129,33 +129,24 @@ export function ProfileSettingsForm({ user, userProfile: initialProfile }: Profi
     })
 
     try {
-      const serverSignOutResult = await signOut()
-
-      if (serverSignOutResult.success) {
-        const { error: clientSignOutError } = await supabase.auth.signOut()
-
-        if (clientSignOutError) {
-          console.error("[ProfileSettingsForm] Client-side signOut failed:", clientSignOutError.message)
-          toast({
-            title: "로그아웃 실패",
-            description: clientSignOutError.message || "클라이언트 로그아웃 중 오류가 발생했습니다.",
-            variant: "destructive",
-          })
-        } else {
-          toast({
-            title: "로그아웃 완료",
-            description: serverSignOutResult.message,
-          })
-          window.location.href = "/"
-        }
-      } else {
-        console.error("[ProfileSettingsForm] Server signOut failed:", serverSignOutResult.message)
-        toast({
-          title: "로그아웃 실패",
-          description: serverSignOutResult.message,
-          variant: "destructive",
-        })
+      // 1. 클라이언트 세션 삭제 (세션 만료 상태여도 로컬 토큰 정리)
+      const { error: clientSignOutError } = await supabase.auth.signOut()
+      
+      if (clientSignOutError) {
+        console.warn("[ProfileSettingsForm] Client signOut warning (but continuing):", clientSignOutError.message)
       }
+
+      // 2. 서버 캐시 정리 (항상 성공)
+      await signOut()
+
+      toast({
+        title: "로그아웃 완료",
+        description: "성공적으로 로그아웃되었습니다.",
+      })
+      
+      // 3. 홈으로 리다이렉트
+      window.location.href = "/"
+      
     } catch (error: any) {
       console.error("[ProfileSettingsForm] Unexpected error during logout:", error)
       toast({

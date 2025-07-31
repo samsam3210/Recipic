@@ -5,24 +5,6 @@ import { cache } from "react"
 export const createClient = cache(() => {
   const cookieStore = cookies()
 
-  // NEXT_PUBLIC_BASE_URL에서 쿠키 도메인을 동적으로 추출
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL
-  let cookieDomain: string | undefined
-
-  if (baseUrl) {
-    try {
-      const url = new URL(baseUrl)
-      // Vercel 배포 환경에서는 .vercel.app 도메인을 사용하므로,
-      // 서브도메인까지 포함하는 hostname을 그대로 사용합니다.
-      cookieDomain = url.hostname
-      console.log(`[Supabase Server Client] Derived cookie domain: ${cookieDomain}`)
-    } catch (e) {
-      console.error("[Supabase Server Client] Invalid NEXT_PUBLIC_BASE_URL for cookie domain derivation:", e)
-    }
-  } else {
-    console.warn("[Supabase Server Client] NEXT_PUBLIC_BASE_URL is not set. Cookie domain might not be explicitly set.")
-  }
-
   return createServerClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!, {
     cookies: {
       get(name: string) {
@@ -30,20 +12,32 @@ export const createClient = cache(() => {
       },
       set(name: string, value: string, options: CookieOptions) {
         try {
-          cookieStore.set({
+          const cookieOptions: any = {
             name,
             value,
+            path: "/",
+            // 세션 쿠키는 7일간 유지
+            ...(name.includes('auth-token') && {
+              maxAge: 7 * 24 * 60 * 60, // 7일 (초 단위)
+            }),
+            // 프로덕션 환경에서만 secure 설정
+            secure: process.env.NODE_ENV === "production",
+            // SameSite 정책으로 CSRF 보호
+            sameSite: "lax",
+            // HttpOnly는 auth 토큰에만 적용 (XSS 보호)
+            ...(name.includes('auth-token') && { httpOnly: true }),
             ...options,
-            // 명시적으로 도메인 설정 (있는 경우)
-            ...(cookieDomain && { domain: cookieDomain }),
-            // 프로덕션 환경에서는 항상 secure: true
-            secure: process.env.NODE_ENV === "production" || options.secure,
-            // SameSite 정책 설정 (기본값 Lax, 필요시 None으로 변경 가능하나 보안 고려)
-            sameSite: options.sameSite || "Lax",
+          }
+
+          cookieStore.set(cookieOptions)
+          
+          console.log(`[Supabase Server Client] Set cookie: ${name}`, {
+            maxAge: name.includes('auth-token') ? '7 days' : options.maxAge,
+            secure: process.env.NODE_ENV === "production",
+            sameSite: "lax",
+            httpOnly: name.includes('auth-token')
           })
         } catch (error) {
-          // The `cookies().set()` method can only be called from a Server Component or Server Action.
-          // This error can be ignored if you are processing a form submission with `redirect()` enabled
           console.error("[Supabase Server Client] Error setting cookie:", error)
         }
       },
@@ -52,15 +46,14 @@ export const createClient = cache(() => {
           cookieStore.set({
             name,
             value: "",
-            ...options,
+            path: "/",
             expires: new Date(0), // 즉시 만료
-            ...(cookieDomain && { domain: cookieDomain }),
-            secure: process.env.NODE_ENV === "production" || options.secure,
-            sameSite: options.sameSite || "Lax",
+            secure: process.env.NODE_ENV === "production",
+            sameSite: "lax",
+            ...options,
           })
+          console.log(`[Supabase Server Client] Removed cookie: ${name}`)
         } catch (error) {
-          // The `cookies().set()` method can only be called from a Server Component or Server Action.
-          // This error can be ignored if you are processing a form submission with `redirect()` enabled
           console.error("[Supabase Server Client] Error removing cookie:", error)
         }
       },

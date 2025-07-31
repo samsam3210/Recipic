@@ -38,16 +38,8 @@ export async function signInWithGoogle() {
 }
 
 export async function signOut() {
-  const supabase = createClient()
-  console.log("[Auth Action signOut] Attempting to sign out via Supabase...")
-  const { error } = await supabase.auth.signOut()
-
-  if (error) {
-    console.error("[Auth Action signOut] Error signing out from Supabase:", error)
-    return { success: false, message: error.message || "로그아웃 실패" }
-  }
-
-  console.log("[Auth Action signOut] Supabase signOut successful. Revalidating path.")
+  console.log("[Auth Action signOut] Clearing server-side cache...")
+  // 서버 세션 상태와 관계없이 캐시만 무효화
   revalidatePath("/", "layout") // 전체 레이아웃 캐시 무효화
   return { success: true, message: "로그아웃 성공" }
 }
