@@ -46,7 +46,7 @@ export function RecipeCard({
     timestamp: new Date().toISOString()
   })
   return (
-    <div className="bg-white rounded-2xl shadow-sm hover:shadow-md cursor-pointer transition-all duration-200 border border-gray-100 p-4 relative">
+    <div className="bg-white rounded-2xl shadow-md hover:shadow-lg cursor-pointer transition-all duration-200 border border-gray-200 p-4 relative">
       <Link href={`/recipe/${id}`} className="block">
         {/* 썸네일 - 상단 전체 너비 */}
         <div className="relative w-full mb-3">

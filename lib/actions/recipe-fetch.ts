@@ -21,8 +21,8 @@ export async function fetchRecipesAndFolders(userId: string, selectedFolderId: s
 
   let fetchedRecipes = []
   if (selectedFolderId === null) {
-    // '모든 레시피' 선택 시: userId에 해당하는 모든 레시피를 가져옵니다.
-    fetchedRecipes = await db.select().from(recipes).where(eq(recipes.userId, userId)).orderBy(desc(recipes.createdAt))
+    // '모든 레시피' 선택 시: userId에 해당하는 삭제되지 않은 모든 레시피를 가져옵니다.
+    fetchedRecipes = await db.select().from(recipes).where(and(eq(recipes.userId, userId), eq(recipes.deleted, false))).orderBy(desc(recipes.createdAt))
   } else {
     // 특정 폴더 선택 시: recipeFolders 테이블을 조인하여 해당 폴더에 속한 레시피만 가져옵니다.
     const folderRecipes = await db
@@ -36,7 +36,7 @@ export async function fetchRecipesAndFolders(userId: string, selectedFolderId: s
       fetchedRecipes = await db
         .select()
         .from(recipes)
-        .where(and(eq(recipes.userId, userId), inArray(recipes.id, recipeIds)))
+        .where(and(eq(recipes.userId, userId), inArray(recipes.id, recipeIds), eq(recipes.deleted, false)))
         .orderBy(desc(recipes.createdAt))
     } else {
       // 폴더에 레시피가 없는 경우
@@ -76,7 +76,7 @@ export async function getPaginatedRecipes({
   const offset = (page - 1) * limit
 
   try {
-    const queryConditions = [eq(recipes.userId, userId)]
+    const queryConditions = [eq(recipes.userId, userId), eq(recipes.deleted, false)]
     let fetchedRecipes: (typeof recipes.$inferSelect)[] = []
 
     if (folderId) {
@@ -139,9 +139,39 @@ export async function fetchRecentRecipes(userId: string, limit = 3) {
       .orderBy(desc(recipes.createdAt))
       .limit(limit)
 
-    return { recipes: recentRecipes, error: null }
+    // 모든 레시피에 isSaved: true 추가 (사용자가 저장한 레시피이므로)
+    const recipesWithBookmarkStatus = recentRecipes.map(recipe => ({
+      ...recipe,
+      isSaved: true
+    }))
+
+    return { recipes: recipesWithBookmarkStatus, error: null }
   } catch (error) {
     console.error("Error fetching recent recipes:", error)
     return { recipes: [], error: `Failed to fetch recent recipes: ${(error as Error).message}` }
+  }
+}
+
+// 사용자의 모든 저장된 레시피 ID 목록을 가져오는 함수
+export async function getUserSavedRecipeIds(userId: string): Promise<{ recipeIds: string[], error: string | null }> {
+  const supabase = createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
+  if (!user || user.id !== userId) {
+    return { recipeIds: [], error: "Unauthorized" }
+  }
+
+  try {
+    const savedRecipes = await db
+      .select({ id: recipes.id })
+      .from(recipes)
+      .where(and(eq(recipes.userId, userId), eq(recipes.deleted, false)))
+
+    return { recipeIds: savedRecipes.map(r => r.id), error: null }
+  } catch (error) {
+    console.error("Error fetching user saved recipe IDs:", error)
+    return { recipeIds: [], error: `Failed to fetch saved recipe IDs: ${(error as Error).message}` }
   }
 }

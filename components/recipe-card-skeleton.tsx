@@ -2,7 +2,7 @@ import { Skeleton } from "@/components/ui/skeleton"
 
 export function RecipeCardSkeleton() {
   return (
-    <div className="bg-white rounded-2xl shadow-sm hover:shadow-md cursor-pointer transition-all duration-200 border border-gray-100 p-4 relative">
+    <div className="bg-white rounded-2xl shadow-md hover:shadow-lg cursor-pointer transition-all duration-200 border border-gray-200 p-4 relative">
       {/* 썸네일 - 상단 전체 너비 */}
       <div className="relative w-full mb-3">
         <div className="relative w-full aspect-video rounded-xl overflow-hidden">

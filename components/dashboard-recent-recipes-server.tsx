@@ -5,6 +5,9 @@ import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
 import { BookOpen, Clock, BarChart3, Bookmark, BookmarkCheck } from "lucide-react"
 import Image from "next/image"
+import { deleteRecipe, saveRecipeFromRecentlyViewed } from "@/lib/actions/recipe"
+import { useState, useEffect } from "react"
+import { useToast } from "@/hooks/use-toast"
 
 interface RecentlyViewedRecipeProps {
   id: string
@@ -40,6 +43,76 @@ interface DashboardRecentRecipesServerProps {
 }
 
 export function DashboardRecentRecipesServer({ recipes, isLoading = false }: DashboardRecentRecipesServerProps) {
+  const [localRecipes, setLocalRecipes] = useState(recipes)
+  const [bookmarkLoadingIds, setBookmarkLoadingIds] = useState<Set<string>>(new Set())
+  const { toast } = useToast()
+
+  // recipes prop이 변경되면 localRecipes 업데이트
+  useEffect(() => {
+    setLocalRecipes(recipes)
+  }, [recipes])
+
+  // 북마크 토글 함수
+  const handleBookmarkToggle = async (recipe: RecentlyViewedRecipeProps) => {
+    const isSaved = !!recipe.savedRecipeId
+    
+    setBookmarkLoadingIds(prev => new Set([...prev, recipe.id]))
+    
+    try {
+      if (isSaved && recipe.savedRecipeId) {
+        // 삭제
+        const result = await deleteRecipe(recipe.savedRecipeId)
+        if (result.success) {
+          // UI 업데이트: savedRecipeId를 null로 설정
+          setLocalRecipes(prev => 
+            prev.map(r => 
+              r.id === recipe.id 
+                ? { ...r, savedRecipeId: null }
+                : r
+            )
+          )
+          toast({
+            title: "레시피 삭제",
+            description: `"${recipe.recipeName || "레시피"}"를 나의레시피에서 삭제했습니다.`,
+          })
+        } else {
+          throw new Error(result.message)
+        }
+      } else {
+        // 저장
+        const result = await saveRecipeFromRecentlyViewed(recipe.id)
+        if (result.success && result.recipeId) {
+          // UI 업데이트: savedRecipeId 설정
+          setLocalRecipes(prev => 
+            prev.map(r => 
+              r.id === recipe.id 
+                ? { ...r, savedRecipeId: result.recipeId }
+                : r
+            )
+          )
+          toast({
+            title: "레시피 저장",
+            description: `"${recipe.recipeName || "레시피"}"를 나의레시피에 저장했습니다.`,
+          })
+        } else {
+          throw new Error(result.message)
+        }
+      }
+    } catch (error: any) {
+      console.error("북마크 토글 실패:", error)
+      toast({
+        title: "오류",
+        description: error.message || "북마크 처리 중 오류가 발생했습니다.",
+        variant: "destructive",
+      })
+    } finally {
+      setBookmarkLoadingIds(prev => {
+        const newSet = new Set(prev)
+        newSet.delete(recipe.id)
+        return newSet
+      })
+    }
+  }
   return (
     <div>
       <div className="px-6 mb-6">
@@ -81,7 +154,7 @@ export function DashboardRecentRecipesServer({ recipes, isLoading = false }: Das
             </div>
           ))}
         </div>
-      ) : recipes.length === 0 ? (
+      ) : localRecipes.length === 0 ? (
         <div className="text-center py-12 px-6">
           <div className="mb-6">
             <BookOpen className="w-16 h-16 mx-auto text-gray-300" />
@@ -105,7 +178,7 @@ export function DashboardRecentRecipesServer({ recipes, isLoading = false }: Das
               display: none;
             }
           `}</style>
-          {recipes.map((recipe) => (
+          {localRecipes.map((recipe) => (
             <div key={recipe.id} className="flex-none" style={{ width: '256px' }}>
               <div className="bg-white rounded-2xl shadow-sm p-4">
                 <div className="relative w-full rounded-xl overflow-hidden mb-3" style={{ paddingBottom: '56.25%' }}>
@@ -190,17 +263,21 @@ export function DashboardRecentRecipesServer({ recipes, isLoading = false }: Das
                       레시피 보기
                     </button>
                 <button
-                  className={`w-12 h-12 flex items-center justify-center rounded-full border transition-colors ${
+                  className={`w-12 h-12 flex items-center justify-center rounded-full border transition-colors disabled:opacity-50 ${
                     recipe.savedRecipeId 
                       ? 'bg-orange-50 border-orange-200 hover:bg-orange-100' 
                       : 'bg-white border-gray-300 hover:bg-gray-50'
                   }`}
-                  onClick={() => {
-                    // TODO: 북마크 기능 구현
-                    console.log('Bookmark clicked for recipe:', recipe.id)
+                  disabled={bookmarkLoadingIds.has(recipe.id)}
+                  onClick={(e) => {
+                    e.preventDefault()
+                    e.stopPropagation()
+                    handleBookmarkToggle(recipe)
                   }}
                 >
-                  {recipe.savedRecipeId ? (
+                  {bookmarkLoadingIds.has(recipe.id) ? (
+                    <div className="w-5 h-5 border-2 border-orange-500 border-t-transparent rounded-full animate-spin" />
+                  ) : recipe.savedRecipeId ? (
                     <BookmarkCheck className="w-5 h-5 text-orange-500 fill-current" />
                   ) : (
                     <Bookmark className="w-5 h-5 text-gray-600" />

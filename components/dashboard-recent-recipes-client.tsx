@@ -6,7 +6,8 @@ import { Button } from "@/components/ui/button"
 import Link from "next/link"
 import Image from "next/image"
 import { Clock, BarChart3, Bookmark, BookOpen } from "lucide-react"
-import { fetchRecentRecipes } from "@/lib/actions/recipe-fetch"
+import { getRecentlyViewedRecipes } from "@/lib/actions/recently-viewed"
+import { deleteRecipe, saveRecipeFromRecentlyViewed } from "@/lib/actions/recipe"
 import { useToast } from "@/hooks/use-toast"
 
 interface RecipeListItemProps {
@@ -17,6 +18,7 @@ interface RecipeListItemProps {
   summary: string | null
   cookingTimeMinutes?: number | null
   difficulty?: string | null
+  savedRecipeId?: string | null
 }
 
 interface DashboardRecentRecipesClientProps {
@@ -26,22 +28,25 @@ interface DashboardRecentRecipesClientProps {
 export function DashboardRecentRecipesClient({ userId }: DashboardRecentRecipesClientProps) {
   const [recentRecipes, setRecentRecipes] = useState<RecipeListItemProps[]>([])
   const [isLoading, setIsLoading] = useState(true)
+  const [bookmarkLoadingIds, setBookmarkLoadingIds] = useState<Set<string>>(new Set())
   const { toast } = useToast()
 
   useEffect(() => {
-    const loadRecentRecipes = async () => {
+    const loadData = async () => {
       setIsLoading(true)
       try {
-        const { recipes: fetchedRecipes, error } = await fetchRecentRecipes(userId, 10)
-        if (error) {
-          throw new Error(error)
+        const result = await getRecentlyViewedRecipes()
+        
+        if (!result.success) {
+          throw new Error(result.message || "최근 조회한 레시피를 불러오는 데 실패했습니다.")
         }
-        setRecentRecipes(fetchedRecipes)
+        
+        setRecentRecipes(result.recipes || [])
       } catch (err: any) {
-        console.error("Failed to load recent recipes:", err)
+        console.error("Failed to load recently viewed recipes:", err)
         toast({
           title: "오류",
-          description: err.message || "최근 레시피를 불러오는 데 실패했습니다.",
+          description: err.message || "최근 조회한 레시피를 불러오는 데 실패했습니다.",
           variant: "destructive",
         })
         setRecentRecipes([])
@@ -50,10 +55,70 @@ export function DashboardRecentRecipesClient({ userId }: DashboardRecentRecipesC
       }
     }
 
-    if (userId) {
-      loadRecentRecipes()
+    loadData()
+  }, [toast])
+
+  // 북마크 토글 함수
+  const handleBookmarkToggle = async (recipe: RecipeListItemProps) => {
+    const isSaved = !!recipe.savedRecipeId
+    
+    setBookmarkLoadingIds(prev => new Set([...prev, recipe.id]))
+    
+    try {
+      if (isSaved && recipe.savedRecipeId) {
+        // 삭제
+        const result = await deleteRecipe(recipe.savedRecipeId)
+        if (result.success) {
+          // UI 업데이트: savedRecipeId를 null로 설정
+          setRecentRecipes(prev => 
+            prev.map(r => 
+              r.id === recipe.id 
+                ? { ...r, savedRecipeId: null }
+                : r
+            )
+          )
+          toast({
+            title: "레시피 삭제",
+            description: `"${recipe.recipeName || "레시피"}"를 나의레시피에서 삭제했습니다.`,
+          })
+        } else {
+          throw new Error(result.message)
+        }
+      } else {
+        // 저장
+        const result = await saveRecipeFromRecentlyViewed(recipe.id)
+        if (result.success && result.recipeId) {
+          // UI 업데이트: savedRecipeId 설정
+          setRecentRecipes(prev => 
+            prev.map(r => 
+              r.id === recipe.id 
+                ? { ...r, savedRecipeId: result.recipeId }
+                : r
+            )
+          )
+          toast({
+            title: "레시피 저장",
+            description: `"${recipe.recipeName || "레시피"}"를 나의레시피에 저장했습니다.`,
+          })
+        } else {
+          throw new Error(result.message)
+        }
+      }
+    } catch (error: any) {
+      console.error("북마크 토글 실패:", error)
+      toast({
+        title: "오류",
+        description: error.message || "북마크 처리 중 오류가 발생했습니다.",
+        variant: "destructive",
+      })
+    } finally {
+      setBookmarkLoadingIds(prev => {
+        const newSet = new Set(prev)
+        newSet.delete(recipe.id)
+        return newSet
+      })
     }
-  }, [userId, toast])
+  }
 
   return (
     <div className="p-6">
@@ -82,7 +147,7 @@ export function DashboardRecentRecipesClient({ userId }: DashboardRecentRecipesC
           `}</style>
           {Array.from({ length: 3 }).map((_, i) => (
             <div key={i} className="flex-none" style={{ width: '224px' }}>
-              <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
+              <div className="bg-white rounded-2xl shadow-md overflow-hidden border border-gray-200">
                 <div className="relative w-full" style={{ paddingBottom: '56.25%' }}>
                   <Skeleton className="absolute inset-0 w-full h-full" />
                 </div>
@@ -122,7 +187,7 @@ export function DashboardRecentRecipesClient({ userId }: DashboardRecentRecipesC
           `}</style>
           {recentRecipes.map((recipe) => (
             <div key={recipe.id} className="flex-none" style={{ width: '224px' }}>
-              <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
+              <div className="bg-white rounded-2xl shadow-md overflow-hidden border border-gray-200">
                 <div className="relative w-full" style={{ paddingBottom: '56.25%' }}>
                   <Image
                     src={recipe.videoThumbnail || "/placeholder.svg?height=192&width=256&text=No+Thumbnail"}
@@ -136,7 +201,27 @@ export function DashboardRecentRecipesClient({ userId }: DashboardRecentRecipesC
                     <h3 className="text-sm font-semibold text-gray-900 line-clamp-1 flex-1">
                       {recipe.recipeName || "제목 없음"}
                     </h3>
-                    <Bookmark className="w-4 h-4 text-gray-400 flex-none ml-2" />
+                    <button
+                      onClick={(e) => {
+                        e.preventDefault()
+                        e.stopPropagation()
+                        handleBookmarkToggle(recipe.id, recipe.recipeName)
+                      }}
+                      disabled={bookmarkLoadingIds.has(recipe.id)}
+                      className="flex-none ml-2 p-1 rounded-full hover:bg-gray-100 transition-colors disabled:opacity-50"
+                    >
+                      {bookmarkLoadingIds.has(recipe.id) ? (
+                        <div className="w-4 h-4 border-2 border-orange-500 border-t-transparent rounded-full animate-spin" />
+                      ) : (
+                        <Bookmark 
+                          className={`w-4 h-4 transition-colors ${
+                            recipe.savedRecipeId 
+                              ? 'text-orange-500 fill-orange-500' 
+                              : 'text-gray-400 hover:text-orange-500'
+                          }`} 
+                        />
+                      )}
+                    </button>
                   </div>
                   {recipe.channelName && (
                     <p className="text-xs text-gray-500 mb-2">{recipe.channelName}</p>

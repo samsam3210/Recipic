@@ -1,4 +1,4 @@
-import { pgTable, uuid, text, timestamp, integer, jsonb, primaryKey, unique } from "drizzle-orm/pg-core"
+import { pgTable, uuid, text, timestamp, integer, jsonb, primaryKey, unique, boolean } from "drizzle-orm/pg-core"
 import { sql } from "drizzle-orm"
 
 
@@ -29,6 +29,7 @@ export const recipes = pgTable("recipes", {
   steps: jsonb("steps"),
   tips: jsonb("tips"),
   personalNotes: text("personal_notes").default(null),
+  deleted: boolean("deleted").default(false).notNull(),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow(),
 })

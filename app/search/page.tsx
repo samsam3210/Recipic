@@ -716,7 +716,7 @@ function SearchPageContent({ user }: { user: User }) {
                 {searchResults.map((video) => (
                     <div
                     key={video.videoId}
-                    className="bg-white rounded-2xl shadow-sm hover:shadow-md cursor-pointer transition-all duration-200 border border-gray-100 p-4"
+                    className="bg-white rounded-2xl shadow-md hover:shadow-lg cursor-pointer transition-all duration-200 border border-gray-200 p-4"
                     onClick={() => handleVideoSelect(video)}
                     >
                     {/* 썸네일 - 상단 전체 너비 */}
