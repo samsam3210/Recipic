@@ -37,9 +37,9 @@ export function DashboardContent({ user }: { user: any }) {
             <Image
               src="/recipick-logo.png"
               alt="Recipick"
-              width={160}
-              height={40}
-              className="h-10 w-auto mb-6"
+              width={180}
+              height={45}
+              className="h-11 w-auto mb-6"
             />
           </div>
           

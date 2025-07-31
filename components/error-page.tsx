@@ -22,9 +22,9 @@ export default function ErrorPage() {
               <Image
                 src="/recipick-logo.png"
                 alt="Recipick"
-                width={140}
-                height={36}
-                className="h-9 w-auto mx-auto"
+                width={200}
+                height={52}
+                className="h-13 w-auto mx-auto"
               />
             </CardTitle>
             <CardDescription className="text-lg mt-2">

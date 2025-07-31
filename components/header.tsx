@@ -43,15 +43,15 @@ export function Header({ hideAuthButton = false }: HeaderProps) {
       <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 hidden lg:block">
         <div className="container flex h-16 items-center">
           <div className="mr-6 flex items-center">
-            <Link href="/" className="flex items-center">
+            <div className="flex items-center">
               <Image
                 src="/recipick-logo.png"
                 alt="Recipick"
-                width={120}
-                height={32}
-                className="h-8 w-auto"
+                width={140}
+                height={36}
+                className="h-9 w-auto"
               />
-            </Link>
+            </div>
           </div>
           <div className="ml-auto flex items-center">
             <div className="h-8 w-8 bg-gray-200 rounded-full animate-pulse"></div>
@@ -134,17 +134,17 @@ export function Header({ hideAuthButton = false }: HeaderProps) {
 
       <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 hidden lg:block">
         <div className="container flex h-16 items-center">
-          {/* 로고 - 텍스트만 */}
+          {/* 로고 */}
           <div className="mr-6 flex items-center">
-            <Link href="/" className="flex items-center">
+            <div className="flex items-center">
               <Image
                 src="/recipick-logo.png"
                 alt="Recipick"
-                width={120}
-                height={32}
-                className="h-8 w-auto"
+                width={140}
+                height={36}
+                className="h-9 w-auto"
               />
-            </Link>
+            </div>
           </div>
 
           {/* 우측 영역 - 비로그인 사용자만 로그인 버튼 */}

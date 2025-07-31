@@ -68,8 +68,8 @@ export function ConsentModal({ isOpen, onClose }: ConsentModalProps) {
             <Image
               src="/recipick-logo.png"
               alt="Recipick"
-              width={180}
-              height={48}
+              width={200}
+              height={50}
               className="h-12 w-auto mx-auto"
             />
           </DialogTitle>
