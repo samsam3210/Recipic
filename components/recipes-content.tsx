@@ -93,7 +93,9 @@ export function RecipesContent({ userId, selectedFolderId, page, limit, initialR
             </div>
           ) : (
             <>
-              <MobileFolderSelector folders={cachedFolders} selectedFolderId={selectedFolderId} />
+              <div className="px-6">
+                <MobileFolderSelector folders={cachedFolders} selectedFolderId={selectedFolderId} />
+              </div>
               
               <div className="px-6">
                 <CurrentFolderTitle folders={cachedFolders} />
