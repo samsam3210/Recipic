@@ -721,7 +721,7 @@ export function HeroSection({ user, isDashboard = false, cachedUsageData = null,
                       />
                     </div>
                   </div>
-                  <p className="text-sm text-gray-600 leading-relaxed text-left">
+                  <p className="text-sm text-gray-600 leading-relaxed text-center">
                     Recipick AI가 레시피 추출을 도와드려요.
                   </p>
                 </>
