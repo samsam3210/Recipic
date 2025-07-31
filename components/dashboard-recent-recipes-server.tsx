@@ -288,9 +288,9 @@ export function DashboardRecentRecipesServer({ recipes, isLoading = false }: Das
                         boxShadow: '0 3px 12px rgba(255, 87, 34, 0.3)'
                       }}
                     >
-                      <span>레시피 보기</span>
-                      <div className="w-5 h-5 bg-white rounded-full flex items-center justify-center">
-                        <ArrowRight className="w-3 h-3 text-orange-500" />
+                      <span>보기</span>
+                      <div className="w-4 h-4 bg-white rounded-full flex items-center justify-center">
+                        <ArrowRight className="w-2.5 h-2.5 text-orange-500" />
                       </div>
                     </button>
                     <button
