@@ -697,7 +697,7 @@ export function HeroSection({ user, isDashboard = false, cachedUsageData = null,
       )}
 
           {isDashboard && (
-            <div className="w-full max-w-2xl space-y-4">
+            <div className="w-full space-y-4">
               {isLoading ? (
                 <>
                   <Skeleton className="h-12 md:h-14 w-full rounded-xl" />

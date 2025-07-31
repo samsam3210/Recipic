@@ -52,7 +52,7 @@ export function DashboardRecentRecipesServer({ recipes, isLoading = false }: Das
       
       {isLoading ? (
         <div 
-          className="flex gap-4 pb-2 pl-3" 
+          className="flex gap-4 pb-2 px-6" 
           style={{ 
             overflowX: 'auto',
             scrollbarWidth: 'none',
@@ -93,13 +93,11 @@ export function DashboardRecentRecipesServer({ recipes, isLoading = false }: Das
         </div>
       ) : (
         <div 
-          className="flex gap-4 pb-2"
+          className="flex gap-4 pb-2 px-6"
           style={{ 
             overflowX: 'auto',
             scrollbarWidth: 'none',
-            msOverflowStyle: 'none',
-            marginLeft: '12px',
-            marginRight: '-16px'
+            msOverflowStyle: 'none'
           }}
         >
           <style jsx>{`
