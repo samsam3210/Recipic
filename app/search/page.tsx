@@ -591,10 +591,10 @@ function SearchPageContent({ user }: { user: User }) {
   }
 
   return (
-    <div className="flex flex-col min-h-screen">
+    <div className="flex flex-col min-h-screen" style={{ backgroundColor: '#FAFAFA' }}>
       <Header />
 
-      <main className="flex-1 pt-6 md:pt-8 w-full px-4 sm:px-6 lg:px-8 py-4 sm:py-8">
+      <main className="flex-1 pt-6 md:pt-8 w-full py-4 sm:py-8">
         <div className="max-w-7xl mx-auto">
           <div className="flex flex-col lg:flex-row gap-8 pb-20 lg:pb-8">
             <aside className="hidden lg:block lg:w-1/5 lg:min-w-[200px] lg:border-r lg:pr-8">
@@ -604,9 +604,9 @@ function SearchPageContent({ user }: { user: User }) {
 
             <section className="flex-1 lg:w-4/5 space-y-8">
               {/* 검색 폼 컨테이너 */}
-              <div className="lg:max-w-4xl">
+              <div className="px-6">
                 <form onSubmit={handleSearch} className="mb-8">
-                  <div className="flex items-center bg-white rounded-xl border border-gray-200 shadow-sm hover:shadow-md hover:border-gray-300 transition-all duration-200 focus-within:border-[#6BA368] focus-within:ring-2 focus-within:ring-[#6BA368]/10">
+                  <div className="flex items-center bg-white rounded-full border border-gray-200 shadow-sm hover:shadow-md hover:border-gray-300 transition-all duration-200 focus-within:border-[#6BA368] focus-within:ring-2 focus-within:ring-[#6BA368]/10">
                     <div className="flex items-center pl-4 md:pl-6">
                       <Search className="w-4 h-4 md:w-5 md:h-5 text-gray-400" />
                     </div>
@@ -616,7 +616,7 @@ function SearchPageContent({ user }: { user: User }) {
                       placeholder="요리 키워드 또는 URL 입력"
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
-                      className="h-12 md:h-14 flex-grow px-3 md:px-4 border-none focus:outline-none focus:ring-0 focus-visible:ring-0 focus-visible:ring-offset-0 text-base md:text-lg placeholder:text-gray-400 bg-transparent rounded-xl"
+                      className="h-12 md:h-14 flex-grow px-3 md:px-4 border-none focus:outline-none focus:ring-0 focus-visible:ring-0 focus-visible:ring-offset-0 text-base md:text-lg placeholder:placeholder-gray-400 bg-transparent rounded-full"
                       disabled={isSearching}
                       autoComplete="off"
                       autoCorrect="off"
@@ -630,7 +630,7 @@ function SearchPageContent({ user }: { user: User }) {
                         !searchQuery.trim() || isSearching
                           ? "bg-gray-400"
                           : "bg-[#6BA368] hover:bg-[#5a8f57]"
-                      } text-white rounded-lg font-medium transition-colors duration-200 text-sm md:text-base`}
+                      } text-white rounded-full font-semibold transition-all duration-200 text-sm md:text-base hover:scale-105`}
                     >
                       {isSearching ? (
                         <Loader2 className="w-4 h-4 md:w-5 md:h-5 animate-spin" />
@@ -646,13 +646,15 @@ function SearchPageContent({ user }: { user: User }) {
               </div>
 
               {/* 인기 키워드 컴포넌트 - 검색 결과와 동일한 정렬 */}
-              <PopularKeywords 
-                onKeywordClick={handleKeywordClick} 
-                isSearching={isSearching} 
-              />
+              <div className="px-6">
+                <PopularKeywords 
+                  onKeywordClick={handleKeywordClick} 
+                  isSearching={isSearching} 
+                />
+              </div>
 
           {searchResults.length > 0 && (
-            <div className="space-y-4">
+            <div className="space-y-4 px-6">
               <div className="flex items-center justify-between">
                 <h2 className="text-lg font-semibold text-gray-900">
                   검색 결과 <span className="text-gray-500 text-sm">({searchResults.length}개)</span>
@@ -663,7 +665,7 @@ function SearchPageContent({ user }: { user: User }) {
                   {/* 드롭다운 트리거 */}
                   <button
                     onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                    className="flex items-center gap-2 px-3 py-2 border border-gray-200 rounded-lg bg-white hover:bg-gray-50 transition-colors cursor-pointer group min-w-[100px] sm:min-w-[120px]"
+                    className="flex items-center gap-2 px-3 py-2 border border-gray-200 rounded-full bg-white hover:bg-gray-50 transition-colors cursor-pointer group min-w-[100px] sm:min-w-[120px]"
                   >
                     <div className="flex items-center gap-2 text-sm text-gray-700">
                       {currentOption && (
@@ -679,7 +681,7 @@ function SearchPageContent({ user }: { user: User }) {
                   
                   {/* 드롭다운 메뉴 */}
                   {isDropdownOpen && (
-                    <div className="absolute top-full mt-1 left-0 right-0 bg-white border border-gray-200 rounded-lg shadow-lg z-50 overflow-hidden">
+                    <div className="absolute top-full mt-1 left-0 right-0 bg-white border border-gray-200 rounded-xl shadow-lg z-50 overflow-hidden">
                       {sortOptions.map((option) => (
                         <button
                           key={option.value}
@@ -706,43 +708,41 @@ function SearchPageContent({ user }: { user: User }) {
                 {searchResults.map((video) => (
                     <div
                     key={video.videoId}
-                    className="flex gap-4 p-4 border rounded-lg hover:bg-gray-50 cursor-pointer transition-colors"
+                    className="flex gap-4 p-4 bg-white rounded-2xl shadow-sm hover:shadow-md cursor-pointer transition-all duration-200 border border-gray-100"
                     onClick={() => handleVideoSelect(video)}
                     >
                     <div 
-                      className="relative w-32 h-24 cursor-pointer group"
+                      className="relative w-40 flex-shrink-0 cursor-pointer group"
                       onClick={(e) => handleThumbnailClick(video, e)}
                     >
-                      <img
-                          src={video.thumbnail}
-                          alt={video.title}
-                          className="w-full h-full object-cover rounded"
-                          loading="lazy"
-                          decoding="async"
-                      />
-                      {/* Play 버튼 오버레이 - 항상 표시, 크기 조정 */}
-                      <div className="absolute inset-0 bg-black/5 rounded flex items-center justify-center">
-                        <div className="bg-black/50 hover:bg-black/70 rounded-full p-2.5 shadow-lg transition-all transform hover:scale-110">
-                          <Play className="h-5 w-5 text-white fill-white" />
+                      {/* Fixed aspect ratio container */}
+                      <div className="relative w-full aspect-video rounded-xl overflow-hidden">
+                        <img
+                            src={video.thumbnail}
+                            alt={video.title}
+                            className="absolute inset-0 w-full h-full object-cover"
+                            loading="lazy"
+                            decoding="async"
+                        />
+                        {/* Play 버튼 오버레이 */}
+                        <div className="absolute inset-0 bg-black/5 rounded-xl flex items-center justify-center">
+                          <div className="bg-black/50 hover:bg-black/70 rounded-full p-2.5 shadow-lg transition-all transform hover:scale-110">
+                            <Play className="h-5 w-5 text-white fill-white" />
+                          </div>
                         </div>
-                      </div>
-                      {/* 재생시간 오버레이 */}
-                      {video.duration && (
-                        <div className="absolute bottom-1 right-1 bg-black bg-opacity-80 text-white text-xs px-1.5 py-0.5 rounded font-medium">
-                          {formatDuration(video.duration)}
-                        </div>
-                      )}
-                    </div>
-                    <div className="flex-1">
-                        <h3 className="font-medium text-gray-900 line-clamp-2">{video.title}</h3>
-                        <p className="text-sm text-gray-600 mt-1">{video.channelName}</p>
-
-                        {/* 카테고리 표시 */}
-                        {video.category && (
-                        <p className="text-xs text-gray-500 mt-1">카테고리: {video.category}</p>
+                        {/* 재생시간 오버레이 */}
+                        {video.duration && (
+                          <div className="absolute bottom-2 right-2 bg-black bg-opacity-80 text-white text-xs px-1.5 py-0.5 rounded font-medium">
+                            {formatDuration(video.duration)}
+                          </div>
                         )}
+                      </div>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                        <h3 className="font-semibold text-gray-900 line-clamp-2 text-base mb-2 min-h-[3rem] leading-6">{video.title}</h3>
+                        <p className="text-sm text-gray-600 line-clamp-1 mb-2">{video.channelName}</p>
 
-                        <div className="flex items-center space-x-2 text-xs text-gray-500 mt-1">
+                        <div className="flex items-center space-x-2 text-xs text-gray-500">
                         {/* 업로드일 */}
                         {video.publishedAt && (
                             <span>{new Date(video.publishedAt).toLocaleDateString("ko-KR").replace(/^(\d{4})\./, (match, p1) => `${p1.slice(2)}.`)}</span>
@@ -750,6 +750,24 @@ function SearchPageContent({ user }: { user: User }) {
 
                         {/* 조회수 */}
                         {video.viewCountFormatted && <span>조회수 {video.viewCountFormatted}</span>}
+                        </div>
+                        
+                        {/* 레시피 추출 버튼 */}
+                        <div className="mt-3">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              handleVideoSelect(video)
+                            }}
+                            className="inline-flex items-center px-4 py-2 text-sm font-semibold text-white rounded-full transition-all hover:opacity-90"
+                            style={{
+                              background: 'linear-gradient(120deg, #FF9057 0%, #FF5722 100%)',
+                              boxShadow: '0 3px 12px rgba(255, 87, 34, 0.3)'
+                            }}
+                          >
+                            레시피 추출
+                            <ArrowRight className="w-4 h-4 ml-1" />
+                          </button>
                         </div>
                     </div>
                     </div>
