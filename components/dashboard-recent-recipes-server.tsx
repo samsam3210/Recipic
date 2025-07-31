@@ -192,16 +192,20 @@ export function DashboardRecentRecipesServer({ recipes, isLoading = false }: Das
                       레시피 보기
                     </button>
                 <button
-                  className="w-10 h-10 flex items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200 transition-colors"
+                  className={`w-12 h-12 flex items-center justify-center rounded-lg border transition-colors ${
+                    recipe.savedRecipeId 
+                      ? 'bg-orange-50 border-orange-200 hover:bg-orange-100' 
+                      : 'bg-white border-gray-300 hover:bg-gray-50'
+                  }`}
                   onClick={() => {
                     // TODO: 북마크 기능 구현
                     console.log('Bookmark clicked for recipe:', recipe.id)
                   }}
                 >
                   {recipe.savedRecipeId ? (
-                    <BookmarkCheck className="w-4 h-4 text-orange-500" />
+                    <BookmarkCheck className="w-5 h-5 text-orange-500 fill-current" />
                   ) : (
-                    <Bookmark className="w-4 h-4 text-gray-400" />
+                    <Bookmark className="w-5 h-5 text-gray-600" />
                   )}
                 </button>
               </div>

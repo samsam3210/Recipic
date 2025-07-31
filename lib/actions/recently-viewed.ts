@@ -104,7 +104,7 @@ export async function getRecentlyViewedRecipes(): Promise<{
       .from(recentlyViewedRecipes)
       .where(eq(recentlyViewedRecipes.userId, user.id))
       .orderBy(desc(recentlyViewedRecipes.viewedAt))
-      .limit(3) // 대시보드에서는 3개만
+      .limit(5) // 대시보드에서는 5개만
 
     console.log("[getRecentlyViewedRecipes] 조회 결과:", recipes.length, "개의 레시피")
     console.log("[getRecentlyViewedRecipes] 레시피 목록:", recipes)
