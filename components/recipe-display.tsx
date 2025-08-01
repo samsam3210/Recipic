@@ -4,7 +4,7 @@ import type React from "react"
 import { useState, useEffect, useCallback, useRef } from "react"
 import { Textarea } from "@/components/ui/textarea"
 import { Button } from "@/components/ui/button" // Button 임포트 추가
-import { Play, Save, Loader2, Bookmark, BookmarkCheck, ChevronDown } from "lucide-react" // 필요한 아이콘들만 임포트
+import { Play, Save, Loader2, Bookmark, BookmarkCheck, ChevronDown, ArrowLeft, Share } from "lucide-react" // 필요한 아이콘들만 임포트
 
 interface RecipeData {
   id?: string
@@ -211,33 +211,58 @@ export function RecipeDisplay({
 
   return (
     <div className="w-full bg-white">
+      {/* 상단 네비게이션 바 */}
+      <div className="sticky top-0 z-50 bg-white border-b">
+        <div className="flex items-center justify-between px-4 h-14">
+          <button 
+            onClick={() => window.history.back()}
+            className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+          >
+            <ArrowLeft className="w-6 h-6 text-gray-700" />
+          </button>
+          <div className="flex gap-3">
+            {isSavedRecipe ? (
+              <button className="p-2 hover:bg-gray-100 rounded-full transition-colors">
+                <Bookmark className="w-5 h-5 fill-orange-500 text-orange-500" />
+              </button>
+            ) : (
+              <button 
+                onClick={onSaveRecipe} 
+                disabled={isSaving} 
+                className="p-2 hover:bg-gray-100 rounded-full transition-colors disabled:opacity-50"
+              >
+                {isSaving ? (
+                  <Loader2 className="w-5 h-5 text-gray-700 animate-spin" />
+                ) : (
+                  <Bookmark className="w-5 h-5 text-gray-700" />
+                )}
+              </button>
+            )}
+            <button 
+              onClick={() => {
+                if (navigator.share) {
+                  navigator.share({
+                    title: recipe.recipeName || recipe.videoTitle || '레시피',
+                    text: recipe.summary,
+                    url: window.location.href
+                  })
+                }
+              }}
+              className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+            >
+              <Share className="w-5 h-5 text-gray-700" />
+            </button>
+          </div>
+        </div>
+      </div>
+      
       {/* 탭 이전 컨텐츠 영역 - 24px 좌우 패딩 */}
       <div className="px-6">
         {/* 레시피 제목 */}
-        <div className="flex items-start justify-between mb-0 mt-6">
-          <h1 className="text-2xl font-bold text-gray-900 leading-tight flex-1">
+        <div className="mb-0 mt-6">
+          <h1 className="text-2xl font-bold text-gray-900 leading-tight">
             {recipe.recipeName || "제목 없음"}
           </h1>
-          {(onSaveRecipe || isSavedRecipe) && (
-            <Button
-              onClick={onSaveRecipe}
-              disabled={isSaving}
-              size="sm"
-              className={`ml-2 w-10 h-10 rounded-full border-0 ${
-                isSavedRecipe 
-                  ? 'bg-orange-50 hover:bg-orange-100 text-orange-500' 
-                  : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
-              }`}
-            >
-              {isSaving ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : isSavedRecipe ? (
-                <BookmarkCheck className="h-4 w-4 fill-current" />
-              ) : (
-                <Bookmark className="h-4 w-4" />
-              )}
-            </Button>
-          )}
         </div>
 
         {/* 채널 정보 */}
