@@ -66,4 +66,4 @@ Recipick is a Korean YouTube recipe extraction service built with Next.js that u
 - Daily usage limits are enforced per user
 
 ## Deployment Trigger
-This comment is added to trigger Vercel deployment - 2025-01-30 00:09:00
+This comment is added to trigger Vercel deployment - 2025-08-01 15:30:00
