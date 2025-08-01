@@ -31,7 +31,11 @@ interface RecipeData {
   youtubeUrl: string
   videoDurationSeconds: number
   videoThumbnail?: string | null
+  videoTitle?: string | null
   channelName?: string | null
+  channelId?: string | null
+  channelUrl?: string | null
+  channelThumbnail?: string | null
 }
 
 interface RecipeDetailClientProps {
@@ -141,9 +145,7 @@ export function RecipeDetailClient({ recipe, videoId }: RecipeDetailClientProps)
   return (
     <div className="flex flex-col min-h-screen">
       {videoId && (
-        <div className="sticky top-0 z-30 w-full bg-background shadow-md max-w-3xl mx-auto">
-          {" "}
-          {/* Added max-w-3xl mx-auto */}
+        <div className="sticky top-0 z-30 w-full bg-background shadow-md">
           <Card className="mb-0 rounded-none border-none shadow-none">
             <CardContent className="p-0">
               <div className="aspect-video w-full">
@@ -160,7 +162,7 @@ export function RecipeDetailClient({ recipe, videoId }: RecipeDetailClientProps)
         </div>
       )}
 
-      <div className="container mx-auto max-w-3xl mt-6">
+      <div className="w-full mt-6 px-6">
         <RecipeDisplay
           recipe={recipe}
           isSavedRecipe={true}

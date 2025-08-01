@@ -26,6 +26,7 @@ interface RecipeData {
   youtubeUrl: string
   videoDurationSeconds: number
   videoThumbnail?: string | null
+  videoTitle?: string | null
   channelName?: string | null
   channelId?: string | null
   channelUrl?: string | null
@@ -211,7 +212,7 @@ export function RecipeDisplay({
   return (
     <div className="w-full bg-white">
       {/* 컨텐츠 영역 */}
-      <div className="px-6">
+      <div>
         {/* 레시피 제목 */}
         <div className="flex items-start justify-between mb-0 mt-6">
           <h1 className="text-2xl font-bold text-gray-900 leading-tight flex-1">
@@ -222,7 +223,7 @@ export function RecipeDisplay({
               onClick={onSaveRecipe}
               disabled={isSaving}
               size="sm"
-              className={`ml-4 w-10 h-10 rounded-full border-0 ${
+              className={`ml-2 w-10 h-10 rounded-full border-0 ${
                 isSavedRecipe 
                   ? 'bg-orange-50 hover:bg-orange-100 text-orange-500' 
                   : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
@@ -311,14 +312,15 @@ export function RecipeDisplay({
 
         {/* Sticky 트리거 요소 */}
         <div ref={stickyTriggerRef} className="h-0"></div>
-        
-        {/* 탭 네비게이션 */}
-        <div 
-          ref={tabNavRef}
-          className={`flex border-b border-gray-200 mb-6 bg-white transition-all duration-200 ${
-            isTabSticky ? 'sticky top-[56.25vw] md:top-[225px] z-20 shadow-md' : 'z-10'
-          }`}
-        >
+      </div>
+
+      {/* 탭 네비게이션 - 컨테이너 밖으로 이동 */}
+      <div 
+        ref={tabNavRef}
+        className={`flex justify-start border-b border-gray-200 mb-6 bg-white transition-all duration-200 w-full px-6 ${
+          isTabSticky ? 'sticky top-[56.25vw] md:top-[225px] z-20 shadow-md' : 'z-10'
+        }`}
+      >
           {[
             { key: 'ingredients', label: '재료' },
             { key: 'steps', label: '조리단계' },
@@ -335,7 +337,7 @@ export function RecipeDisplay({
                   targetRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' })
                 }
               }}
-              className={`py-3 px-0 mr-8 text-sm font-medium text-left border-b-2 transition-colors ${
+              className={`py-3 px-4 mr-4 text-sm font-medium text-center border-b-2 transition-colors ${
                 activeTab === tab.key
                   ? 'border-orange-500 text-orange-600'
                   : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
@@ -344,10 +346,10 @@ export function RecipeDisplay({
               {tab.label}
             </button>
           ))}
-        </div>
+      </div>
 
-        {/* 전체 컨텐츠 (스크롤 기반) */}
-        <div className="pb-8">
+      {/* 전체 컨텐츠 (스크롤 기반) */}
+      <div className="px-6 pb-8">
           {/* 재료 섹션 */}
           <div ref={ingredientsRef} className="mb-8">
             <h3 className="font-semibold text-gray-900 mb-4 text-lg">재료</h3>
