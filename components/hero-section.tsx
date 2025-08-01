@@ -41,6 +41,9 @@ interface VideoInfo {
   videoTitle: string
   videoThumbnail: string
   channelName: string
+  channelId: string
+  channelUrl: string
+  channelThumbnail: string
   videoDurationSeconds: number
   videoViews: number
   videoDescription: string

@@ -165,7 +165,7 @@ export function RecipeDetailClient({ recipe, videoId }: RecipeDetailClientProps)
         </div>
       )}
 
-      <div className="w-full mt-6 px-6">
+      <div className="w-full">
         <RecipeDisplay
           recipe={recipe}
           isSavedRecipe={true}

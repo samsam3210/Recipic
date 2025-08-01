@@ -36,6 +36,14 @@ interface RecipeData {
   }>
   tips: Array<{ title: string; description: string }>
   personalNotes: string | null
+  youtubeUrl?: string
+  videoDurationSeconds?: number
+  videoThumbnail?: string | null
+  videoTitle?: string | null
+  channelName?: string | null
+  channelId?: string | null
+  channelUrl?: string | null
+  channelThumbnail?: string | null
 }
 
 interface VideoInfo {
@@ -43,6 +51,9 @@ interface VideoInfo {
   videoTitle: string
   videoThumbnail: string
   channelName: string
+  channelId: string
+  channelUrl: string
+  channelThumbnail: string
   videoDurationSeconds: number
   videoViews: number
   transcriptText: string
@@ -115,6 +126,9 @@ export default function RecipePreviewPage() {
               youtubeUrl: parsedStoredData.youtubeUrl || '',
               videoThumbnail: parsedStoredData.videoInfo?.videoThumbnail,
               channelName: parsedStoredData.videoInfo?.channelName,
+              channelId: parsedStoredData.videoInfo?.channelId,
+              channelUrl: parsedStoredData.videoInfo?.channelUrl,
+              channelThumbnail: parsedStoredData.videoInfo?.channelThumbnail,
               summary: parsedStoredData.extractedRecipe?.summary,
               difficulty: parsedStoredData.extractedRecipe?.difficulty,
               cookingTimeMinutes: parsedStoredData.extractedRecipe?.cookingTimeMinutes,
@@ -435,7 +449,17 @@ export default function RecipePreviewPage() {
             </div>
           ) : (
             <RecipeDisplay 
-              recipe={previewData.extractedRecipe} 
+              recipe={{
+                ...previewData.extractedRecipe,
+                youtubeUrl: previewData.youtubeUrl,
+                videoDurationSeconds: previewData.videoInfo.videoDurationSeconds,
+                videoThumbnail: previewData.videoInfo.videoThumbnail,
+                videoTitle: previewData.videoInfo.videoTitle,
+                channelName: previewData.videoInfo.channelName,
+                channelId: previewData.videoInfo.channelId,
+                channelUrl: previewData.videoInfo.channelUrl,
+                channelThumbnail: previewData.videoInfo.channelThumbnail,
+              }} 
               isSavedRecipe={isRecipeSaved}
               handleSeekVideo={handleSeekVideo}
               handlePauseVideo={handlePauseVideo}

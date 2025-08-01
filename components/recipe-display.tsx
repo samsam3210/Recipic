@@ -211,8 +211,8 @@ export function RecipeDisplay({
 
   return (
     <div className="w-full bg-white">
-      {/* 컨텐츠 영역 */}
-      <div>
+      {/* 탭 이전 컨텐츠 영역 - 24px 좌우 패딩 */}
+      <div className="px-6">
         {/* 레시피 제목 */}
         <div className="flex items-start justify-between mb-0 mt-6">
           <h1 className="text-2xl font-bold text-gray-900 leading-tight flex-1">
@@ -242,7 +242,7 @@ export function RecipeDisplay({
 
         {/* 채널 정보 */}
         {recipe.channelName && (
-          <div className="flex items-center gap-3 mb-4">
+          <div className="flex items-center gap-3 mb-2">
             {/* 채널 썸네일 (조건부) */}
             {recipe.channelThumbnail && (
               <img 
@@ -272,9 +272,6 @@ export function RecipeDisplay({
             )}
           </div>
         )}
-
-        {/* 플레이어와의 간격 */}
-        <div className="mb-8"></div>
 
         {/* 요약 */}
         <div className="mb-6">
@@ -314,13 +311,14 @@ export function RecipeDisplay({
         <div ref={stickyTriggerRef} className="h-0"></div>
       </div>
 
-      {/* 탭 네비게이션 - 컨테이너 밖으로 이동 */}
+      {/* 탭 네비게이션 - 전체 너비 사용, 좌우 여백 없음 */}
       <div 
         ref={tabNavRef}
-        className={`flex justify-start border-b border-gray-200 mb-6 bg-white transition-all duration-200 w-full px-6 ${
+        className={`flex justify-start border-b border-gray-200 mb-6 bg-white transition-all duration-200 w-full ${
           isTabSticky ? 'sticky top-[56.25vw] md:top-[225px] z-20 shadow-md' : 'z-10'
         }`}
       >
+        <div className="px-6 flex">{/* 탭 버튼들을 위한 내부 컨테이너 */}
           {[
             { key: 'ingredients', label: '재료' },
             { key: 'steps', label: '조리단계' },
@@ -346,6 +344,7 @@ export function RecipeDisplay({
               {tab.label}
             </button>
           ))}
+        </div>
       </div>
 
       {/* 전체 컨텐츠 (스크롤 기반) */}
