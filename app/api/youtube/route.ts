@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server"
-import { getVideoDetails } from "@/lib/utils/youtube-api-wrapper"
+import { getVideoDetails, getChannelDetails } from "@/lib/utils/youtube-api-wrapper"
 
 export const maxDuration = 30 // Allow streaming responses up to 30 seconds
 
@@ -32,9 +32,28 @@ const videoIdMatch = youtubeUrl.match(
     const videoTitle = video.snippet.title
     const videoThumbnail = video.snippet.thumbnails.high.url
     const channelName = video.snippet.channelTitle
+    const channelId = video.snippet.channelId
     const videoDuration = video.contentDetails.duration // PT#M#S format
     const videoViews = video.statistics.viewCount
     const videoDescription = video.snippet.description
+
+    // 채널 정보 추가 조회
+    let channelThumbnail = null
+    let channelUrl = null
+    
+    if (channelId) {
+      try {
+        const channelDetailsData = await getChannelDetails(channelId)
+        if (channelDetailsData.items && channelDetailsData.items.length > 0) {
+          const channel = channelDetailsData.items[0]
+          channelThumbnail = channel.snippet.thumbnails.high?.url || channel.snippet.thumbnails.default?.url || null
+          channelUrl = `https://www.youtube.com/channel/${channelId}`
+        }
+      } catch (channelError) {
+        console.warn(`[youtube/route] Failed to fetch channel details for channelId: ${channelId}`, channelError)
+        // 채널 정보 조회 실패해도 레시피 추출은 계속 진행
+      }
+    }
 
     // Convert duration to seconds (simplified for common formats)
     const parseDuration = (duration: string) => {
@@ -123,6 +142,9 @@ const videoIdMatch = youtubeUrl.match(
       videoTitle,
       videoThumbnail,
       channelName,
+      channelId,
+      channelUrl,
+      channelThumbnail,
       videoDurationSeconds,
       videoViews,
       videoDescription,

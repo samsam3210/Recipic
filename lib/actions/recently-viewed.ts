@@ -11,6 +11,9 @@ interface RecentlyViewedRecipe {
   youtubeUrl: string
   videoThumbnail?: string
   channelName?: string
+  channelId?: string
+  channelUrl?: string
+  channelThumbnail?: string
   summary?: string
   viewedAt: Date
   difficulty?: string
@@ -38,6 +41,9 @@ interface AddRecentlyViewedParams {
   youtubeUrl: string
   videoThumbnail?: string
   channelName?: string
+  channelId?: string
+  channelUrl?: string
+  channelThumbnail?: string
   summary?: string
   difficulty?: string
   cookingTimeMinutes?: number
@@ -87,6 +93,9 @@ export async function getRecentlyViewedRecipes(): Promise<{
         youtubeUrl: recentlyViewedRecipes.youtubeUrl,
         videoThumbnail: recentlyViewedRecipes.videoThumbnail,
         channelName: recentlyViewedRecipes.channelName,
+        channelId: recentlyViewedRecipes.channelId,
+        channelUrl: recentlyViewedRecipes.channelUrl,
+        channelThumbnail: recentlyViewedRecipes.channelThumbnail,
         summary: recentlyViewedRecipes.summary,
         viewedAt: recentlyViewedRecipes.viewedAt,
         difficulty: recentlyViewedRecipes.difficulty,
@@ -176,6 +185,9 @@ export async function addRecentlyViewedRecipe(params: AddRecentlyViewedParams): 
         youtubeUrl: params.youtubeUrl,
         videoThumbnail: params.videoThumbnail,
         channelName: params.channelName || "",
+        channelId: params.channelId,
+        channelUrl: params.channelUrl,
+        channelThumbnail: params.channelThumbnail,
         summary: params.summary,
         difficulty: params.difficulty,
         cookingTimeMinutes: params.cookingTimeMinutes,

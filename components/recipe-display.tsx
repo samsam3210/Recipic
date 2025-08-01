@@ -488,6 +488,5 @@ export function RecipeDisplay({
           </div>
         </div>
       </div>
-    </div>
-  )
-}
+    )
+  }

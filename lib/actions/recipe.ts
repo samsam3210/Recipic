@@ -26,6 +26,9 @@ interface CreateRecipeData {
   videoTitle: string | null
   videoThumbnail: string | null
   channelName: string | null
+  channelId: string | null
+  channelUrl: string | null
+  channelThumbnail: string | null
   videoDurationSeconds: number | null
   videoViews: number | null
   videoDescription: string | null
@@ -75,6 +78,9 @@ export async function createRecipe(recipeData: CreateRecipeData) {
         videoTitle: recipeData.videoTitle,
         videoThumbnail: recipeData.videoThumbnail,
         channelName: recipeData.channelName,
+        channelId: recipeData.channelId,
+        channelUrl: recipeData.channelUrl,
+        channelThumbnail: recipeData.channelThumbnail,
         videoDurationSeconds: recipeData.videoDurationSeconds,
         videoViews: recipeData.videoViews,
         videoDescription: recipeData.videoDescription,
@@ -297,6 +303,9 @@ export async function checkAndSaveRecipe(
     videoTitle: string
     videoThumbnail: string
     channelName: string
+    channelId: string
+    channelUrl: string
+    channelThumbnail: string
     videoDurationSeconds: number
     videoViews: number
     videoDescription: string
@@ -327,6 +336,9 @@ export async function checkAndSaveRecipe(
       videoTitle: videoInfo.videoTitle,
       videoThumbnail: videoInfo.videoThumbnail,
       channelName: videoInfo.channelName,
+      channelId: videoInfo.channelId,
+      channelUrl: videoInfo.channelUrl,
+      channelThumbnail: videoInfo.channelThumbnail,
       videoDurationSeconds: videoInfo.videoDurationSeconds,
       videoViews: videoInfo.videoViews,
       videoDescription: videoInfo.videoDescription,
@@ -393,6 +405,9 @@ export async function saveRecipeFromRecentlyViewed(recentlyViewedId: string): Pr
           videoTitle: recentlyViewedRecipe.videoTitle,
           videoThumbnail: recentlyViewedRecipe.videoThumbnail,
           channelName: recentlyViewedRecipe.channelName,
+          channelId: recentlyViewedRecipe.channelId,
+          channelUrl: recentlyViewedRecipe.channelUrl,
+          channelThumbnail: recentlyViewedRecipe.channelThumbnail,
           videoDurationSeconds: recentlyViewedRecipe.videoDurationSeconds,
           videoViews: recentlyViewedRecipe.videoViews,
           videoDescription: recentlyViewedRecipe.videoDescription,
