@@ -27,6 +27,9 @@ interface RecipeData {
   videoDurationSeconds: number
   videoThumbnail?: string | null
   channelName?: string | null
+  channelId?: string | null
+  channelUrl?: string | null
+  channelThumbnail?: string | null
 }
 
 interface RecipeDisplayProps {
@@ -206,7 +209,7 @@ export function RecipeDisplay({
   }
 
   return (
-    <div className="max-w-md mx-auto bg-white">
+    <div className="w-full bg-white">
       {/* 컨텐츠 영역 */}
       <div className="px-6">
         {/* 레시피 제목 */}
@@ -238,8 +241,34 @@ export function RecipeDisplay({
 
         {/* 채널 정보 */}
         {recipe.channelName && (
-          <div className="mb-1">
-            <p className="text-gray-600 text-sm">{recipe.channelName}</p>
+          <div className="flex items-center gap-3 mb-4">
+            {/* 채널 썸네일 (조건부) */}
+            {recipe.channelThumbnail && (
+              <img 
+                src={recipe.channelThumbnail} 
+                alt={recipe.channelName}
+                className="w-10 h-10 rounded-full object-cover flex-shrink-0"
+              />
+            )}
+            
+            {/* 채널명 (강조) */}
+            <div className="flex-1 min-w-0">
+              <p className="text-gray-900 font-semibold text-base truncate">
+                {recipe.channelName}
+              </p>
+            </div>
+            
+            {/* 채널 이동 버튼 (조건부) */}
+            {recipe.channelUrl && (
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => window.open(recipe.channelUrl, '_blank', 'noopener,noreferrer')}
+                className="text-xs px-3 py-1.5 flex-shrink-0 border-gray-300 text-gray-700 hover:bg-gray-50"
+              >
+                채널 보기
+              </Button>
+            )}
           </div>
         )}
 
@@ -287,7 +316,7 @@ export function RecipeDisplay({
         <div 
           ref={tabNavRef}
           className={`flex border-b border-gray-200 mb-6 bg-white transition-all duration-200 ${
-            isTabSticky ? 'sticky top-0 z-50 shadow-md' : 'z-10'
+            isTabSticky ? 'sticky top-[56.25vw] md:top-[225px] z-20 shadow-md' : 'z-10'
           }`}
         >
           {[
@@ -306,7 +335,7 @@ export function RecipeDisplay({
                   targetRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' })
                 }
               }}
-              className={`flex-1 py-3 px-4 text-sm font-medium text-center border-b-2 transition-colors ${
+              className={`py-3 px-0 mr-8 text-sm font-medium text-left border-b-2 transition-colors ${
                 activeTab === tab.key
                   ? 'border-orange-500 text-orange-600'
                   : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
@@ -322,19 +351,18 @@ export function RecipeDisplay({
           {/* 재료 섹션 */}
           <div ref={ingredientsRef} className="mb-8">
             <h3 className="font-semibold text-gray-900 mb-4 text-lg">재료</h3>
-            <div className="space-y-3">
+            <div className="divide-y divide-gray-200">
               {recipe.ingredients.map((ingredient, index) => (
-                <div key={index} className="flex items-center justify-between py-3 px-4 bg-gray-50 rounded-lg">
-                  <span className="text-gray-900 font-medium">{ingredient.name}</span>
-                  <div className="text-right">
-                    <span className="text-gray-600 text-sm font-medium">
-                      {ingredient.quantity && ingredient.quantity !== "null" 
+                <div key={index} className="py-3 flex items-start justify-between">
+                  <div className="flex-1">
+                    <span className="text-gray-900 font-medium">
+                      {ingredient.name} {ingredient.quantity && ingredient.quantity !== "null" 
                         ? `${ingredient.quantity}${ingredient.unit && ingredient.unit !== "null" ? ingredient.unit : ""}`
                         : "적당량"
                       }
                     </span>
                     {ingredient.notes && (
-                      <p className="text-xs text-gray-400 mt-1">({ingredient.notes})</p>
+                      <p className="text-xs text-gray-500 mt-1">{ingredient.notes}</p>
                     )}
                   </div>
                 </div>
