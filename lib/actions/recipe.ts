@@ -268,7 +268,7 @@ export async function checkAllDuplicates(videoTitle: string, channelName: string
     }
 
     // 2. 저장된 레시피가 없으면 최근 본 레시피 확인
-    const recentlyViewedResult = await checkRecentlyViewedDuplicate(videoTitle, channelName)
+    const recentlyViewedResult = await checkRecentlyViewedDuplicate(youtubeUrl)
     if (recentlyViewedResult.isDuplicate && recentlyViewedResult.recentlyViewedData) {
       return {
         type: 'recently_viewed',

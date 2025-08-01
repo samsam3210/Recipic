@@ -151,16 +151,15 @@ export async function addRecentlyViewedRecipe(params: AddRecentlyViewedParams): 
 
     console.log("[addRecentlyViewedRecipe] 인증 성공, 사용자 ID:", user.id)
 
-    // 중복 확인 (videoTitle + channel_name 기준)
-    console.log("[addRecentlyViewedRecipe] 중복 확인 시작 - videoTitle:", params.videoTitle || params.recipeName, "channelName:", params.channelName)
+    // 중복 확인 (youtubeUrl 기준)
+    console.log("[addRecentlyViewedRecipe] 중복 확인 시작 - youtubeUrl:", params.youtubeUrl)
     const existingRecipe = await db
       .select({ id: recentlyViewedRecipes.id })
       .from(recentlyViewedRecipes)
       .where(
         and(
           eq(recentlyViewedRecipes.userId, user.id),
-          eq(recentlyViewedRecipes.videoTitle, params.videoTitle || params.recipeName),
-          eq(recentlyViewedRecipes.channelName, params.channelName || "")
+          eq(recentlyViewedRecipes.youtubeUrl, params.youtubeUrl)
         )
       )
       .limit(1)
@@ -237,8 +236,7 @@ export async function addRecentlyViewedRecipe(params: AddRecentlyViewedParams): 
  * 최근 본 레시피에서 중복 확인
  */
 export async function checkRecentlyViewedDuplicate(
-  videoTitle: string,
-  channelName: string
+  youtubeUrl: string
 ): Promise<{
   isDuplicate: boolean
   recentlyViewedData?: {
@@ -250,7 +248,7 @@ export async function checkRecentlyViewedDuplicate(
   }
 }> {
   try {
-    console.log("[checkRecentlyViewedDuplicate] 시작 - videoTitle:", videoTitle, "channelName:", channelName)
+    console.log("[checkRecentlyViewedDuplicate] 시작 - youtubeUrl:", youtubeUrl)
     
     const supabase = createClient()
     const { data: { user }, error: authError } = await supabase.auth.getUser()
@@ -274,8 +272,7 @@ export async function checkRecentlyViewedDuplicate(
       .where(
         and(
           eq(recentlyViewedRecipes.userId, user.id),
-          eq(recentlyViewedRecipes.videoTitle, videoTitle),
-          eq(recentlyViewedRecipes.channelName, channelName)
+          eq(recentlyViewedRecipes.youtubeUrl, youtubeUrl)
         )
       )
       .limit(1)
