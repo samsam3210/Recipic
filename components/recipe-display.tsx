@@ -60,6 +60,7 @@ export function RecipeDisplay({
   const stepsRef = useRef<HTMLDivElement>(null)
   const memoRef = useRef<HTMLDivElement>(null)
   const tabNavRef = useRef<HTMLDivElement>(null)
+  const stickyTriggerRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     setPersonalNotes(recipe.personalNotes || "")
@@ -101,12 +102,12 @@ export function RecipeDisplay({
     }
 
     const stickyObserver = new IntersectionObserver(stickyObserverCallback, {
-      rootMargin: '-1px 0px 0px 0px',
+      rootMargin: '0px 0px 0px 0px',
       threshold: 0
     })
 
-    if (tabNavRef.current) {
-      stickyObserver.observe(tabNavRef.current)
+    if (stickyTriggerRef.current) {
+      stickyObserver.observe(stickyTriggerRef.current)
     }
 
     return () => {
@@ -209,7 +210,7 @@ export function RecipeDisplay({
       {/* 컨텐츠 영역 */}
       <div className="px-6">
         {/* 레시피 제목 */}
-        <div className="flex items-start justify-between mb-1 mt-6">
+        <div className="flex items-start justify-between mb-0 mt-6">
           <h1 className="text-2xl font-bold text-gray-900 leading-tight flex-1">
             {recipe.recipeName || "제목 없음"}
           </h1>
@@ -237,7 +238,7 @@ export function RecipeDisplay({
 
         {/* 채널 정보 */}
         {recipe.channelName && (
-          <div className="mb-4">
+          <div className="mb-1">
             <p className="text-gray-600 text-sm">{recipe.channelName}</p>
           </div>
         )}
@@ -279,11 +280,14 @@ export function RecipeDisplay({
           </div>
         </div>
 
+        {/* Sticky 트리거 요소 */}
+        <div ref={stickyTriggerRef} className="h-0"></div>
+        
         {/* 탭 네비게이션 */}
         <div 
           ref={tabNavRef}
-          className={`flex border-b border-gray-200 mb-6 bg-white z-10 transition-all duration-200 ${
-            isTabSticky ? 'sticky top-0 shadow-sm' : ''
+          className={`flex border-b border-gray-200 mb-6 bg-white transition-all duration-200 ${
+            isTabSticky ? 'sticky top-0 z-50 shadow-md' : 'z-10'
           }`}
         >
           {[

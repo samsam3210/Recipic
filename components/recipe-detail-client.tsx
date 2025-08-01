@@ -160,7 +160,7 @@ export function RecipeDetailClient({ recipe, videoId }: RecipeDetailClientProps)
         </div>
       )}
 
-      <div className="container mx-auto px-4 max-w-3xl mt-6">
+      <div className="container mx-auto max-w-3xl mt-6">
         <RecipeDisplay
           recipe={recipe}
           isSavedRecipe={true}
